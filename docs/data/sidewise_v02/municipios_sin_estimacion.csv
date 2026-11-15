@@ -1,0 +1,242 @@
+﻿cod_ine,nombre,provincia,id_indicador,estado
+11012,Cádiz,Cádiz,estres_hidrico_pct,sin_cobertura_suficiente
+11031,San Fernando,Cádiz,estres_hidrico_pct,sin_cobertura_suficiente
+17094,Llívia,Girona,estres_hidrico_pct,sin_cobertura_suficiente
+21041,Huelva,Huelva,estres_hidrico_pct,sin_cobertura_suficiente
+21055,Palos de la Frontera,Huelva,estres_hidrico_pct,sin_cobertura_suficiente
+21060,Punta Umbría,Huelva,estres_hidrico_pct,sin_cobertura_suficiente
+30036,San Pedro del Pinatar,Murcia,estres_hidrico_pct,sin_cobertura_suficiente
+36022,"Grove, O",Pontevedra,estres_hidrico_pct,sin_cobertura_suficiente
+36023,"Guarda, A",Pontevedra,estres_hidrico_pct,sin_cobertura_suficiente
+36901,"Illa de Arousa, A",Pontevedra,estres_hidrico_pct,sin_cobertura_suficiente
+39005,Argoños,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+39009,Bárcena de Cicero,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+39023,Colindres,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+39029,Escalante,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+39035,Laredo,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+39047,Noja,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+39079,Santoña,Cantabria,estres_hidrico_pct,sin_cobertura_suficiente
+43136,"Ràpita, La",Tarragona,estres_hidrico_pct,sin_cobertura_suficiente
+48041,Gautegiz Arteaga,Bizkaia,estres_hidrico_pct,sin_cobertura_suficiente
+48048,Ibarrangelu,Bizkaia,estres_hidrico_pct,sin_cobertura_suficiente
+48057,Lekeitio,Bizkaia,estres_hidrico_pct,sin_cobertura_suficiente
+48076,Sukarrieta,Bizkaia,estres_hidrico_pct,sin_cobertura_suficiente
+51001,Ceuta,Ciudad Autónoma de Ceuta,estres_hidrico_pct,sin_cobertura_suficiente
+52001,Melilla,Ciudad Autónoma de Melilla,estres_hidrico_pct,sin_cobertura_suficiente
+07001,Alaró,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07002,Alaior,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07003,Alcúdia,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07004,Algaida,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07005,Andratx,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07006,Artà,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07007,Banyalbufar,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07008,Binissalem,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07009,Búger,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07010,Bunyola,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07011,Calvià,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07012,Campanet,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07013,Campos,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07014,Capdepera,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07015,Ciutadella de Menorca,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07016,Consell,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07017,Costitx,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07018,Deià,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07019,Escorca,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07020,Esporles,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07021,Estellencs,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07022,Felanitx,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07023,Ferreries,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07024,Formentera,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07025,Fornalutx,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07026,Eivissa,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07027,Inca,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07028,Lloret de Vistalegre,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07029,Lloseta,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07030,Llubí,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07031,Llucmajor,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07032,Maó,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07033,Manacor,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07034,Mancor de la Vall,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07035,Maria de la Salut,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07036,Marratxí,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07037,"Mercadal, Es",Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07038,Montuïri,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07039,Muro,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07040,Palma,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07041,Petra,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07042,Pollença,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07043,Porreres,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07044,"Pobla, Sa",Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07045,Puigpunyent,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07046,Sant Antoni de Portmany,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07047,Sencelles,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07048,Sant Josep de sa Talaia,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07049,Sant Joan,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07050,Sant Joan de Labritja,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07051,Sant Llorenç des Cardassar,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07052,Sant Lluís,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07053,Santa Eugènia,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07054,Santa Eulària des Riu,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07055,Santa Margalida,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07056,Santa María del Camí,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07057,Santanyí,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07058,Selva,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07059,"Salines, Ses",Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07060,Sineu,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07061,Sóller,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07062,Son Servera,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07063,Valldemossa,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07064,"Castell, Es",Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07065,Vilafranca de Bonany,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07901,Ariany,Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07902,"Migjorn Gran, Es",Illes Balears,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+09154,Hacinas,Burgos,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+09223,Monasterio de la Sierra,Burgos,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+17094,Llívia,Girona,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35001,Agaete,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35002,Agüimes,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35003,Antigua,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35004,Arrecife,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35005,Artenara,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35006,Arucas,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35007,Betancuria,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35008,Firgas,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35009,Gáldar,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35010,Haría,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35011,Ingenio,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35012,Mogán,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35013,Moya,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35014,"Oliva, La",Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35015,Pájara,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35016,"Palmas de Gran Canaria, Las",Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35017,Puerto del Rosario,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35018,San Bartolomé,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35019,San Bartolomé de Tirajana,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35020,"Aldea de San Nicolás, La",Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35021,Santa Brígida,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35022,Santa Lucía de Tirajana,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35023,Santa María de Guía de Gran Canaria,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35024,Teguise,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35025,Tejeda,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35026,Telde,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35027,Teror,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35028,Tías,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35029,Tinajo,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35030,Tuineje,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35031,Valsequillo de Gran Canaria,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35032,Valleseco,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35033,Vega de San Mateo,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+35034,Yaiza,Las Palmas,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+36901,"Illa de Arousa, A",Pontevedra,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38001,Adeje,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38002,Agulo,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38003,Alajeró,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38004,Arafo,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38005,Arico,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38006,Arona,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38007,Barlovento,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38008,Breña Alta,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38009,Breña Baja,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38010,Buenavista del Norte,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38011,Candelaria,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38012,Fasnia,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38013,Frontera,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38014,Fuencaliente de la Palma,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38015,Garachico,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38016,Garafía,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38017,Granadilla de Abona,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38018,"Guancha, La",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38019,Guía de Isora,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38020,Güímar,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38021,Hermigua,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38022,Icod de los Vinos,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38023,San Cristóbal de La Laguna,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38024,"Llanos de Aridane, Los",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38025,"Matanza de Acentejo, La",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38026,"Orotava, La",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38027,"Paso, El",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38028,Puerto de la Cruz,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38029,Puntagorda,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38030,Puntallana,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38031,"Realejos, Los",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38032,"Rosario, El",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38033,San Andrés y Sauces,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38034,San Juan de la Rambla,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38035,San Miguel de Abona,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38036,San Sebastián de la Gomera,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38037,Santa Cruz de la Palma,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38038,Santa Cruz de Tenerife,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38039,Santa Úrsula,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38040,Santiago del Teide,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38041,"Sauzal, El",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38042,"Silos, Los",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38043,Tacoronte,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38044,"Tanque, El",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38045,Tazacorte,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38046,Tegueste,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38047,Tijarafe,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38048,Valverde,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38049,Valle Gran Rey,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38050,Vallehermoso,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38051,"Victoria de Acentejo, La",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38052,Vilaflor de Chasna,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38053,Villa de Mazo,Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+38901,"Pinar de El Hierro, El",Santa Cruz de Tenerife,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+51001,Ceuta,Ciudad Autónoma de Ceuta,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+52001,Melilla,Ciudad Autónoma de Melilla,dist_recta_ttm_km,sin_destino_catalogado_en_tierra
+07002,Alaior,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07015,Ciutadella de Menorca,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07023,Ferreries,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07024,Formentera,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07026,Eivissa,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07032,Maó,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07037,"Mercadal, Es",Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07046,Sant Antoni de Portmany,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07048,Sant Josep de sa Talaia,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07050,Sant Joan de Labritja,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07052,Sant Lluís,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07054,Santa Eulària des Riu,Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07064,"Castell, Es",Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+07902,"Migjorn Gran, Es",Illes Balears,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+09154,Hacinas,Burgos,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+09223,Monasterio de la Sierra,Burgos,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+17094,Llívia,Girona,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35003,Antigua,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35004,Arrecife,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35007,Betancuria,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35010,Haría,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35014,"Oliva, La",Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35015,Pájara,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35017,Puerto del Rosario,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35018,San Bartolomé,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35024,Teguise,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35028,Tías,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35029,Tinajo,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35030,Tuineje,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+35034,Yaiza,Las Palmas,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+36901,"Illa de Arousa, A",Pontevedra,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38002,Agulo,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38003,Alajeró,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38007,Barlovento,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38008,Breña Alta,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38009,Breña Baja,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38013,Frontera,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38014,Fuencaliente de la Palma,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38016,Garafía,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38021,Hermigua,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38024,"Llanos de Aridane, Los",Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38027,"Paso, El",Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38029,Puntagorda,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38030,Puntallana,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38033,San Andrés y Sauces,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38036,San Sebastián de la Gomera,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38037,Santa Cruz de la Palma,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38045,Tazacorte,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38047,Tijarafe,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38048,Valverde,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38049,Valle Gran Rey,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38050,Vallehermoso,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38053,Villa de Mazo,Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+38901,"Pinar de El Hierro, El",Santa Cruz de Tenerife,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+51001,Ceuta,Ciudad Autónoma de Ceuta,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra
+52001,Melilla,Ciudad Autónoma de Melilla,dist_recta_eje_autovia_km,sin_destino_catalogado_en_tierra

@@ -1,0 +1,11 @@
+{
+  "poligonos_originales": 11968,
+  "geometrias_reparadas": 39,
+  "area_original_validada_ha": 220798.00390182695,
+  "area_intersectada_bruta_ha": 219257.95684621582,
+  "area_municipal_unida_ha": 219257.86457144498,
+  "solape_eliminado_ha": 0.09227477106211836,
+  "area_fuera_limites_ha": 1540.0470556116368,
+  "municipios_con_poligonos": 3699,
+  "municipios_sin_poligonos_catalogados": 4433
+}
