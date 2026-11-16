@@ -1,1 +1,1 @@
-"""Paquete principal de Sidewise."""
+"""Paquete principal de sitewise."""

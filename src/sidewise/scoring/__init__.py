@@ -1,1 +1,1 @@
-"""Módulo scoring de Sidewise."""
+"""Módulo scoring de sitewise."""

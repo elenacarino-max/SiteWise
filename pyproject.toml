@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sidewise"
+name = "sitewise"
 version = "0.1.0"
 description = "Análisis municipal para comparar ubicaciones empresariales en España"
 readme = "README.md"

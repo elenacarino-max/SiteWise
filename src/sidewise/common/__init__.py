@@ -1,1 +1,1 @@
-"""Módulo common de Sidewise."""
+"""Módulo common de sitewise."""
