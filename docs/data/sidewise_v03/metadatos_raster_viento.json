@@ -1,0 +1,23 @@
+{
+  "crs": "EPSG:4326",
+  "width": 9801,
+  "height": 7712,
+  "transform": [
+    0.002500000000000001,
+    0.0,
+    -18.18124999999995,
+    0.0,
+    -0.002500000000000001,
+    46.89624999999999,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "tags": {
+    "AREA_OR_POINT": "Area"
+  },
+  "version_copia": "no_confirmada",
+  "periodo_copia": "no_confirmado",
+  "unidad": "m/s según documentación Global Wind Atlas",
+  "altura_m": 100
+}

@@ -1,0 +1,17 @@
+﻿id_indicador,real,aproximado,pendiente,municipios,cobertura_pct,fecha_dato,nivel_origen
+cobertura_100mbps_pct,8132,0,0,8132,100.0,2025-06,municipio
+cobertura_1gbps_pct,8132,0,0,8132,100.0,2025-06,municipio
+cobertura_5g_pct,8132,0,0,8132,100.0,2025-06,municipio
+cobertura_ftth_pct,8132,0,0,8132,100.0,2025-06,municipio
+densidad_hab_km2,8132,0,0,8132,100.0,poblacion 2025 / area 2024,municipio
+eventos_cnih_2000_2023_n,2480,0,5652,8132,30.49680275454993,2000-2023,municipio
+ha_afectadas_100km2_2006_2015,4375,0,3757,8132,53.79980324643384,2006-2015,municipio
+niepi_prov_2021,0,8132,0,8132,100.0,2021,provincia
+poblacion_2024,8132,0,0,8132,100.0,2024-01-01,municipio
+poblacion_2025,8132,0,0,8132,100.0,2025-01-01,municipio
+siniestros_forestales_100km2_2006_2015,4375,0,3757,8132,53.79980324643384,2006-2015,municipio
+siniestros_forestales_2006_2015_n,4375,0,3757,8132,53.79980324643384,2006-2015,municipio
+superficie_forestal_afectada_2006_2015_ha,4375,0,3757,8132,53.79980324643384,2006-2015,municipio
+tiepi_horas_prov_2021,0,8132,0,8132,100.0,2021,provincia
+ultimo_anio_cnih_2000_2023,2480,0,5652,8132,30.49680275454993,2000-2023,municipio
+variacion_poblacion_pct,8132,0,0,8132,100.0,2024-2025,municipio

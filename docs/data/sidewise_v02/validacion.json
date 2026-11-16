@@ -1,0 +1,15 @@
+{
+  "municipios": 8132,
+  "indicadores_totales": 25,
+  "indicadores_nuevos_con_valores": 9,
+  "indicadores_pendientes_fuente": 0,
+  "valores_largos": 203300,
+  "duplicados_clave": 0,
+  "conservacion_v01": "correcta",
+  "python": "3.14.6",
+  "pandas": "2.3.3",
+  "geopandas": "1.2.0",
+  "rasterio": "1.5.2",
+  "shapely": "2.2.0",
+  "ejecucion": "cuaderno completo, copias incluidas; reconstrucción opcional no ejecutada en esta pasada"
+}

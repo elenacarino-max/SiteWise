@@ -1,0 +1,2 @@
+Resolución y descarga correctas con pip --only-binary=:all: --platform win_amd64 --python-version 3.14 --implementation cp --abi cp314 --abi abi3 -r notebooks/requirements-dataset.txt.
+Las 17 celdas se vuelven a ejecutar con pandas 2.3.3 usando Python 3.12 e IPython en proceso.
