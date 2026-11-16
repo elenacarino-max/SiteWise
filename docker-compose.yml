@@ -3,8 +3,8 @@ services:
   db:
     image: postgis/postgis:16-3.4
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-sidewise}
-      POSTGRES_USER: ${POSTGRES_USER:-sidewise}
+      POSTGRES_DB: ${POSTGRES_DB:-sitewise}
+      POSTGRES_USER: ${POSTGRES_USER:-sitewise}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Completa POSTGRES_PASSWORD en .env}
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"

@@ -1,1 +1,1 @@
-"""Módulo ml de Sidewise."""
+"""Módulo ml de sitewise."""

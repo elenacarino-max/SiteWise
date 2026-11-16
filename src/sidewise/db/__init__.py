@@ -1,1 +1,1 @@
-"""Módulo db de Sidewise."""
+"""Módulo db de sitewise."""

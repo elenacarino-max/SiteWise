@@ -1,1 +1,1 @@
-"""Módulo rag de Sidewise."""
+"""Módulo rag de sitewise."""

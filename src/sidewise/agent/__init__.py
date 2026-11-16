@@ -1,1 +1,1 @@
-"""Módulo agent de Sidewise."""
+"""Módulo agent de sitewise."""

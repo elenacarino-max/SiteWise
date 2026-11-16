@@ -1,10 +1,10 @@
-# Sidewise
+# sitewise
 
 Plataforma de análisis municipal en España para comparar ubicaciones empresariales mediante indicadores de riesgo y atractivo, clustering e IA generativa con fuentes verificables.
 
 ## Estado
 
-Estructura inicial del proyecto. Todavía no hay una aplicación funcional, datasets cargados, modelos entrenados ni agente implementado. El nombre del repositorio es **sidewise**; la documentación de partida usaba SiteWise.
+Estructura inicial del proyecto. Todavía no hay una aplicación funcional, datasets cargados, modelos entrenados ni agente implementado. El nombre del repositorio es **sitewise**; la documentación de partida usaba SiteWise.
 
 ## Alcance inicial
 
@@ -13,11 +13,11 @@ Una actividad de principio a fin: seleccionar actividad, consultar municipios, c
 ## Estructura
 
 ```text
-sidewise/
+sitewise/
 ├── apps/                 # Aplicaciones ejecutables
 │   ├── frontend/         # Mapa, fichas, comparador y asistente
 │   └── api/              # API REST y contratos
-├── src/sidewise/         # Paquete Python reutilizable
+├── src/sitewise/         # Paquete Python reutilizable
 │   ├── data/             # Ingesta, limpieza y cruces municipales
 │   ├── scoring/          # Pesos, mínimos y puntuaciones
 │   ├── ml/               # Entrenamiento, evaluación y perfiles
