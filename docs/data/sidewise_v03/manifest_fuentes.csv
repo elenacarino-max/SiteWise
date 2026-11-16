@@ -1,0 +1,7 @@
+﻿archivo,bytes,sha256,origen,fecha_recuperacion,url
+data\raw\sidewise_v03\ESP.geojson,711489,858a8038ad47ad7eab069df9b6d84910e3c598c3dd069b0684f7964fc5a59327,aportado por Elena,2026-11-14,https://globalwindatlas.info/en/download/gis-files
+data\raw\sidewise_v03\ESP_wind-speed_100m.tif,56431553,f671c396036a55e148337aefb9350e8abfe0dfa486d7849ee44ae57e86ae5117,aportado por Elena,2026-11-14,https://globalwindatlas.info/en/download/gis-files
+data\raw\sidewise_v03\ESTADISTICA_MUNICIPIOS.zip,23432096,4189d3ad26e40d26c5c6e0327d04077e99e9d92bfa6b00bdd37e52285cb69f6b,aportado por Elena,2026-11-14,https://www.sepe.es/HomeSepe/que-es-el-sepe/estadisticas/datos-estadisticos/municipios.html
+data\raw\sidewise_v03\groundwaterbody-estado-masas.csv,190456,e37469ff427d3f0c4318b24467a71a0505b18b0ddf0cf81d533d75d904ecc1bc,aportado por Elena,2026-11-14,https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/estado-masas-agua-phc-2022-2027.html
+data\raw\sidewise_v03\gwa-plot-data_2026-11-14179465118078210_13_00_UTC.zip,1920,7153e37a9f6fb73a42d49c809c3d1142ba19549046fec3c4a9966fea5e742772,aportado por Elena,2026-11-14,https://globalwindatlas.info/en/download/gis-files
+data\raw\sidewise_v03\masas_subterraneas.geojson,71207606,ec79408576a170b5e8f163a1b9038a9c52d73f523a13de6848557a5a066ca57f,WFS público MITECO,2026-11-14,https://gis.miteco.gob.es/geoserver/agua/masas_aguasub_2027/wfs?service=WFS&version=2.0.0&request=GetFeature&typenames=agua:masas_aguasub_2027&outputFormat=application/json&srsName=EPSG:4326&count=5000

@@ -1,0 +1,10 @@
+﻿id_indicador,municipios,con_dato,sin_dato,cobertura_pct
+irradiacion_ghi_kwh_m2_anio,8132,8132,0,100.0
+estres_hidrico_pct,8132,8108,24,99.70486965076242
+agotamiento_hidrico_pct,8132,8108,24,99.70486965076242
+superficie_estres_ge40_pct,8132,8108,24,99.70486965076242
+dist_recta_ttm_km,8132,7971,161,98.02016724053124
+dist_recta_ttm_intermodal_km,8132,7971,161,98.02016724053124
+dist_recta_eje_autovia_km,8132,8076,56,99.31136251844565
+suelo_industrial_cartografiado_ha,8132,8132,0,100.0
+suelo_industrial_cartografiado_pct,8132,8132,0,100.0
