@@ -8,7 +8,7 @@ Esta entrega amplía la v0.1 e incluye el suelo industrial aportado el 14/11/202
 2. Con `.venv` activo y situado en la raíz del proyecto, ejecuta:
 
 ```powershell
-python -m pip install -r notebooks/requirements-dataset.txt
+python -m pip install -r requirements.txt
 ```
 
 3. Abre `notebooks/02_ampliacion_solar_agua_logistica_suelo.ipynb` y selecciona como kernel el Python de `.venv`, el mismo en el que instalaste las dependencias. No crees un segundo entorno.
