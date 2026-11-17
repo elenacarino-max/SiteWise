@@ -1,0 +1,12 @@
+{
+  "id": "cod_ine",
+  "contexto": ["nombre", "provincia", "ccaa"],
+  "variables": {
+    "poblacion_2025": {"ausentes": "error", "transformacion": "log1p", "recorte": [0.01, 0.99]},
+    "suelo_industrial_cartografiado_pct": {"ausentes": "error", "transformacion": "log1p", "recorte": [0.01, 0.99]},
+    "dist_recta_eje_autovia_km": {"ausentes": "maximo", "transformacion": "log1p", "recorte": [0.01, 0.99]},
+    "dist_recta_ttm_km": {"ausentes": "maximo", "transformacion": "log1p", "recorte": [0.01, 0.99]}
+  },
+  "escalado": "standard",
+  "pca": 0.85
+}
