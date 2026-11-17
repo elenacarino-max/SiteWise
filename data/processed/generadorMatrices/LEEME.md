@@ -6,19 +6,25 @@ el clustering. No requiere Rasterio ni GeoPandas.
 
 ## Instalación y primera ejecución en Windows / PowerShell
 
-Descomprime los archivos en la raíz del repositorio, por ejemplo:
-C:\PROYECTOS_ELE\Final_sidewise
+Los cuatro archivos del generador están en `data/processed/generadorMatrices/`:
+`generar_matriz.py`, `config_4_variables.json`, `LEEME.md` y
+`requirements-matrices.txt`.
+
+Ejecuta todos los comandos siguientes desde la raíz del repositorio. Todas las
+rutas son relativas a esa raíz; no es necesario mover los archivos.
+El dataset consolidado debe estar disponible localmente en
+`data/processed/sitewise_v03/dataset_municipal.csv`.
 
 Con el entorno Python del proyecto activado, instala las dependencias si faltan:
 
 ```powershell
-python -m pip install -r requirements-matrices.txt
+python -m pip install -r "data/processed/generadorMatrices/requirements-matrices.txt"
 ```
 
-Ejecuta en PowerShell (ajusta sidewise_v03 a sitewise_v03 si así se llama tu carpeta):
+Con el entorno Python del proyecto activado, ejecuta en PowerShell:
 
 ```powershell
-python generar_matriz.py --dataset "data/processed/sidewise_v03/dataset_municipal.csv" --config "config_4_variables.json" --salida "data/processed/ml/prueba_01"
+python "data/processed/generadorMatrices/generar_matriz.py" --dataset "data/processed/sitewise_v03/dataset_municipal.csv" --config "data/processed/generadorMatrices/config_4_variables.json" --salida "data/processed/sitewise_ml/prueba_01"
 ```
 
 El ejemplo reproduce el preprocesado de las cuatro variables acordadas: log1p,
@@ -27,11 +33,13 @@ observado solo para ML. PCA retiene al menos el 85 % de la varianza.
 
 ## Elegir otras variables
 
-1. Copia config_4_variables.json con otro nombre, por ejemplo config_prueba_02.json.
+1. Copia `data/processed/generadorMatrices/config_4_variables.json` como
+   `data/processed/generadorMatrices/config_prueba_02.json`.
 2. En variables, elimina o añade columnas usando sus nombres exactos en el CSV.
 3. Configura cada columna según su significado y cobertura.
 4. Ejecuta el mismo comando cambiando --config y --salida. La salida debe ser nueva:
-   el programa rechaza sobrescribir pruebas existentes.
+   el programa rechaza sobrescribir pruebas existentes. Guarda cada prueba en una
+   subcarpeta distinta de `data/processed/sitewise_ml/`, por ejemplo `prueba_02`.
 
 Ejemplo alternativo, sin PCA:
 
@@ -94,7 +102,7 @@ Sin PCA, usar matriz_ml.csv.
 
 ```python
 import pandas as pd
-matriz = pd.read_csv('data/processed/ml/prueba_01/matriz_pca.csv', dtype={'cod_ine': str})
+matriz = pd.read_csv('data/processed/sitewise_ml/prueba_01/matriz_pca.csv', dtype={'cod_ine': str})
 codigos = matriz['cod_ine'].copy()
 X = matriz.drop(columns='cod_ine')
 ```
@@ -105,3 +113,23 @@ municipios nuevos con el mismo modelo, se necesita una fase separada de ajuste y
 transformación usando los parámetros de entrenamiento. No reajustar una matriz
 nueva por separado si se van a comparar coordenadas o asignar clusters existentes.
 Los valores imputados son solo para ML: las fichas deben conservar los datos originales.
+
+## Alcance del generador y trabajo pendiente
+
+Esta versión usa NumPy, Pandas y scikit-learn, según
+`requirements-matrices.txt`. Es un generador para exploración del conjunto de
+entrada; no constituye el pipeline de scikit-learn solicitado en el issue #15.
+
+Antes de evaluar con particiones o transformar datos nuevos con un modelo ya
+ajustado, habrá que implementar el ajuste del preprocesado solo con los datos de
+entrenamiento y reutilizar ese mismo preprocesado para transformar validación y
+nuevos municipios. Esto incluye imputación, límites de recorte, escalado y PCA;
+no deben recalcularse por separado sobre validación.
+
+El código permanece por ahora en `data/processed/generadorMatrices/`. Su traslado
+a `scripts/` o `src/sitewise/ml/` puede abordarse en una revisión de estructura,
+actualizando conjuntamente los comandos y las reglas de `.gitignore`.
+
+Las salidas documentadas se unifican en `data/processed/sitewise_ml/`. Este cambio
+de documentación no mueve ni borra matrices de pruebas anteriores.
+
