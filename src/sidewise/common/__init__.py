@@ -1,1 +1,0 @@
-"""Módulo common de sitewise."""

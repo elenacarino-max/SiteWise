@@ -1,10 +1,10 @@
-# Sidewise · ampliación del dataset v0.2
+# SiteWise · ampliación del dataset v0.2
 
 Esta entrega amplía la v0.1 e incluye el suelo industrial aportado el 14/11/2026. Conserva el trabajo anterior. No se ha publicado ningún cambio en GitHub ni en el ordenador de Elena.
 
 ## Cómo incorporarla en Windows
 
-1. Descomprime el ZIP y copia las carpetas `notebooks`, `data` y `docs` en `C:\PROYECTOS_ELE\Final_sidewise`. Conserva las carpetas que ya existían. Las salidas nuevas se escriben en `sidewise_v02`; las tablas base incluidas son las de la entrega v0.1.
+1. Descomprime el ZIP y copia las carpetas `notebooks`, `data` y `docs` en `C:\PROYECTOS_ELE\Final_sidewise`. Conserva las carpetas que ya existían. Las salidas nuevas se escriben en `sitewise_v02`; las tablas base incluidas son las de la entrega v0.1.
 2. Con `.venv` activo y situado en la raíz del proyecto, ejecuta:
 
 ```powershell
@@ -13,7 +13,7 @@ python -m pip install -r notebooks/requirements-dataset.txt
 
 3. Abre `notebooks/02_ampliacion_solar_agua_logistica_suelo.ipynb` y selecciona como kernel el Python de `.venv`, el mismo en el que instalaste las dependencias. No crees un segundo entorno.
 4. Puedes leer las explicaciones y gráficos guardados sin ejecutar. Para repetir el ETL, usa **Ejecutar todo**. No necesitas conexión para los cálculos con las copias incluidas.
-5. El backend puede empezar por `data/processed/sidewise_v02/dataset_municipal.csv`. Lee `cod_ine` como texto; los ceros iniciales son parte del identificador.
+5. El backend puede empezar por `data/processed/sitewise_v02/dataset_municipal.csv`. Lee `cod_ine` como texto; los ceros iniciales son parte del identificador.
 
 ## Qué añade
 
@@ -27,7 +27,7 @@ Las distancias parten del punto interior municipal de v0.1, no necesariamente de
 
 ## Qué falta de verdad
 
-Consulta `data/processed/sidewise_v02/requisitos_pendientes.csv`:
+Consulta `data/processed/sitewise_v02/requisitos_pendientes.csv`:
 
 - Suelo **libre/disponible** con fecha y condiciones: delimitar un área industrial existente no prueba que haya parcelas vacantes.
 - Caudal industrial contratable cuando la actividad lo exija: necesita información del operador de abastecimiento/concesiones.
@@ -38,14 +38,14 @@ No conviertas los requisitos desconocidos en cero ni en un requisito superado. E
 ## Archivos útiles
 
 - `notebooks/02_ampliacion_solar_agua_logistica_suelo.ipynb`: explicación y ETL ejecutado, con gráficos.
-- `data/raw/sidewise_v02/fuentes_ampliacion.json`: enlaces, consultas, fechas, atribuciones y SHA-256.
-- `data/processed/sidewise_v02/indicadores.csv`: diccionario y limitaciones.
-- `data/processed/sidewise_v02/valores.csv`: valores largos con estado, fuente, método y fecha.
-- `data/processed/sidewise_v02/solar_municipal.csv`, `agua_municipal.csv`, `logistica_municipal.csv`: resultados por bloque.
-- `data/processed/sidewise_v02/agua_intersecciones.csv`: auditoría del cruce de subcuencas y municipios.
-- `data/processed/sidewise_v02/suelo_industrial_municipal.csv` y `suelo_intersecciones.csv`: superficie cartografiada y cruce de polígonos.
-- `docs/data/sidewise_v02/balance_suelo_industrial.json`: áreas, reparaciones, solapes y superficies fuera de los límites generalizados.
-- `docs/data/sidewise_v02/`: cobertura, validación, incidencias y gráficos.
+- `data/raw/sitewise_v02/fuentes_ampliacion.json`: enlaces, consultas, fechas, atribuciones y SHA-256.
+- `data/processed/sitewise_v02/indicadores.csv`: diccionario y limitaciones.
+- `data/processed/sitewise_v02/valores.csv`: valores largos con estado, fuente, método y fecha.
+- `data/processed/sitewise_v02/solar_municipal.csv`, `agua_municipal.csv`, `logistica_municipal.csv`: resultados por bloque.
+- `data/processed/sitewise_v02/agua_intersecciones.csv`: auditoría del cruce de subcuencas y municipios.
+- `data/processed/sitewise_v02/suelo_industrial_municipal.csv` y `suelo_intersecciones.csv`: superficie cartografiada y cruce de polígonos.
+- `docs/data/sitewise_v02/balance_suelo_industrial.json`: áreas, reparaciones, solapes y superficies fuera de los límites generalizados.
+- `docs/data/sitewise_v02/`: cobertura, validación, incidencias y gráficos.
 
 Los recortes de PVGIS y Aqueduct conservan los valores de las fuentes, sin simplificar geometrías ni redondear los datos. El cuaderno muestra cómo reconstruirlos a partir de los originales. Los originales mundiales/continentales no se incluyen para evitar cientos de MB; sus URL y hashes sí.
 
@@ -57,6 +57,6 @@ El cuaderno se comprueba con las copias incluidas en Linux y pandas2.3.3. Se ver
 
 ## Antes de subir el volumen 2 al repositorio
 
-El GeoPackage peninsular original pesa unos 200 MB. Los dos originales están incluidos para repetir el ETL, en `data/raw/sidewise_v02/suelo_industrial/`. La regla existente del `.gitignore` excluye los datos de `data/raw/` y `data/processed/`: no uses `git add -f` para forzarlos. Puedes subir el notebook y la documentación; acordad cómo distribuir los datos entre el equipo. No se ha realizado ningún push.
+El GeoPackage peninsular original pesa unos 200 MB. Los dos originales están incluidos para repetir el ETL, en `data/raw/sitewise_v02/suelo_industrial/`. La regla existente del `.gitignore` excluye los datos de `data/raw/` y `data/processed/`: no uses `git add -f` para forzarlos. Puedes subir el notebook y la documentación; acordad cómo distribuir los datos entre el equipo. No se ha realizado ningún push.
 
 La red ferroviaria de líneas no hace falta para la distancia a terminales de mercancías del catálogo ADIF que ya calculamos. Haría falta si se añade análisis de trazados, conectividad o rutas, y una línea cercana no prueba la existencia de una terminal o un servicio de mercancías.
