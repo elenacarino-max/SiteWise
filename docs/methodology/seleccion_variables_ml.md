@@ -68,6 +68,21 @@ Los 6 casos peninsulares sin terminal ni autovía hay que revisarlos uno a uno c
 3. **Qué estados cuentan como dato válido.** El dataset usa 18 estados y el contrato solo 3 (real, aproximado, pendiente). Relacionado con el issue #11.
 4. **La columna `sentido` del diccionario mezcla dos nomenclaturas** (`mas_es_peor` / `menor_mejor` y `mas_es_mejor` / `mayor_mejor`). Convendría unificarla, también en el #11.
 
+## Primera prueba de clustering (acordada el 17 de noviembre)
+
+Elena propone empezar con pocas variables que describan perfiles de municipios útiles para la ubicación industrial. La valoración por actividad (con sus requisitos y pesos) se hará después. Se usan **4 variables, con cobertura completa o casi completa**:
+
+| Bloque | Variable | Transformación | Nota |
+| --- | --- | --- | --- |
+| Tamaño | `poblacion_2025` | log(1 + x) | Decidido: población y no densidad |
+| Suelo industrial | `suelo_industrial_cartografiado_pct` | — | El 0 significa "sin polígonos en el catálogo" |
+| Accesibilidad | `dist_recta_eje_autovia_km` | log(1 + x) | Huecos en islas y 6 casos peninsulares: se trata como distancia máxima observada |
+| Accesibilidad | `dist_recta_ttm_km` | log(1 + x) | Igual que la anterior |
+
+Condiciones: `cod_ine` queda fuera del cálculo; no se convierten ausencias en cero ni se reconstruyen datos protegidos del SEPE; no se usan valores provinciales repetidos; se revisan distribuciones, redundancias y escalado antes de entrenar.
+
+**Queda para una segunda prueba:** el empleo (no hay tasa hecha y `paro_total` solo tiene dato en el 77 % de los municipios, sobre todo los pequeños, por el secreto estadístico del SEPE), el viento, el agua subterránea, y el resto de las 10 variables de la propuesta inicial (conectividad, irradiación, estrés hídrico).
+
 ## Siguiente paso
 
-Con esta lista, Elena prepara la matriz de entrenamiento (#13) y empieza el primer clustering (#14): imputación → transformaciones → `StandardScaler` → PCA (≥ 85 % de varianza, requisito del enunciado) → K-Means con K entre 2 y 10.
+Con esta lista, Elena prepara la matriz de entrenamiento (#13) y Helen hace el primer clustering (#14): imputación → transformaciones → `StandardScaler` → PCA (≥ 85 % de varianza, requisito del enunciado) → K-Means con K entre 2 y 10.
