@@ -4,11 +4,11 @@ Preparada el 14/11/2026. Esta entrega reúne las dos anteriores y añade empleo 
 
 ## Incorporación en tu proyecto
 
-1. Descomprime el ZIP en una carpeta temporal. Copia `notebooks`, `data`, `docs` y los archivos `LEEME_*.md` a `C:\PROYECTOS_ELE\Final_sidewise`. Deben quedar directamente bajo la raíz del proyecto, sin una carpeta intermedia. Al combinar carpetas se actualizan los notebooks de esta entrega y `notebooks/requirements-dataset.txt`; conserva una copia si los habéis editado vosotros. El README general y el código de la aplicación no van en este paquete.
+1. Descomprime el ZIP en una carpeta temporal. Copia `notebooks`, `data`, `docs` y los archivos `LEEME_*.md` a `C:\PROYECTOS_ELE\Final_sidewise`. Deben quedar directamente bajo la raíz del proyecto, sin una carpeta intermedia. Al combinar carpetas se actualizan los notebooks de esta entrega y `requirements.txt`; conserva una copia si los habéis editado vosotros. El README general y el código de la aplicación no van en este paquete.
 2. Desde la terminal de ese proyecto, con **el mismo `.venv` que ya tienes** activo:
 
 ```powershell
-python -m pip install -r notebooks/requirements-dataset.txt
+python -m pip install -r requirements.txt
 ```
 
 3. En VS Code, abre `notebooks/03_dataset_consolidado_empleo_viento_agua.ipynb` y selecciona el Python de `.venv` como kernel. No hace falta crear otro entorno. Las explicaciones, gráficos y salidas ya están guardados.

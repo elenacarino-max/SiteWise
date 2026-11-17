@@ -9,7 +9,7 @@ Descomprime el contenido de este ZIP dentro de `C:\PROYECTOS_ELE\Final_sidewise`
 ## Abrir el notebook
 
 1. Abre el proyecto en VS Code.
-2. En la terminal con `.venv` activado, ejecuta `python -m pip install -r notebooks/requirements-dataset.txt`.
+2. En la terminal con `.venv` activado, ejecuta `python -m pip install -r requirements.txt`.
 3. Abre `notebooks/01_dataset_municipal.ipynb` y selecciona el kernel de `.venv`.
 4. Lee las explicaciones y ejecuta todas las celdas en orden.
 
