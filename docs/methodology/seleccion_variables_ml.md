@@ -75,9 +75,11 @@ Elena propone empezar con pocas variables que describan perfiles de municipios �
 | Bloque | Variable | Transformación | Nota |
 | --- | --- | --- | --- |
 | Tamaño | `poblacion_2025` | log(1 + x) | Decidido: población y no densidad |
-| Suelo industrial | `suelo_industrial_cartografiado_pct` | — | El 0 significa "sin polígonos en el catálogo" |
+| Suelo industrial | `suelo_industrial_cartografiado_pct` | log(1 + x) | Asimetría 7,9 antes del log; el 54,5 % son ceros, que significan "sin polígonos en el catálogo" |
 | Accesibilidad | `dist_recta_eje_autovia_km` | log(1 + x) | Huecos en islas y 6 casos peninsulares: se trata como distancia máxima observada |
 | Accesibilidad | `dist_recta_ttm_km` | log(1 + x) | Igual que la anterior |
+
+Después de las transformaciones, todas se recortan a los percentiles 1-99 y se estandarizan. Los notebooks son `05_clustering_kmeans.ipynb` y `06_clustering_dbscan.ipynb`.
 
 Condiciones: `cod_ine` queda fuera del cálculo; no se convierten ausencias en cero ni se reconstruyen datos protegidos del SEPE; no se usan valores provinciales repetidos; se revisan distribuciones, redundancias y escalado antes de entrenar.
 
