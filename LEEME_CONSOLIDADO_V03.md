@@ -1,4 +1,4 @@
-# Sidewise · entrega conjunta v0.3
+# SiteWise · entrega conjunta v0.3
 
 Preparada el 14/11/2026. Esta entrega reúne las dos anteriores y añade empleo registrado, recurso eólico y estado de las masas de agua subterránea. Incluye los originales utilizados, los resultados, tres notebooks explicativos con gráficos y la documentación de los cruces y las limitaciones. No se ha hecho ningún push ni se ha modificado tu carpeta de Windows.
 
@@ -13,7 +13,7 @@ python -m pip install -r notebooks/requirements-dataset.txt
 
 3. En VS Code, abre `notebooks/03_dataset_consolidado_empleo_viento_agua.ipynb` y selecciona el Python de `.venv` como kernel. No hace falta crear otro entorno. Las explicaciones, gráficos y salidas ya están guardados.
 4. Para repetir esta ampliación, usa **Ejecutar todo** en el notebook 03. Utiliza las salidas v0.2 incluidas; no necesitas ejecutar los tres notebooks antes de probar la aplicación. Los cálculos de esta ampliación funcionan sin conexión.
-5. Para empezar a conectar el backend, usa `data/processed/sidewise_v03/valores.csv`, `indicadores.csv` y `municipios.csv`. El archivo ancho `dataset_municipal.csv` sirve para explorar y hacer prototipos.
+5. Para empezar a conectar el backend, usa `data/processed/sitewise_v03/valores.csv`, `indicadores.csv` y `municipios.csv`. El archivo ancho `dataset_municipal.csv` sirve para explorar y hacer prototipos.
 
 Los notebooks 01 y 02 explican y permiten reproducir las fases anteriores con las copias incluidas. Algunas celdas de descarga o reconstrucción de recortes mundiales pueden necesitar internet; se entregan los recortes españoles para trabajar sin repetir esas descargas.
 
@@ -24,24 +24,24 @@ Los notebooks 01 y 02 explican y permiten reproducir las fases anteriores con la
 | `notebooks/01_dataset_municipal.ipynb` | Base municipal: población, conectividad, red eléctrica provincial, incendios e histórico de inundaciones. |
 | `notebooks/02_ampliacion_solar_agua_logistica_suelo.ipynb` | Radiación solar, Aqueduct, proximidad logística y superficie industrial cartografiada. |
 | `notebooks/03_dataset_consolidado_empleo_viento_agua.ipynb` | Nueva ETL y unión definitiva para esta entrega. |
-| `data/raw/sidewise_v03/` | ZIP original SEPE, TIFF eólico, CSV de estados del agua y geometrías WFS oficiales; también archivos nacionales auxiliares no repartidos entre municipios. |
-| `data/processed/sidewise_v03/municipios.csv` | Maestro territorial, identificadores y punto interior representativo. |
-| `data/processed/sidewise_v03/indicadores.csv` | Diccionario: definición, unidad, sentido, fuente, período, método y limitaciones. |
-| `data/processed/sidewise_v03/valores.csv` | Tabla larga para el backend, con valor y estado de cada indicador por municipio. |
-| `data/processed/sidewise_v03/dataset_municipal.csv` | Una fila por municipio con valores, estados y niveles de origen; añade controles de cobertura del viento y del agua subterránea. |
-| `data/processed/sidewise_v03/sepe_*original.csv.gz` | Series mensuales originales con celdas protegidas y trazabilidad. Son CSV comprimidos; pandas los lee directamente. |
-| `data/processed/sidewise_v03/sepe_*armonizado.csv.gz` | Series con códigos antiguos fusionados mediante correspondencias documentadas. |
-| `data/processed/sidewise_v03/empleo_municipal.csv` | Último mes disponible y comparación con el mismo mes del año anterior. |
-| `data/processed/sidewise_v03/agua_subterranea_intersecciones.csv.gz` | Cruces de municipios y masas, antes de disolver horizontes solapados. No sumar sin aplicar el método del notebook. |
-| `data/processed/sidewise_v03/validacion.csv` | Controles ejecutados y resultados. |
-| `docs/data/sidewise_v03/` | Metodología, manifiesto SHA-256, resumen de ejecución y vista HTML del notebook. |
-| `data/processed/sidewise_v01/municipios.geojson` | Geometrías del mapa. Son límites generalizados GISCO; no sirven para una decisión catastral. |
+| `data/raw/sitewise_v03/` | ZIP original SEPE, TIFF eólico, CSV de estados del agua y geometrías WFS oficiales; también archivos nacionales auxiliares no repartidos entre municipios. |
+| `data/processed/sitewise_v03/municipios.csv` | Maestro territorial, identificadores y punto interior representativo. |
+| `data/processed/sitewise_v03/indicadores.csv` | Diccionario: definición, unidad, sentido, fuente, período, método y limitaciones. |
+| `data/processed/sitewise_v03/valores.csv` | Tabla larga para el backend, con valor y estado de cada indicador por municipio. |
+| `data/processed/sitewise_v03/dataset_municipal.csv` | Una fila por municipio con valores, estados y niveles de origen; añade controles de cobertura del viento y del agua subterránea. |
+| `data/processed/sitewise_v03/sepe_*original.csv.gz` | Series mensuales originales con celdas protegidas y trazabilidad. Son CSV comprimidos; pandas los lee directamente. |
+| `data/processed/sitewise_v03/sepe_*armonizado.csv.gz` | Series con códigos antiguos fusionados mediante correspondencias documentadas. |
+| `data/processed/sitewise_v03/empleo_municipal.csv` | Último mes disponible y comparación con el mismo mes del año anterior. |
+| `data/processed/sitewise_v03/agua_subterranea_intersecciones.csv.gz` | Cruces de municipios y masas, antes de disolver horizontes solapados. No sumar sin aplicar el método del notebook. |
+| `data/processed/sitewise_v03/validacion.csv` | Controles ejecutados y resultados. |
+| `docs/data/sitewise_v03/` | Metodología, manifiesto SHA-256, resumen de ejecución y vista HTML del notebook. |
+| `data/processed/sitewise_v01/municipios.geojson` | Geometrías del mapa. Son límites generalizados GISCO; no sirven para una decisión catastral. |
 
 ## Cómo leer los datos sin perder información
 
 ```python
 import pandas as pd
-ruta = 'data/processed/sidewise_v03/'
+ruta = 'data/processed/sitewise_v03/'
 municipios = pd.read_csv(ruta + 'municipios.csv',
                          dtype={'cod_ine': str, 'cod_provincia': str})
 valores = pd.read_csv(ruta + 'valores.csv', dtype={'cod_ine': str},

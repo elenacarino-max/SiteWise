@@ -1,10 +1,10 @@
-# sitewise
+# SiteWise
 
 Plataforma de análisis municipal en España para comparar ubicaciones empresariales mediante indicadores de riesgo y atractivo, clustering e IA generativa con fuentes verificables.
 
 ## Estado
 
-Estructura inicial del proyecto. Todavía no hay una aplicación funcional, datasets cargados, modelos entrenados ni agente implementado. El nombre del repositorio es **sitewise**; la documentación de partida usaba SiteWise.
+Estructura inicial del proyecto. Todavía no hay una aplicación funcional, datasets cargados, modelos entrenados ni agente implementado. El proyecto se llama **SiteWise**. En código, paquete Python, base de datos y carpetas de datos se escribe `sitewise`, en minúsculas.
 
 ## Alcance inicial
 

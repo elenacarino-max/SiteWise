@@ -1,4 +1,4 @@
-# Dataset municipal Sidewise v0.1
+# Dataset municipal SiteWise v0.1
 
 Entrega del 13 de noviembre de 2026: 8.132 municipios, 16 indicadores y 130.112 observaciones en formato largo. Hay valores ausentes en los históricos; se mantienen como desconocidos.
 
@@ -18,14 +18,14 @@ El notebook contiene resultados guardados y las fuentes están incluidas. Puedes
 ## Archivos principales
 
 - `notebooks/01_dataset_municipal.ipynb`: las explicaciones y el ETL completo, con 17 celdas de código ejecutadas.
-- `data/raw/sidewise_v01/`: fuentes oficiales congeladas, exportaciones de Access y manifiesto SHA-256.
-- `data/processed/sidewise_v01/dataset_municipal.csv`: una fila por municipio, indicadores y estados.
-- `data/processed/sidewise_v01/municipios.csv`: identificación, área y punto interior representativo.
-- `data/processed/sidewise_v01/municipios.geojson`: geometrías para el mapa, de GISCO 2024, escala generalizada 1:1 millón.
-- `data/processed/sidewise_v01/indicadores.csv`: diccionario, unidades, periodos, métodos y limitaciones.
-- `data/processed/sidewise_v01/valores.csv`: una fila por municipio e indicador, con origen, periodo y estado.
-- `data/processed/sidewise_v01/matriz_base_contexto_infraestructura.csv`: propuesta de variables para exploración; no es un modelo entrenado ni un índice de riesgo.
-- `docs/data/sidewise_v01/`: calidad, trazabilidad, incidencias, códigos corregidos, gráficos y resumen.
+- `data/raw/sitewise_v01/`: fuentes oficiales congeladas, exportaciones de Access y manifiesto SHA-256.
+- `data/processed/sitewise_v01/dataset_municipal.csv`: una fila por municipio, indicadores y estados.
+- `data/processed/sitewise_v01/municipios.csv`: identificación, área y punto interior representativo.
+- `data/processed/sitewise_v01/municipios.geojson`: geometrías para el mapa, de GISCO 2024, escala generalizada 1:1 millón.
+- `data/processed/sitewise_v01/indicadores.csv`: diccionario, unidades, periodos, métodos y limitaciones.
+- `data/processed/sitewise_v01/valores.csv`: una fila por municipio e indicador, con origen, periodo y estado.
+- `data/processed/sitewise_v01/matriz_base_contexto_infraestructura.csv`: propuesta de variables para exploración; no es un modelo entrenado ni un índice de riesgo.
+- `docs/data/sitewise_v01/`: calidad, trazabilidad, incidencias, códigos corregidos, gráficos y resumen.
 
 Al leer CSV en pandas, utiliza `dtype={'cod_ine': str, 'cod_provincia': str}` para conservar ceros iniciales. Se incluyen versiones Parquet de las tablas principales; su regeneración es opcional y requiere `pyarrow`.
 
@@ -61,7 +61,7 @@ Se revisaron los gráficos y una vista renderizada de las explicaciones y result
 
 ## GitHub
 
-El paquete está preparado para la estructura de `elenacarino-max/sidewise`; no se han publicado cambios en el repositorio. Las carpetas `data/raw` y `data/processed` están excluidas de Git en el proyecto original: es intencionado. El notebook y la documentación pueden versionarse por la PR habitual, y las fuentes/resultados conservarse como entrega de datos.
+El paquete está preparado para la estructura de `elenacarino-max/SiteWise`; no se han publicado cambios en el repositorio. Las carpetas `data/raw` y `data/processed` están excluidas de Git en el proyecto original: es intencionado. El notebook y la documentación pueden versionarse por la PR habitual, y las fuentes/resultados conservarse como entrega de datos.
 
 ## Corrección de instalación para Python 3.14
 
