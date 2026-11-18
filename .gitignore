@@ -34,3 +34,7 @@ chroma_db/
 Thumbs.db
 .idea/
 .vscode/
+
+# Datos en la documentación
+docs/data/**/
+!docs/data/**/README.md
