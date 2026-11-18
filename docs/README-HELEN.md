@@ -40,11 +40,13 @@ Detalle de cada variable y de los ficheros derivados: `docs/governance/DICCIONAR
 
 **Agua subterránea:** 722 municipios no tienen masa de agua catalogada. Su valor se estima con la media de los 5 municipios con dato más cercanos en el mapa (la geografía predice el agua con un error medio de 4,9 puntos, frente a 16,5 poniendo 0). En la app se mostrará como `aproximado`.
 
-**Importante:** el paro rellenado es **solo para entrenar** y la aplicación muestra el dato observado y su estado (`pendiente`). El agua estimada se muestra como `aproximado`: la propuesta está en `data/processed/sitewise_ml/agua_estimada_vecinos_v01.csv` y falta incorporarla al dataset.
+**Importante:** el paro rellenado es **solo para entrenar** y la aplicación muestra el dato observado y su estado (`pendiente`). El agua estimada se muestra como `aproximado`: Elena ha decidido incorporarla solo a los ficheros de la app (`valores_app.csv` y `dataset_municipal_app.csv`), sin tocar `valores.csv`. La propuesta está en `data/processed/sitewise_ml/agua_estimada_vecinos_v01.csv`.
 
 ## 5. Resultados
 
-- **Primera prueba:** K-Means con K=5 (provisional). DBSCAN se usa solo para detectar municipios atípicos (360).
+- **K-Means con K=5.** Se elige K=5 por interpretabilidad y porque coincide con los 5 perfiles del diseño; las métricas no separan claramente unos K de otros, porque los municipios forman un continuo.
+- **Con PCA** (5 componentes y el 85 % de la varianza con 7 variables). Se usa PCA porque lo pide el enunciado, elimina solapamientos entre variables (población y suelo industrial, las dos distancias) y es la configuración usada en las pruebas; los perfiles se describen con las variables originales.
+- DBSCAN se usa solo para detectar municipios atípicos (360).
 - **Segunda prueba:** con 7 variables los grupos son menos nítidos (Silhouette de K=5: 0,27 con 4 variables y 0,23 con 7).
 - Los resultados son estables entre semillas (ARI medio ≥ 0,97).
 
@@ -68,7 +70,8 @@ Ejecutar en orden los notebooks 04 a 08 (los resultados se guardan en `data/proc
 
 ## 8. Limitaciones que conviene mencionar
 
-- Los grupos son provisionales (K=5, sin nombre de perfil todavía).
+- Los grupos son provisionales (K=5 y PCA elegidos, sin nombre de perfil todavía).
+- No se ha comparado «sin PCA» con las 7 variables. Con 4 variables, los grupos con y sin PCA coincidían con K=2 pero diferían desde K=3.
 - El preprocesado se ajusta con todos los municipios. Para evaluar con particiones habrá que ajustarlo solo con los de entrenamiento.
 - El agua estimada de los 722 municipios sin masa catalogada es una aproximación (los 722 están algo más lejos de sus vecinos que el resto), y por eso se marca como `aproximado`.
 - En los municipios con paro oculto o en blanco, la tasa de paro depende de la población por construcción.
