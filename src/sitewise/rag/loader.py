@@ -4,7 +4,8 @@ para el sistema RAG de SiteWise.
 """
 
 import os
-from typing import Any, Dict, List
+from typing import Any
+
 import pandas as pd
 
 
@@ -36,24 +37,22 @@ class SiteWiseLoader:
         if isinstance(val, (int, float)):
             if decimales > 0:
                 return f"{val:.{decimales}f}{sufijo}"
-            return f"{int(round(val))}{sufijo}"
+            return f"{round(val)}{sufijo}"
         return f"{val}{sufijo}"
 
-    def _construir_ficha_municipio(self, row: pd.Series) -> Dict[str, Any]:
+    def _construir_ficha_municipio(self, row: pd.Series) -> dict[str, Any]:
         """Transforma una fila del dataset en una ficha textual rica y sus metadatos."""
         cod_ine = str(row.get("cod_ine", "N/D"))
         nombre = str(row.get("nombre", "Desconocido"))
         provincia = str(row.get("provincia", "Desconocida"))
         ccaa = str(row.get("ccaa", "Desconocida"))
 
-        # Soporte para clustering (se adapta automáticamente si la columna existe)
         cluster_val = row.get("cluster_perfil", row.get("cluster", None))
         cluster_str = str(cluster_val) if pd.notna(cluster_val) else "Pendiente de asignar"
         linea_cluster = (
             f" | Perfil de clúster: {cluster_str}" if pd.notna(cluster_val) else ""
         )
 
-        # 1. Demografía y dinámica
         pob = (
             row.get("poblacion_2025")
             if pd.notna(row.get("poblacion_2025"))
@@ -75,7 +74,6 @@ class SiteWiseLoader:
             ("entorno rural de baja densidad", "entorno semiurbano", "entorno urbano denso"),
         )
 
-        # 2. Mercado laboral y tejido económico
         paro_tot = row.get("paro_total")
         var_paro = row.get("paro_variacion_interanual_pct")
         contratos = row.get("contratos_total")
@@ -92,7 +90,6 @@ class SiteWiseLoader:
             else "no determinado"
         )
 
-        # 3. Infraestructuras, logística y suelo industrial
         suelo_ha = row.get("suelo_industrial_cartografiado_ha")
         suelo_pct = row.get("suelo_industrial_cartografiado_pct")
         autovia = row.get("dist_recta_eje_autovia_km")
@@ -105,20 +102,18 @@ class SiteWiseLoader:
             20,
             ("acceso inmediato a autovía", "buena conexión viaria", "alejado de ejes de autovía"),
         )
-        tiene_suelo = (
-            f"{self._fmt(suelo_ha, ' ha')} ({self._fmt(suelo_pct, '%')} del término municipal)"
-            if pd.notna(suelo_ha) and suelo_ha > 0
-            else "sin suelo industrial cartografiado relevante"
-        )
+        
+        if pd.notna(suelo_ha) and suelo_ha > 0:
+            tiene_suelo = f"{self._fmt(suelo_ha, ' ha')} ({self._fmt(suelo_pct, '%')} del término municipal)"
+        else:
+            tiene_suelo = "sin polígonos industriales detectados en el catálogo cartografiado"
 
-        # 4. Conectividad digital y calidad eléctrica
         ftth = row.get("cobertura_ftth_pct")
         c_1gbps = row.get("cobertura_1gbps_pct")
         c_5g = row.get("cobertura_5g_pct")
         tiepi = row.get("tiepi_horas_prov_2021")
         niepi = row.get("niepi_prov_2021")
 
-        # 5. Riesgos ambientales, hídricos y potencial renovable
         estres = row.get("estres_hidrico_pct")
         agotamiento = row.get("agotamiento_hidrico_pct")
         sub_cuant = row.get("agua_subterranea_mal_estado_cuantitativo_pct")
@@ -139,7 +134,6 @@ class SiteWiseLoader:
         ghi = row.get("irradiacion_ghi_kwh_m2_anio")
         viento = row.get("viento_100m_media_m_s")
 
-        # Construcción del texto semántico rico para RAG
         text_content = (
             f"PERFIL MUNICIPAL DE {nombre.upper()} (INE: {cod_ine}) | Provincia: {provincia} | CCAA: {ccaa}{linea_cluster}.\n"
             f"1. DEMOGRAFÍA Y TERRITORIO: Municipio con {self._fmt(pob, ' habitantes', 0)} en una superficie de {self._fmt(superficie, ' km²')}, "
@@ -159,7 +153,6 @@ class SiteWiseLoader:
             f"6. POTENCIAL ENERGÉTICO RENOVABLE: Irradiación solar GHI de {self._fmt(ghi, ' kWh/m²/año', 0)} y velocidad media del viento a 100m de {self._fmt(viento, ' m/s', 2)}."
         )
 
-        # Limpiamos metadatos con valores None (ChromaDB no acepta None en metadata)
         raw_metadata = {
             "source_type": "ficha_municipal",
             "cod_ine": cod_ine,
@@ -177,7 +170,7 @@ class SiteWiseLoader:
 
         return {"content": text_content, "metadata": raw_metadata}
 
-    def load_csv_municipalities(self, filename: str = "dataset_municipal.csv") -> List[Dict[str, Any]]:
+    def load_csv_municipalities(self, filename: str = "dataset_municipal.csv") -> list[dict[str, Any]]:
         """Lee el CSV municipal y genera fichas descriptivas estructuradas."""
         file_path = os.path.join(self.data_path, filename)
         if not os.path.exists(file_path):
@@ -189,7 +182,7 @@ class SiteWiseLoader:
         print(f"[Éxito] Se han procesado {len(documents)} fichas municipales desde {filename}.")
         return documents
 
-    def load_markdown_docs(self, docs_dir: str = "docs/") -> List[Dict[str, Any]]:
+    def load_markdown_docs(self, docs_dir: str = "docs/") -> list[dict[str, Any]]:
         """Carga documentación metodológica, fuentes y gobernanza en Markdown."""
         documents = []
         if not os.path.exists(docs_dir):
@@ -214,10 +207,9 @@ class SiteWiseLoader:
 
     def load_all(
         self, csv_filename: str = "dataset_municipal.csv", docs_dir: str = "docs/"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Carga conjunta de fichas municipales y documentación técnica."""
         return self.load_csv_municipalities(csv_filename) + self.load_markdown_docs(docs_dir)
-
 
 if __name__ == "__main__":
     # Prueba rápida de ejecución directa

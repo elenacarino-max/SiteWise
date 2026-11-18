@@ -3,7 +3,8 @@ Módulo retriever.py: Recuperación semántica e híbrida (con filtros de metada
 sobre el índice vectorial Chroma de SiteWise.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from sitewise.rag.indexer import SiteWiseIndexer
 
 
@@ -21,16 +22,16 @@ class SiteWiseRetriever:
 
     @staticmethod
     def _construir_filtro_chroma(
-        source_type: Optional[str] = None,
-        provincia: Optional[str] = None,
-        ccaa: Optional[str] = None,
-        cod_ine: Optional[str] = None,
-        cluster: Optional[str] = None,
-        min_suelo_industrial_ha: Optional[float] = None,
-        max_estres_hidrico_pct: Optional[float] = None,
-    ) -> Optional[Dict[str, Any]]:
+        source_type: str | None = None,
+        provincia: str | None = None,
+        ccaa: str | None = None,
+        cod_ine: str | None = None,
+        cluster: str | None = None,
+        min_suelo_industrial_ha: float | None = None,
+        max_estres_hidrico_pct: float | None = None,
+    ) -> dict[str, Any] | None:
         """Construye la cláusula `where` compatible con ChromaDB a partir de filtros opcionales."""
-        condiciones: List[Dict[str, Any]] = []
+        condiciones: list[dict[str, Any]] = []
 
         if source_type:
             condiciones.append({"source_type": source_type})
@@ -45,7 +46,6 @@ class SiteWiseRetriever:
         if min_suelo_industrial_ha is not None:
             condiciones.append({"suelo_industrial_ha": {"$gte": float(min_suelo_industrial_ha)}})
         if max_estres_hidrico_pct is not None:
-            # Excluimos valores centinela (-1.0) donde no había dato disponible
             condiciones.append({"estres_hidrico_pct": {"$gte": 0.0}})
             condiciones.append({"estres_hidrico_pct": {"$lte": float(max_estres_hidrico_pct)}})
 
@@ -59,18 +59,15 @@ class SiteWiseRetriever:
         self,
         query: str,
         k: int = 5,
-        source_type: Optional[str] = None,
-        provincia: Optional[str] = None,
-        ccaa: Optional[str] = None,
-        cod_ine: Optional[str] = None,
-        cluster: Optional[str] = None,
-        min_suelo_industrial_ha: Optional[float] = None,
-        max_estres_hidrico_pct: Optional[float] = None,
-    ) -> List[Dict[str, Any]]:
-        """
-        Realiza una búsqueda semántica con filtros opcionales de metadatos y devuelve
-        los resultados junto con su puntuación de similitud y metadatos de fuente.
-        """
+        source_type: str | None = None,
+        provincia: str | None = None,
+        ccaa: str | None = None,
+        cod_ine: str | None = None,
+        cluster: str | None = None,
+        min_suelo_industrial_ha: float | None = None,
+        max_estres_hidrico_pct: float | None = None,
+    ) -> list[dict[str, Any]]:
+        """Realiza búsqueda semántica con filtros opcionales de metadatos."""
         filtro = self._construir_filtro_chroma(
             source_type=source_type,
             provincia=provincia,
@@ -87,7 +84,7 @@ class SiteWiseRetriever:
             filter=filtro,
         )
 
-        salida: List[Dict[str, Any]] = []
+        salida: list[dict[str, Any]] = []
         for doc, score in resultados:
             salida.append({
                 "content": doc.page_content,
@@ -97,7 +94,7 @@ class SiteWiseRetriever:
 
         return salida
 
-    def buscar_municipio_por_ine(self, cod_ine: str) -> Optional[Dict[str, Any]]:
+    def buscar_municipio_por_ine(self, cod_ine: str) -> dict[str, Any] | None:
         """Recupera directamente la ficha exacta de un municipio por su código INE."""
         resultados = self.buscar(
             query=f"Perfil municipal INE {cod_ine}",
@@ -107,10 +104,9 @@ class SiteWiseRetriever:
         )
         return resultados[0] if resultados else None
 
-    def buscar_documentacion(self, query: str, k: int = 4) -> List[Dict[str, Any]]:
-        """Consulta exclusivamente la documentación metodológica y de gobernanza (docs/)."""
+    def buscar_documentacion(self, query: str, k: int = 4) -> list[dict[str, Any]]:
+        """Consulta exclusivamente la documentación metodológica (docs/)."""
         return self.buscar(query=query, k=k, source_type="documentacion")
-
 
 if __name__ == "__main__":
     # Prueba rápida de consulta mostrando la información completa
