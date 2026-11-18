@@ -34,3 +34,14 @@ chroma_db/
 Thumbs.db
 .idea/
 .vscode/
+
+# Entorno local de Python
+/.venv-dataset/
+
+# Generador de matrices: conservar su código y configuración
+!/data/processed/generadorMatrices/
+/data/processed/generadorMatrices/*
+!/data/processed/generadorMatrices/generar_matriz.py
+!/data/processed/generadorMatrices/config_4_variables.json
+!/data/processed/generadorMatrices/LEEME.md
+!/data/processed/generadorMatrices/requirements-matrices.txt
