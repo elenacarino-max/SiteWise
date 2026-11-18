@@ -220,7 +220,7 @@ Reglas de uso:
 1. Los valores de `paro_por_100_hab` calculados con 2,5 o con 1 parado son **solo para entrenar**. La aplicación debe mostrar el dato observado y su estado (`estado_app = pendiente`), no la tasa rellenada.
 2. En esos municipios la tasa depende de la población por construcción (250 / población y 100 / población).
 3. Un municipio sin dato de agua subterránea no intersecta una masa catalogada (`sin_masa_catalogada`): rellenarlo con 0 **no** significa "buen estado". Para entrenar se estima con los 5 municipios con dato más cercanos. En la comprobación con municipios que sí tienen dato, el error medio fue de 4,9 puntos (poniendo 0, 16,5). Los 722 están algo más lejos de sus vecinos que el resto (mediana de 11,75 km a los 5 vecinos), así que el error real puede ser mayor.
-4. El equipo ha decidido mostrar esa estimación en la app como `aproximado`. El fichero `agua_estimada_vecinos_v01.csv` (7.1b) es la propuesta; **todavía no está en `valores.csv` ni en `valores_app.csv`**: la incorporación al dataset está pendiente de Elena.
+4. El equipo ha decidido mostrar esa estimación en la app como `aproximado`. El fichero `agua_estimada_vecinos_v01.csv` (7.1b) es la propuesta; **no se añade a `valores.csv`**: Elena ha decidido incorporarla solo a los ficheros de la app (`valores_app.csv` y `dataset_municipal_app.csv`). Mientras no se aplique en el dataset, los 722 municipios siguen como `sin_masa_catalogada` (`pendiente`).
 
 ### 7.1b Fichero propuesto: agua estimada
 
