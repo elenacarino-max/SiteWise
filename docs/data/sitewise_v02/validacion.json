@@ -6,7 +6,7 @@
   "valores_largos": 203300,
   "duplicados_clave": 0,
   "conservacion_v01": "correcta",
-  "python": "3.14.6",
+  "python": "3.12.3",
   "pandas": "2.3.3",
   "geopandas": "1.2.0",
   "rasterio": "1.5.2",

@@ -1,4 +1,0 @@
-Recuento CNIH recalculado con conjuntos por municipio desde resolución de códigos y cabeceras originales: correcto.
-TIEPI/NIEPI de cada municipio reconciliado con la fila TOTAL provincial de la respuesta HTML original: correcto.
-Unicidad de claves, 8.132 municipios, 130.112 observaciones, nulos preservados: correcto.
-Ejecución: las 17 celdas Python se ejecutaron en orden en IPython dentro del proceso. El kernel Jupyter convencional no pudo iniciarse porque este host impide sockets TCP/IPC; no se ha probado la ejecución en Windows.

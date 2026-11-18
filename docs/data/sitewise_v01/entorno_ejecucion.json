@@ -1,5 +1,5 @@
 {
-  "python": "3.14.6",
+  "python": "3.12.3",
   "paquetes": {
     "pandas": "2.3.3",
     "numpy": "2.3.5",
