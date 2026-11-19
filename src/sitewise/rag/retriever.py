@@ -95,14 +95,24 @@ class SiteWiseRetriever:
         return salida
 
     def buscar_municipio_por_ine(self, cod_ine: str) -> dict[str, Any] | None:
-        """Recupera directamente la ficha exacta de un municipio por su código INE."""
-        resultados = self.buscar(
-            query=f"Perfil municipal INE {cod_ine}",
-            k=1,
-            source_type="ficha_municipal",
-            cod_ine=cod_ine,
-        )
-        return resultados[0] if resultados else None
+        """Recupera directamente la ficha exacta de un municipio por su código INE de forma determinista y rápida."""
+        res = self.vector_store.get(where={"cod_ine": str(cod_ine)})
+        if res and res.get("documents") and len(res["documents"]) > 0:
+            return {
+                "content": res["documents"][0],
+                "metadata": res["metadatas"][0] if res.get("metadatas") else {},
+                "distance_score": 0.0,
+            }
+        return None
+
+    def buscar_municipios_por_ines(self, codigos_ine: list[str]) -> list[dict[str, Any]]:
+        """Recupera fichas de varios municipios simultáneamente a partir de una lista de códigos INE."""
+        salida: list[dict[str, Any]] = []
+        for cod in codigos_ine:
+            ficha = self.buscar_municipio_por_ine(cod)
+            if ficha:
+                salida.append(ficha)
+        return salida
 
     def buscar_documentacion(self, query: str, k: int = 4) -> list[dict[str, Any]]:
         """Consulta exclusivamente la documentación metodológica (docs/)."""

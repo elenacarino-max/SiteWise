@@ -183,26 +183,39 @@ class SiteWiseLoader:
         return documents
 
     def load_markdown_docs(self, docs_dir: str = "docs/") -> list[dict[str, Any]]:
-        """Carga documentación metodológica, fuentes y gobernanza en Markdown."""
+        """Carga exclusivamente documentación metodológica, fuentes y gobernanza en Markdown,
+        excluyendo archivos de planificación de equipo o notas organizativas internas.
+        """
         documents = []
         if not os.path.exists(docs_dir):
             return documents
 
+        # Rutas y archivos a excluir para no contaminar el contexto del agente de negocio
+        carpetas_excluidas = {"planning", ".git", "__pycache__"}
+        archivos_excluidos = {"plan_equipo.md", "README-HELEN.md"}
+
         for root, _, files in os.walk(docs_dir):
+            # Comprobar si alguna de las carpetas excluidas está en la ruta
+            partes_ruta = set(os.path.normpath(root).split(os.sep))
+            if carpetas_excluidas.intersection(partes_ruta):
+                continue
+
             for file in files:
-                if file.endswith(".md"):
+                if file.endswith(".md") and file not in archivos_excluidos:
                     file_path = os.path.join(root, file)
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read().strip()
-                        if content:
+                        # Filtrar archivos vacíos o casi vacíos (menos de 40 caracteres)
+                        if content and len(content) > 40:
                             documents.append({
                                 "content": content,
                                 "metadata": {
                                     "source_type": "documentacion",
                                     "source": file_path,
+                                    "document_name": file,
                                 },
                             })
-        print(f"[Éxito] Se han cargado {len(documents)} documentos Markdown desde {docs_dir}.")
+        print(f"[Éxito] Se han cargado {len(documents)} documentos Markdown técnicos desde {docs_dir}.")
         return documents
 
     def load_all(
