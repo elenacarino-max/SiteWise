@@ -17,6 +17,7 @@ __all__ = [
     "ConsultarMunicipioPorINESchema",
     "JudgeEvaluation",
     "SiteWiseAgentDirect",
+    "SiteWiseAnalyzer",
     "SiteWiseGraphOrchestrator",
     "SiteWiseGraphState",
     "SiteWiseSupervisor",
@@ -26,9 +27,9 @@ __all__ = [
 # Lazy imports: las clases pesadas solo se cargan al acceder a ellas,
 # evitando el RuntimeWarning cuando se ejecutan con python -m.
 def __getattr__(name: str):
-    if name == "SiteWiseAgentDirect":
-        from sitewise.agent.analizer import SiteWiseAgentDirect
-        return SiteWiseAgentDirect
+    if name in ("SiteWiseAnalyzer", "SiteWiseAgentDirect"):
+        from sitewise.agent.analyzer import SiteWiseAnalyzer
+        return SiteWiseAnalyzer
     if name == "SiteWiseSupervisor":
         from sitewise.agent.supervisor import SiteWiseSupervisor
         return SiteWiseSupervisor

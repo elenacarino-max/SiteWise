@@ -7,7 +7,7 @@ from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 
-from sitewise.agent.analizer import SiteWiseAgentDirect
+from sitewise.agent.analyzer import SiteWiseAgentDirect
 from sitewise.agent.schemas import SiteWiseGraphState
 from sitewise.agent.supervisor import SiteWiseSupervisor
 

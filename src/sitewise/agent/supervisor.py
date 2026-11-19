@@ -8,7 +8,7 @@ import json
 import os
 
 from dotenv import load_dotenv
-from groq import Groq, GroqError
+from groq import Groq
 from pydantic import ValidationError
 
 from sitewise.agent.schemas import JudgeEvaluation
@@ -90,24 +90,24 @@ CRITERIOS DE AUDITORÍA OBLIGATORIOS:
             return JudgeEvaluation(**parsed)
 
         except (json.JSONDecodeError, ValidationError) as ve:
-            print(f"[Supervisor] ⚠️ Error parseando veredicto del juez ({ve}). Generando evaluación de contingencia.")
+            print(f"[Supervisor] ⚠️ Error parseando veredicto del juez ({ve}). Dictamen: NO VERIFICADO (rechazado).")
             return JudgeEvaluation(
-                aprobado=True,
-                puntuacion_calidad=3,
-                datos_contrastados=True,
-                analisis_riesgos_adecuado=True,
-                analisis_logistica_adecuado=True,
-                feedback_mejora="Evaluación automática completada con aviso por error de serialización del juez.",
+                aprobado=False,
+                puntuacion_calidad=1,
+                datos_contrastados=False,
+                analisis_riesgos_adecuado=False,
+                analisis_logistica_adecuado=False,
+                feedback_mejora=f"No verificado: Error al validar o decodificar el veredicto del juez ({ve}). La recomendación debe ser auditada nuevamente.",
             )
-        except GroqError as e:
-            print(f"[Supervisor] ⚠️ Error en llamada a Groq: {e}")
+        except Exception as e:  # noqa: BLE001
+            print(f"[Supervisor] ⚠️ Error en llamada a Groq: {e}. Dictamen: NO VERIFICADO (rechazado).")
             return JudgeEvaluation(
-                aprobado=True,
-                puntuacion_calidad=3,
-                datos_contrastados=True,
-                analisis_riesgos_adecuado=True,
-                analisis_logistica_adecuado=True,
-                feedback_mejora=f"No se pudo completar la supervisión por error técnico: {e}",
+                aprobado=False,
+                puntuacion_calidad=1,
+                datos_contrastados=False,
+                analisis_riesgos_adecuado=False,
+                analisis_logistica_adecuado=False,
+                feedback_mejora=f"No verificado: Fallo técnico en la comunicación con el modelo juez ({e}). No se puede dar por aprobada la recomendación.",
             )
 
 

@@ -1,6 +1,6 @@
 """
-Módulo agent_direct.py: Agente de análisis municipal nativo con la API de Groq
-y el recuperador de SiteWise, utilizando esquemas de Pydantic y soporte para feedback.
+Módulo analyzer.py: Agente de análisis municipal para recomendación de emplazamientos
+y evaluación de riesgos de SiteWise con Groq, RAG y soporte para feedback del supervisor.
 """
 
 import json
@@ -23,8 +23,8 @@ from sitewise.rag.retriever import SiteWiseRetriever
 load_dotenv()
 
 
-class SiteWiseAgentDirect:
-    """Agente autónomo experto en recomendación de emplazamientos empresariales y evaluación de riesgos."""
+class SiteWiseAnalyzer:
+    """Agente analista experto en recomendación de emplazamientos empresariales y evaluación de riesgos."""
 
     SYSTEM_PROMPT = """Eres SiteWise Agent, un consultor senior experto en localización territorial y evaluación de emplazamientos para nuevas empresas, fábricas y proyectos industriales en España.
 
@@ -223,9 +223,13 @@ PAUTAS OBLIGATORIAS:
         )
 
 
+# Alias para compatibilidad hacia atrás
+SiteWiseAgentDirect = SiteWiseAnalyzer
+
+
 if __name__ == "__main__":
-    print("\n--- TEST AGENTE MEJORADO ---")
-    agente = SiteWiseAgentDirect()
+    print("\n--- TEST AGENTE ANALIZADOR ---")
+    agente = SiteWiseAnalyzer()
     pregunta = (
         "Quiero montar una planta de producción industrial en Bizkaia que requiere al menos 15 ha de suelo "
         "y buena conexión por autovía. Evalúa los riesgos hídricos y ambientales."
