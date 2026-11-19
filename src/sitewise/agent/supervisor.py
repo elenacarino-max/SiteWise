@@ -6,10 +6,9 @@ con los datos reales recuperados del RAG.
 
 import json
 import os
-from typing import Any
 
 from dotenv import load_dotenv
-from groq import Groq
+from groq import Groq, GroqError
 from pydantic import ValidationError
 
 from sitewise.agent.schemas import JudgeEvaluation
@@ -100,7 +99,7 @@ CRITERIOS DE AUDITORÍA OBLIGATORIOS:
                 analisis_logistica_adecuado=True,
                 feedback_mejora="Evaluación automática completada con aviso por error de serialización del juez.",
             )
-        except Exception as e:
+        except GroqError as e:
             print(f"[Supervisor] ⚠️ Error en llamada a Groq: {e}")
             return JudgeEvaluation(
                 aprobado=True,

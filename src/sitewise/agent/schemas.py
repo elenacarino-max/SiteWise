@@ -9,8 +9,8 @@ Incluye:
 """
 
 from typing import Any, TypedDict
-from pydantic import BaseModel, Field
 
+from pydantic import BaseModel, Field
 
 # ==============================================================================
 # 1. ESQUEMAS DE ENTRADA PARA LAS HERRAMIENTAS (TOOLS)
@@ -98,56 +98,6 @@ class JudgeEvaluation(BaseModel):
         ...,
         description="Explicación detallada de los puntos fuertes y de las correcciones necesarias que el agente debe corregir si aprobado es False."
     )
-
-
-# ==============================================================================
-# 3. ESQUEMA DEL ESTADO DEL GRAFO (LANGGRAPH STATE)
-# ==============================================================================
-
-class SiteWiseGraphState(TypedDict):
-    """Estado compartido en el grafo multi-agente supervisado."""
-    user_query: str
-    agent_response: str
-    context_docs: list[str]
-    judge_evaluation: dict[str, Any] | None
-    feedback_history: list[str]
-    revision_count: int
-    is_approved: bool
-    final_output: str
-
-
-# ==============================================================================
-# 4. ESPECIFICACIÓN JSON SCHEMA PARA FUNCTION CALLING (API DE MODELOS)
-# ==============================================================================
-
-AGENT_TOOLS_SCHEMA: list[dict[str, Any]] = [
-    {
-        "type": "function",
-        "function": {
-            "name": "buscar_municipios_sitewise",
-            "description": "Busca fichas municipales reales en España utilizando semántica y filtros de suelo industrial, estrés hídrico, provincia, CCAA o clúster.",
-            "parameters": BuscarMunicipiosSchema.model_json_schema(),
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "consultar_municipio_ine",
-            "description": "Recupera la ficha detallada de un municipio mediante su código INE exacto de 5 dígitos.",
-            "parameters": ConsultarMunicipioPorINESchema.model_json_schema(),
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "consultar_metodologia_sitewise",
-            "description": "Consulta la documentación técnica, manuales y gobernanza del proyecto SiteWise.",
-            "parameters": ConsultarMetodologiaSchema.model_json_schema(),
-        },
-    },
-]
-
-
 
 # ==============================================================================
 # 3. ESQUEMA DEL ESTADO DEL GRAFO (LANGGRAPH STATE)
