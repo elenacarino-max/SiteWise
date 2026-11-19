@@ -5,7 +5,7 @@ y evaluación de riesgos de SiteWise con Groq, RAG y soporte para feedback del s
 
 import json
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dotenv import load_dotenv
 from groq import Groq
@@ -17,7 +17,9 @@ from sitewise.agent.schemas import (
     ConsultarMetodologiaSchema,
     ConsultarMunicipioPorINESchema,
 )
-from sitewise.rag.retriever import SiteWiseRetriever
+
+if TYPE_CHECKING:
+    from sitewise.rag.retriever import SiteWiseRetriever
 
 # Cargamos variables de entorno (GROQ_API_KEY)
 load_dotenv()
@@ -45,10 +47,18 @@ PAUTAS OBLIGATORIAS:
    - Si se te proporciona una corrección o feedback de un supervisor, subsana inmediatamente las deficiencias señaladas.
 """
 
-    def __init__(self, model_name: str | None = None, retriever: SiteWiseRetriever | None = None):
+    def __init__(
+        self,
+        model_name: str | None = None,
+        retriever: "SiteWiseRetriever | None" = None,
+    ):
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.model = model_name or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
-        self.retriever = retriever or SiteWiseRetriever()
+        if retriever is not None:
+            self.retriever = retriever
+        else:
+            from sitewise.rag.retriever import SiteWiseRetriever
+            self.retriever = SiteWiseRetriever()
         # Registro de textos crudos recuperados por las herramientas para auditoría del LLM Judge
         self.ultimos_datos_recuperados: list[str] = []
 
