@@ -5,7 +5,7 @@ para depuración y auditoría.
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -42,7 +42,7 @@ def guardar_traza_prompt(
         os.makedirs(carpeta, exist_ok=True)
 
     registro: dict[str, Any] = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "componente": componente,
         "model": model,
         "messages": _serializar_dato(messages),

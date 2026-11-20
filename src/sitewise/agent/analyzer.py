@@ -23,7 +23,6 @@ from sitewise.agent.schemas import (
     ConsultarMetodologiaSchema,
     ConsultarMunicipioPorINESchema,
 )
-
 from sitewise.common.prompt_tracer import guardar_traza_prompt
 
 if TYPE_CHECKING:
@@ -154,7 +153,8 @@ class SiteWiseAnalyzer:
         user_prompt: str,
         feedback_supervisor: str | None = None,
         feedback_history: list[str] | None = None,
-        max_turns: int = 3,
+        max_turns: int = 5,
+        max_ine_consults: int = 2,
     ) -> tuple[str, list[str]]:
         """
         Ejecuta la consulta del usuario.
@@ -178,9 +178,12 @@ class SiteWiseAnalyzer:
             })
 
         turn = 0
+        ine_consults = 0
+        llm_call_idx = 0
+
         while turn < max_turns:
-            turn += 1
-            
+            llm_call_idx += 1
+
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
@@ -196,9 +199,8 @@ class SiteWiseAnalyzer:
                     model=self.model,
                     messages=messages,
                     response={"error": str(e)},
-                    extra={"turn": turn},
+                    extra={"turn": turn + 1, "call": llm_call_idx},
                 )
-                
                 docs_unicos = list(dict.fromkeys(self.ultimos_datos_recuperados))
                 return f"Error de comunicación con el modelo de lenguaje: {e}", docs_unicos
 
@@ -208,15 +210,20 @@ class SiteWiseAnalyzer:
                 model=self.model,
                 messages=messages,
                 response=response_message,
-                extra={"turn": turn},
+                extra={"turn": turn + 1, "call": llm_call_idx},
             )
             messages.append(response_message)
 
-            if not response_message.tool_calls:
+            tool_calls = response_message.tool_calls or []
+            if not tool_calls:
                 docs_unicos = list(dict.fromkeys(self.ultimos_datos_recuperados))
                 return response_message.content or "", docs_unicos
 
-            for tool_call in response_message.tool_calls:
+            solo_ine = all(
+                tc.function.name == "consultar_municipio_ine" for tc in tool_calls
+            )
+
+            for tool_call in tool_calls:
                 function_name = tool_call.function.name
                 tool_output = ""
 
@@ -237,7 +244,11 @@ class SiteWiseAnalyzer:
                     tool_output = f"Error: Argumentos devueltos no válidos ({jde})."
                     validated_args = {}
 
-                logger.info("Ejecutando herramienta '%s' con argumentos: %s", function_name, validated_args)
+                logger.info(
+                    "Ejecutando herramienta '%s' con argumentos: %s",
+                    function_name,
+                    validated_args,
+                )
 
                 if function_name in self.available_tools and not tool_output.startswith("Error:"):
                     try:
@@ -257,8 +268,53 @@ class SiteWiseAnalyzer:
                     "content": tool_output,
                 })
 
-        logger.warning("Se alcanzó el límite máximo de %d turnos sin completar la respuesta.", max_turns)
+            if solo_ine and ine_consults < max_ine_consults:
+                ine_consults += 1
+            else:
+                turn += 1
+
         docs_unicos = list(dict.fromkeys(self.ultimos_datos_recuperados))
+
+        if docs_unicos:
+            logger.warning(
+                "Se alcanzó el límite de %d turnos; forzando redacción final sin herramientas con datos recuperados.",
+                max_turns,
+            )
+            messages.append({
+                "role": "user",
+                "content": (
+                    "Se ha alcanzado el límite de pasos de búsqueda. Con los datos reales ya recuperados "
+                    "en esta conversación, redacta ahora la respuesta final completa, estructurada y contrastada "
+                    "sin solicitar más herramientas."
+                ),
+            })
+            try:
+                final_response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.1,
+                )
+                final_msg = final_response.choices[0].message
+                guardar_traza_prompt(
+                    componente="analyzer",
+                    model=self.model,
+                    messages=messages,
+                    response=final_msg,
+                    extra={"turn": "fallback_no_tools", "call": llm_call_idx + 1},
+                )
+                return final_msg.content or "", docs_unicos
+            except Exception as fe:  # noqa: BLE001
+                logger.error("Error en llamada de cierre sin herramientas: %s", fe)
+                guardar_traza_prompt(
+                    componente="analyzer",
+                    model=self.model,
+                    messages=messages,
+                    response={"error": str(fe)},
+                    extra={"turn": "fallback_no_tools", "call": llm_call_idx + 1},
+                )
+                return f"Error de comunicación con el modelo de lenguaje: {fe}", docs_unicos
+
+        logger.warning("Se alcanzó el límite máximo de %d turnos sin completar la respuesta.", max_turns)
         return (
             "Se alcanzó el límite máximo de turnos sin completar la respuesta.",
             docs_unicos,
