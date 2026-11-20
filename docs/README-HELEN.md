@@ -4,7 +4,7 @@ Material para quien redacte el `README.md` general. Solo recoge la parte de ML y
 
 ## 1. Qué hace el módulo de ML
 
-Agrupa los 8.132 municipios en **perfiles territoriales parecidos** (clustering), para poder decir «este municipio se parece a estos otros». Los grupos son **exploratorios**: el número de grupos (K=5) es provisional.
+Agrupa los 8.132 municipios en **perfiles territoriales parecidos** (clustering), para poder decir «este municipio se parece a estos otros». Los grupos son **exploratorios**: K=5 y el uso de PCA están acordados con el equipo, pero los grupos todavía no tienen nombre.
 
 ## 2. Qué se ha hecho
 
@@ -13,6 +13,7 @@ Agrupa los 8.132 municipios en **perfiles territoriales parecidos** (clustering)
 | Selección de variables para el clustering | #12 | `notebooks/04_seleccion_variables_ml.ipynb` y `docs/methodology/seleccion_variables_ml.md` |
 | Primera prueba de clustering con 4 variables (K-Means y DBSCAN) | #14 | Notebooks 05 y 06 |
 | Experimentos registrados en MLflow | #15 | Notebooks 07 y 08 |
+| Pipeline de scikit-learn reutilizable, ajustado solo con los municipios de entrenamiento | #15 | `src/sitewise/ml/pipeline.py` y `tests/ml/test_pipeline.py` |
 | Perfiles de los grupos y ficha del modelo | #16 | En curso |
 
 ## 3. Variables del clustering
@@ -54,7 +55,7 @@ Detalle de cada variable y de los ficheros derivados: `docs/governance/DICCIONAR
 
 Cada prueba (variables, K, métricas y configuración) se registra en MLflow, con SQLite como almacén (`mlruns/mlflow.db`). Versión fijada: `mlflow==3.18.0`.
 
-```powershell
+```bash
 python -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db
 ```
 
@@ -62,22 +63,35 @@ python -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db
 
 ## 7. Cómo reproducirlo
 
-```powershell
+```bash
 python -m pip install -r requirements.txt
+python -m pytest tests/ml -v
 ```
 
 Ejecutar en orden los notebooks 04 a 08 (los resultados se guardan en `data/processed/sitewise_ml/`). Cada ejecución completa del 07 o del 08 añade ejecuciones nuevas a MLflow.
 
+Para agrupar desde código, sin pasar por los notebooks:
+
+```python
+from sitewise.ml.pipeline import VARIABLES, construir_pipeline
+
+modelo = construir_pipeline()  # imputación, log1p, recorte, escalado, PCA 85 % y K-Means (K=5)
+modelo.fit(entrenamiento[list(VARIABLES)])
+grupos = modelo.predict(nuevos[list(VARIABLES)])
+```
+
+La columna `agua_vecinos_pct` se obtiene con `estimar_agua_vecinos()` (misma función, mismo método de los 5 vecinos).
+
 ## 8. Limitaciones que conviene mencionar
 
-- Los grupos son provisionales (K=5 y PCA elegidos, sin nombre de perfil todavía).
+- K=5 y PCA están acordados con el equipo, pero los grupos son exploratorios y todavía no tienen nombre de perfil (issue #16).
 - No se ha comparado «sin PCA» con las 7 variables. Con 4 variables, los grupos con y sin PCA coincidían con K=2 pero diferían desde K=3.
-- El preprocesado se ajusta con todos los municipios. Para evaluar con particiones habrá que ajustarlo solo con los de entrenamiento.
+- Los notebooks 07 y 08 generan las matrices con el generador, que ajusta el preprocesado con todos los municipios. El pipeline de `src/sitewise/ml/` sí lo ajusta solo con los de entrenamiento, y es el que habrá que usar para evaluar con particiones o para asignar municipios nuevos.
 - El agua estimada de los 722 municipios sin masa catalogada es una aproximación (los 722 están algo más lejos de sus vecinos que el resto), y por eso se marca como `aproximado`.
 - En los municipios con paro oculto o en blanco, la tasa de paro depende de la población por construcción.
 
 ## 9. Texto propuesto para el README general
 
-> **Segmentación de municipios.** SiteWise agrupa los 8.132 municipios españoles en perfiles territoriales parecidos mediante clustering (K-Means, con DBSCAN para detectar municipios atípicos). La entrada es una matriz numérica construida a partir del dataset municipal con un generador configurable (`data/processed/generadorMatrices/`) y cada experimento se registra en MLflow. Los grupos son exploratorios. Los valores rellenados para entrenar (huecos de paro y de distancias) no se muestran en la aplicación, que enseña el dato observado y su estado; el agua subterránea estimada para los municipios sin masa catalogada se muestra como `aproximado`.
+> **Segmentación de municipios.** SiteWise agrupa los 8.132 municipios españoles en perfiles territoriales parecidos mediante clustering (K-Means, con DBSCAN para detectar municipios atípicos). La entrada es una matriz numérica construida a partir del dataset municipal con un generador configurable (`data/processed/generadorMatrices/`) y cada experimento se registra en MLflow. El código reutilizable está en `src/sitewise/ml/pipeline.py` (scikit-learn, con pruebas en `tests/ml/`). Los grupos son exploratorios. Los valores rellenados para entrenar (huecos de paro y de distancias) no se muestran en la aplicación, que enseña el dato observado y su estado; el agua subterránea estimada para los municipios sin masa catalogada se muestra como `aproximado`.
 
 Enlaces recomendados: `docs/governance/DICCIONARIO_DATASET.md`, `docs/methodology/seleccion_variables_ml.md` y `data/processed/generadorMatrices/LEEME.md`.
