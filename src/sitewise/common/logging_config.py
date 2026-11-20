@@ -63,6 +63,8 @@ def setup_logging(
 
     root_logger = logging.getLogger()
     root_logger.setLevel(resolved_level)
+    for old_handler in list(root_logger.handlers):
+        old_handler.close()
     root_logger.handlers.clear()
     root_logger.addHandler(console_handler)
     root_logger.addHandler(file_handler)

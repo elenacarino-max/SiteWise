@@ -8,22 +8,70 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
+MAX_SERIALIZE_DEPTH = 15
 
-def _serializar_dato(obj: Any) -> Any:
+
+def _es_mock(obj: Any) -> bool:
+    cls = type(obj)
+    return cls.__module__.startswith("unittest.mock") or hasattr(obj, "_mock_name")
+
+
+def _serializar_dato(
+    obj: Any,
+    _depth: int = 0,
+    _seen: set[int] | None = None,
+) -> Any:
     if obj is None or isinstance(obj, (str, int, float, bool)):
         return obj
+    if _es_mock(obj):
+        nombre = getattr(obj, "_mock_name", None) or type(obj).__name__
+        return f"<Mock:{nombre}>"
+    if _depth >= MAX_SERIALIZE_DEPTH:
+        return str(obj)
+
+    if _seen is None:
+        _seen = set()
+    obj_id = id(obj)
+    if obj_id in _seen:
+        return "<CircularRef>"
+
     if isinstance(obj, dict):
-        return {str(k): _serializar_dato(v) for k, v in obj.items()}
+        _seen.add(obj_id)
+        try:
+            return {
+                str(k): _serializar_dato(v, _depth + 1, _seen)
+                for k, v in obj.items()
+            }
+        finally:
+            _seen.discard(obj_id)
+
     if isinstance(obj, (list, tuple)):
-        return [_serializar_dato(item) for item in obj]
-    if hasattr(obj, "model_dump"):
-        return _serializar_dato(obj.model_dump())
+        _seen.add(obj_id)
+        try:
+            return [_serializar_dato(item, _depth + 1, _seen) for item in obj]
+        finally:
+            _seen.discard(obj_id)
+
+    if hasattr(obj, "model_dump") and callable(obj.model_dump):
+        dumped = obj.model_dump()
+        if not _es_mock(dumped):
+            _seen.add(obj_id)
+            try:
+                return _serializar_dato(dumped, _depth + 1, _seen)
+            finally:
+                _seen.discard(obj_id)
+
     if hasattr(obj, "__dict__"):
-        return {
-            k: _serializar_dato(v)
-            for k, v in obj.__dict__.items()
-            if not k.startswith("_")
-        }
+        _seen.add(obj_id)
+        try:
+            return {
+                k: _serializar_dato(v, _depth + 1, _seen)
+                for k, v in obj.__dict__.items()
+                if not k.startswith("_")
+            }
+        finally:
+            _seen.discard(obj_id)
+
     return str(obj)
 
 
