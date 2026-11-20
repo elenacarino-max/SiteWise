@@ -3,9 +3,12 @@ Módulo retriever.py: Recuperación semántica e híbrida (con filtros de metada
 sobre el índice vectorial Chroma de SiteWise.
 """
 
+import logging
 from typing import Any
 
 from sitewise.rag.indexer import SiteWiseIndexer
+
+logger = logging.getLogger(__name__)
 
 
 class SiteWiseRetriever:
@@ -78,6 +81,13 @@ class SiteWiseRetriever:
             max_estres_hidrico_pct=max_estres_hidrico_pct,
         )
 
+        logger.debug(
+            "Ejecutando búsqueda en Chroma (k=%d, filtro=%s, query=%s)",
+            k,
+            filtro,
+            query,
+        )
+
         resultados = self.vector_store.similarity_search_with_score(
             query=query,
             k=k,
@@ -118,20 +128,19 @@ class SiteWiseRetriever:
         """Consulta exclusivamente la documentación metodológica (docs/)."""
         return self.buscar(query=query, k=k, source_type="documentacion")
 
+
 if __name__ == "__main__":
-    # Prueba rápida de consulta mostrando la información completa
     retriever = SiteWiseRetriever()
 
-    query="Municipio con buena conectividad fibra, acceso a autovía y suelo industrial"
+    query = "Municipio con buena conectividad fibra, acceso a autovía y suelo industrial"
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("--- PRUEBA 1: Búsqueda semántica con filtros (Fichas Completas) ---")
     print(f"--- QUERY: {query} ---")
-        
-    print("="*80)
+    print("=" * 80)
     hits = retriever.buscar(
         query=query,
-        k=2,  # Mostramos 2 resultados para que la lectura sea cómoda y detallada
+        k=2,
         source_type="ficha_municipal",
         min_suelo_industrial_ha=20.0,
         max_estres_hidrico_pct=30.0,
@@ -140,15 +149,15 @@ if __name__ == "__main__":
         print(f"\n[{i}] Municipio: {hit['metadata'].get('nombre')} ({hit['metadata'].get('provincia')})")
         print(f"    CCAA: {hit['metadata'].get('ccaa')} | Distancia de similitud: {hit['distance_score']}")
         print("-" * 80)
-        print(hit["content"])  
+        print(hit["content"])
         print("=" * 80)
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("--- PRUEBA 2: Consulta sobre metodología (Documentación Completa) ---")
-    print("="*80)
+    print("=" * 80)
     doc_hits = retriever.buscar_documentacion("Cómo se calculan riesgo y atractivo", k=1)
     for hit in doc_hits:
         print(f"\nFuente: {hit['metadata'].get('source')}")
         print("-" * 80)
-        print(hit["content"])  # Imprime todo el fragmento de la documentación
+        print(hit["content"])
         print("=" * 80)
