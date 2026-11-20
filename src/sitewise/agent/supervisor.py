@@ -5,54 +5,36 @@ con los datos reales recuperados del RAG.
 """
 
 import json
+import logging
 import os
 
 from dotenv import load_dotenv
 from groq import Groq
 from pydantic import ValidationError
 
+from sitewise.agent.prompts import (
+    SUPERVISOR_AUDIT_TEMPLATE,
+    SUPERVISOR_SYSTEM_PROMPT,
+)
 from sitewise.agent.schemas import JudgeEvaluation
+from sitewise.common.prompt_tracer import guardar_traza_prompt
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class SiteWiseSupervisor:
     """LLM Judge / Agente Supervisor que audita fidelidad factual, riesgos y adecuación logística."""
 
-    SUPERVISOR_PROMPT = """Eres el Auditor Senior de Calidad y Veracidad de SiteWise (LLM Judge).
-Tu trabajo es revisar críticamente y auditar la recomendación elaborada por el Agente Analista antes de que sea entregada al cliente final.
-
-Para tu auditoría dispones de:
-1. La consulta original del usuario (necesidades del negocio).
-2. Los datos reales crudos recuperados de la base de datos municipal y documentación (CONTEXTO REAL).
-3. La propuesta de respuesta redactada por el Agente Analista.
-
-CRITERIOS DE AUDITORÍA OBLIGATORIOS:
-1. FIDELIDAD FACTUAL (Groundedness / No alucinación):
-   - ¿Las cifras citadas por el agente (hectáreas de suelo, distancias en km a autovía/TTM, porcentajes de paro, porcentajes de estrés hídrico, siniestros forestales, eventos CNIH) están fielmente respaldadas por el CONTEXTO REAL?
-   - Si el agente inventa datos numéricos, códigos INE o afirma que hay infraestructuras inexistentes, 'datos_contrastados' debe ser False y 'aprobado' False.
-
-2. EVALUACIÓN EXHAUSTIVA DE RIESGOS:
-   - Toda recomendación de emplazamiento empresarial debe advertir sobre riesgos hídricos (estrés, estado de acuíferos subterráneos) y riesgos climáticos/ambientales (siniestros forestales o eventos extremos CNIH).
-   - Si el agente recomienda municipios sin mencionar estos riesgos o los oculta, 'analisis_riesgos_adecuado' debe ser False y 'aprobado' False.
-
-3. ADECUACIÓN LOGÍSTICA Y ACTIVIDAD:
-   - Verifica si los municipios seleccionados cumplen con las necesidades mínimas expresadas por el usuario (suelo, conectividad, tipo de industria).
-
-4. FORMATO DE SALIDA (JSON ESTRICTO):
-   Debes responder ÚNICAMENTE con un objeto JSON válido con los campos:
-   - "aprobado": boolean (true solo si pasa la auditoría con solvencia)
-   - "puntuacion_calidad": int (1 a 5)
-   - "datos_contrastados": boolean
-   - "analisis_riesgos_adecuado": boolean
-   - "analisis_logistica_adecuado": boolean
-   - "feedback_mejora": string explicativo con puntos fuertes y debilidades o instrucciones claras de subsanación si no está aprobado.
-"""
+    SUPERVISOR_PROMPT = SUPERVISOR_SYSTEM_PROMPT
 
     def __init__(self, model_name: str | None = None):
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        # Por defecto usamos un modelo potente y determinista (temp=0.0) para supervisión
-        self.model = model_name or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        self.model = (
+            model_name
+            or os.getenv("GROQ_SUPERVISOR_MODEL")
+            or os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        )
 
     def supervisar(
         self,
@@ -64,19 +46,24 @@ CRITERIOS DE AUDITORÍA OBLIGATORIOS:
         Audita la respuesta del agente frente al contexto real devuelto por el RAG.
         Devuelve un objeto validado `JudgeEvaluation`.
         """
-        contexto_unificado = "\n---\n".join(context_docs[:5]) if context_docs else "No se aportó contexto del retriever."
+        docs_unicos = list(dict.fromkeys(doc for doc in context_docs if doc and doc.strip()))
+        contexto_unificado = (
+            "\n---\n".join(docs_unicos)
+            if docs_unicos
+            else "No se aportó contexto del retriever."
+        )
 
-        user_content = (
-            f"=== 1. CONSULTA DEL USUARIO ===\n{user_query}\n\n"
-            f"=== 2. CONTEXTO REAL RECUPERADO (DATOS DE SITEWISE) ===\n{contexto_unificado}\n\n"
-            f"=== 3. RESPUESTA DEL AGENTE ANALISTA A AUDITAR ===\n{agent_response}\n\n"
-            "Emite tu dictamen de auditoría en JSON según el esquema exigido:"
+        user_content = SUPERVISOR_AUDIT_TEMPLATE.format(
+            user_query=user_query,
+            contexto_unificado=contexto_unificado,
+            agent_response=agent_response,
         )
 
         messages = [
             {"role": "system", "content": self.SUPERVISOR_PROMPT},
             {"role": "user", "content": user_content},
         ]
+
 
         try:
             completion = self.client.chat.completions.create(
@@ -87,10 +74,28 @@ CRITERIOS DE AUDITORÍA OBLIGATORIOS:
             )
             raw_json = completion.choices[0].message.content or "{}"
             parsed = json.loads(raw_json)
-            return JudgeEvaluation(**parsed)
+            veredicto = JudgeEvaluation(**parsed)
+            guardar_traza_prompt(
+                componente="supervisor",
+                model=self.model,
+                messages=messages,
+                response={
+                    "raw_json": raw_json,
+                    "parsed_evaluation": veredicto.model_dump(),
+                },
+                extra={"user_query": user_query},
+            )
+            return veredicto
 
         except (json.JSONDecodeError, ValidationError) as ve:
-            print(f"[Supervisor] ⚠️ Error parseando veredicto del juez ({ve}). Dictamen: NO VERIFICADO (rechazado).")
+            logger.warning("Error parseando veredicto del juez (%s). Dictamen: NO VERIFICADO.", ve)
+            guardar_traza_prompt(
+                componente="supervisor",
+                model=self.model,
+                messages=messages,
+                response={"error": str(ve)},
+                extra={"user_query": user_query},
+            )
             return JudgeEvaluation(
                 aprobado=False,
                 puntuacion_calidad=1,
@@ -100,7 +105,14 @@ CRITERIOS DE AUDITORÍA OBLIGATORIOS:
                 feedback_mejora=f"No verificado: Error al validar o decodificar el veredicto del juez ({ve}). La recomendación debe ser auditada nuevamente.",
             )
         except Exception as e:  # noqa: BLE001
-            print(f"[Supervisor] ⚠️ Error en llamada a Groq: {e}. Dictamen: NO VERIFICADO (rechazado).")
+            logger.error("Error en llamada a Groq desde el supervisor: %s", e)
+            guardar_traza_prompt(
+                componente="supervisor",
+                model=self.model,
+                messages=messages,
+                response={"error": str(e)},
+                extra={"user_query": user_query},
+            )
             return JudgeEvaluation(
                 aprobado=False,
                 puntuacion_calidad=1,

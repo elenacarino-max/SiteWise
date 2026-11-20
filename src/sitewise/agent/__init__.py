@@ -10,6 +10,13 @@ from sitewise.agent.schemas import (
     SiteWiseGraphState,
 )
 
+from sitewise.agent.prompts import (
+    ANALYST_FEEDBACK_TEMPLATE,
+    ANALYST_SYSTEM_PROMPT,
+    SUPERVISOR_AUDIT_TEMPLATE,
+    SUPERVISOR_SYSTEM_PROMPT,
+)
+
 __all__ = [
     "AGENT_TOOLS_SCHEMA",
     "BuscarMunicipiosSchema",

@@ -4,6 +4,7 @@ y evaluación de riesgos de SiteWise con Groq, RAG y soporte para feedback del s
 """
 
 import json
+import logging
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -11,6 +12,11 @@ from dotenv import load_dotenv
 from groq import Groq
 from pydantic import ValidationError
 
+from sitewise.agent.prompts import (
+    ANALYST_FEEDBACK_HISTORY_TEMPLATE,
+    ANALYST_FEEDBACK_TEMPLATE,
+    ANALYST_SYSTEM_PROMPT,
+)
 from sitewise.agent.schemas import (
     AGENT_TOOLS_SCHEMA,
     BuscarMunicipiosSchema,
@@ -18,34 +24,19 @@ from sitewise.agent.schemas import (
     ConsultarMunicipioPorINESchema,
 )
 
+from sitewise.common.prompt_tracer import guardar_traza_prompt
+
 if TYPE_CHECKING:
     from sitewise.rag.retriever import SiteWiseRetriever
 
-# Cargamos variables de entorno (GROQ_API_KEY)
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class SiteWiseAnalyzer:
     """Agente analista experto en recomendación de emplazamientos empresariales y evaluación de riesgos."""
 
-    SYSTEM_PROMPT = """Eres SiteWise Agent, un consultor senior experto en localización territorial y evaluación de emplazamientos para nuevas empresas, fábricas y proyectos industriales en España.
-
-Tu misión es analizar y recomendar los mejores municipios según las necesidades del usuario, basándote rigurosamente en datos reales del sistema SiteWise.
-
-PAUTAS OBLIGATORIAS:
-1. ANÁLISIS DE REQUISITOS:
-   - Identifica qué tipo de actividad económica quiere desarrollar el usuario (ej. logística, fábrica química, agroalimentaria, datacenter, manufactura ligera).
-   - Ten en cuenta sus requerimientos críticos: necesidades de suelo industrial (ha), distancia a autovía y terminales de mercancías (TTM/intermodal), demanda de agua y disponibilidad de mano de obra en el sector correspondiente.
-
-2. EVALUACIÓN Y CONTRASTE DE RIESGOS:
-   - Siempre debes evaluar los riesgos ambientales: estrés y agotamiento hídrico, estado de masas subterráneas (cuantitativo y químico).
-   - Revisa el histórico de riesgos: siniestros forestales y eventos extremos CNIH (inundaciones, temporales). No ocultes los riesgos; si un municipio tiene buen suelo pero alto estrés hídrico o riesgo de inundación, indícalo claramente con medidas mitigadoras.
-
-3. USO DE HERRAMIENTAS Y RIGOR:
-   - Utiliza 'buscar_municipios_sitewise' para encontrar candidatos acordes y 'consultar_municipio_ine' para profundizar en una ficha concreta si es necesario.
-   - Cita datos numéricos exactos (ha de suelo, km a autovía, % estrés hídrico, paro sectorial) obtenidos de las fichas. JAMÁS inventes datos ni códigos INE.
-   - Si se te proporciona una corrección o feedback de un supervisor, subsana inmediatamente las deficiencias señaladas.
-"""
+    SYSTEM_PROMPT = ANALYST_SYSTEM_PROMPT
 
     def __init__(
         self,
@@ -58,11 +49,10 @@ PAUTAS OBLIGATORIAS:
             self.retriever = retriever
         else:
             from sitewise.rag.retriever import SiteWiseRetriever
+
             self.retriever = SiteWiseRetriever()
-        # Registro de textos crudos recuperados por las herramientas para auditoría del LLM Judge
         self.ultimos_datos_recuperados: list[str] = []
 
-    # --- 1. Funciones reales de las herramientas ---
     def tool_buscar_municipios(
         self,
         query: str,
@@ -74,7 +64,7 @@ PAUTAS OBLIGATORIAS:
         cluster: str | None = None,
     ) -> str:
         """Busca fichas municipales detalladas en SiteWise por semántica y filtros combinados."""
-        k_seguro = min(max(1, k), 6)
+        k_seguro = min(max(1, k), 3)
         resultados = self.retriever.buscar(
             query=query,
             k=k_seguro,
@@ -102,6 +92,27 @@ PAUTAS OBLIGATORIAS:
             self.ultimos_datos_recuperados.append(res["content"])
 
         return "\n".join(salida)
+
+    def _formatear_historial_feedback(
+        self,
+        feedback_history: list[str] | None = None,
+        feedback_supervisor: str | None = None,
+    ) -> str | None:
+        if feedback_history:
+            bloques = [
+                f"--- Ronda {idx} ---\n{item.strip()}"
+                for idx, item in enumerate(feedback_history, start=1)
+                if item and item.strip()
+            ]
+            if bloques:
+                return ANALYST_FEEDBACK_HISTORY_TEMPLATE.format(
+                    historial_formateado="\n\n".join(bloques)
+                )
+
+        if feedback_supervisor and feedback_supervisor.strip():
+            return ANALYST_FEEDBACK_TEMPLATE.format(feedback=feedback_supervisor.strip())
+
+        return None
 
     def tool_consultar_municipio_ine(self, cod_ine: str) -> str:
         """Recupera la ficha completa y exacta de un municipio dado su código INE."""
@@ -134,17 +145,16 @@ PAUTAS OBLIGATORIAS:
             "consultar_metodologia_sitewise": self.tool_consultar_metodologia,
         }
 
-    # --- 2. Especificación de herramientas para el modelo (desde schemas.py) ---
     @property
     def tools_schema(self):
         return AGENT_TOOLS_SCHEMA
 
-    # --- 3. Bucle de ejecución con soporte para feedback y control de turnos ---
     def ejecutar(
         self,
         user_prompt: str,
         feedback_supervisor: str | None = None,
-        max_turns: int = 5,
+        feedback_history: list[str] | None = None,
+        max_turns: int = 3,
     ) -> tuple[str, list[str]]:
         """
         Ejecuta la consulta del usuario.
@@ -157,18 +167,20 @@ PAUTAS OBLIGATORIAS:
             {"role": "user", "content": user_prompt},
         ]
 
-        if feedback_supervisor:
+        bloque_feedback = self._formatear_historial_feedback(
+            feedback_history=feedback_history,
+            feedback_supervisor=feedback_supervisor,
+        )
+        if bloque_feedback:
             messages.append({
-                "role": "system",
-                "content": (
-                    f"ATENCIÓN - FEEDBACK DEL SUPERVISOR:\n{feedback_supervisor}\n"
-                    "Debes corregir tu análisis anterior asegurándote de subsanar los puntos señalados."
-                ),
+                "role": "user",
+                "content": bloque_feedback,
             })
 
         turn = 0
         while turn < max_turns:
             turn += 1
+            
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
@@ -178,17 +190,32 @@ PAUTAS OBLIGATORIAS:
                     temperature=0.1,
                 )
             except Exception as e:  # noqa: BLE001
-                return f"Error de comunicación con el modelo de lenguaje: {e}", self.ultimos_datos_recuperados
+                logger.error("Error de comunicación con el modelo de lenguaje: %s", e)
+                guardar_traza_prompt(
+                    componente="analyzer",
+                    model=self.model,
+                    messages=messages,
+                    response={"error": str(e)},
+                    extra={"turn": turn},
+                )
+                
+                docs_unicos = list(dict.fromkeys(self.ultimos_datos_recuperados))
+                return f"Error de comunicación con el modelo de lenguaje: {e}", docs_unicos
 
             response_message = response.choices[0].message
-
-            # Añadir mensaje del asistente a la conversación
+            guardar_traza_prompt(
+                componente="analyzer",
+                model=self.model,
+                messages=messages,
+                response=response_message,
+                extra={"turn": turn},
+            )
             messages.append(response_message)
 
             if not response_message.tool_calls:
-                return response_message.content or "", self.ultimos_datos_recuperados
+                docs_unicos = list(dict.fromkeys(self.ultimos_datos_recuperados))
+                return response_message.content or "", docs_unicos
 
-            # Atender todas las llamadas a herramientas requeridas
             for tool_call in response_message.tool_calls:
                 function_name = tool_call.function.name
                 tool_output = ""
@@ -206,18 +233,21 @@ PAUTAS OBLIGATORIAS:
                         validated_args = raw_args
 
                 except (json.JSONDecodeError, ValidationError) as jde:
+                    logger.warning("Argumentos inválidos para '%s': %s", function_name, jde)
                     tool_output = f"Error: Argumentos devueltos no válidos ({jde})."
                     validated_args = {}
 
-                print(f"[Agente] 🛠️ Ejecutando herramienta: '{function_name}' con {validated_args}")
+                logger.info("Ejecutando herramienta '%s' con argumentos: %s", function_name, validated_args)
 
                 if function_name in self.available_tools and not tool_output.startswith("Error:"):
                     try:
                         tool_to_call = self.available_tools[function_name]
                         tool_output = tool_to_call(**validated_args)
                     except Exception as te:  # noqa: BLE001
+                        logger.error("Error al ejecutar herramienta '%s': %s", function_name, te)
                         tool_output = f"Error al ejecutar {function_name}: {te}"
                 elif not tool_output.startswith("Error:"):
+                    logger.warning("Herramienta solicitada no disponible: '%s'", function_name)
                     tool_output = f"Error: Herramienta '{function_name}' no disponible."
 
                 messages.append({
@@ -227,13 +257,14 @@ PAUTAS OBLIGATORIAS:
                     "content": tool_output,
                 })
 
+        logger.warning("Se alcanzó el límite máximo de %d turnos sin completar la respuesta.", max_turns)
+        docs_unicos = list(dict.fromkeys(self.ultimos_datos_recuperados))
         return (
             "Se alcanzó el límite máximo de turnos sin completar la respuesta.",
-            self.ultimos_datos_recuperados,
+            docs_unicos,
         )
 
 
-# Alias para compatibilidad hacia atrás
 SiteWiseAgentDirect = SiteWiseAnalyzer
 
 

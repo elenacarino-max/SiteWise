@@ -3,10 +3,13 @@ Módulo loader.py: Carga y transformación del CSV municipal y documentación
 para el sistema RAG de SiteWise.
 """
 
+import logging
 import os
 from typing import Any
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class SiteWiseLoader:
@@ -102,7 +105,7 @@ class SiteWiseLoader:
             20,
             ("acceso inmediato a autovía", "buena conexión viaria", "alejado de ejes de autovía"),
         )
-        
+
         if pd.notna(suelo_ha) and suelo_ha > 0:
             tiene_suelo = f"{self._fmt(suelo_ha, ' ha')} ({self._fmt(suelo_pct, '%')} del término municipal)"
         else:
@@ -174,12 +177,12 @@ class SiteWiseLoader:
         """Lee el CSV municipal y genera fichas descriptivas estructuradas."""
         file_path = os.path.join(self.data_path, filename)
         if not os.path.exists(file_path):
-            print(f"[Advertencia] No se encontró el archivo en {file_path}.")
+            logger.warning("No se encontró el archivo en %s.", file_path)
             return []
 
         df = pd.read_csv(file_path, dtype={"cod_ine": str, "cod_provincia": str})
         documents = [self._construir_ficha_municipio(row) for _, row in df.iterrows()]
-        print(f"[Éxito] Se han procesado {len(documents)} fichas municipales desde {filename}.")
+        logger.info("Se han procesado %d fichas municipales desde %s.", len(documents), filename)
         return documents
 
     def load_markdown_docs(self, docs_dir: str = "docs/") -> list[dict[str, Any]]:
@@ -190,12 +193,10 @@ class SiteWiseLoader:
         if not os.path.exists(docs_dir):
             return documents
 
-        # Rutas y archivos a excluir para no contaminar el contexto del agente de negocio
         carpetas_excluidas = {"planning", ".git", "__pycache__"}
         archivos_excluidos = {"plan_equipo.md", "README-HELEN.md"}
 
         for root, _, files in os.walk(docs_dir):
-            # Comprobar si alguna de las carpetas excluidas está en la ruta
             partes_ruta = set(os.path.normpath(root).split(os.sep))
             if carpetas_excluidas.intersection(partes_ruta):
                 continue
@@ -205,7 +206,6 @@ class SiteWiseLoader:
                     file_path = os.path.join(root, file)
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read().strip()
-                        # Filtrar archivos vacíos o casi vacíos (menos de 40 caracteres)
                         if content and len(content) > 40:
                             documents.append({
                                 "content": content,
@@ -215,7 +215,7 @@ class SiteWiseLoader:
                                     "document_name": file,
                                 },
                             })
-        print(f"[Éxito] Se han cargado {len(documents)} documentos Markdown técnicos desde {docs_dir}.")
+        logger.info("Se han cargado %d documentos Markdown técnicos desde %s.", len(documents), docs_dir)
         return documents
 
     def load_all(
@@ -224,8 +224,8 @@ class SiteWiseLoader:
         """Carga conjunta de fichas municipales y documentación técnica."""
         return self.load_csv_municipalities(csv_filename) + self.load_markdown_docs(docs_dir)
 
+
 if __name__ == "__main__":
-    # Prueba rápida de ejecución directa
     loader = SiteWiseLoader()
     docs = loader.load_all()
     if docs:

@@ -45,3 +45,10 @@ Thumbs.db
 !/data/processed/generadorMatrices/config_4_variables.json
 !/data/processed/generadorMatrices/LEEME.md
 !/data/processed/generadorMatrices/requirements-matrices.txt
+
+# Logs generados por la aplicación
+logs/
+*.log
+
+# Metadatos de zona al copiar desde Windows a WSL
+*:Zone.Identifier
