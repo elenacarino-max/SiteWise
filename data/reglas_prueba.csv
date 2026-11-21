@@ -1,0 +1,5 @@
+actividad,id_indicador,uso_en_actividad,peso,es_requisito_minimo,operador,umbral,unidad,sentido,justificacion,aprobado_por,fecha_aprobacion
+logistica_prueba,suelo_industrial_cartografiado_ha,atractivo,2,si,>=,10,ha,directa,PRUEBA LOCAL: regla inventada para probar,,
+logistica_prueba,dist_recta_eje_autovia_km,atractivo,1,si,<=,20,km,inversa,PRUEBA LOCAL: regla inventada para probar,,
+logistica_prueba,cobertura_ftth_pct,atractivo,1,,,,% hogares,directa,PRUEBA LOCAL: regla inventada para probar,,
+logistica_prueba,estres_hidrico_pct,riesgo,1,,,,%,directa,PRUEBA LOCAL: regla inventada para probar,,

@@ -85,9 +85,15 @@ class MotorPuntuacion:
         if not minimos:
             motivo_minimos = "La actividad no define requisitos mínimos."
         else:
-            # Lista de los mínimos que no se pueden comprobar, para explicarlo.
+            # Explico el resultado: qué mínimos fallan y cuáles no se pueden comprobar.
+            fallan = [m.id_indicador for m in minimos if m.estado == EstadoMinimo.NO_CUMPLE]
             pendientes = [m.id_indicador for m in minimos if m.estado == EstadoMinimo.NO_EVALUABLE]
-            motivo_minimos = f"No evaluables: {', '.join(pendientes)}." if pendientes else ""
+            partes = []
+            if fallan:
+                partes.append(f"No cumple: {', '.join(fallan)}.")
+            if pendientes:
+                partes.append(f"No evaluables: {', '.join(pendientes)}.")
+            motivo_minimos = " ".join(partes)
 
         return Evaluacion(
             cod_ine=cod_ine,
