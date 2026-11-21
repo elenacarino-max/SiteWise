@@ -8,13 +8,29 @@ from __future__ import annotations
 
 from sitewise.db.repositorio import RepositorioCSV
 from sitewise.scoring.calidad import es_aproximado, motivo_no_utilizable
+from sitewise.scoring.motor import MotorPuntuacion
+from sitewise.scoring.normalizacion import Normalizador
+from sitewise.scoring.reglas import ConjuntoReglas
 
-from .schemas import FichaMunicipio, ListaMunicipios, Municipio, Salud, ValorIndicador
+from .schemas import (
+    FichaMunicipio,
+    ListaActividades,
+    ListaMunicipios,
+    Municipio,
+    RespuestaEvaluacion,
+    ResumenActividad,
+    Salud,
+    ValorIndicador,
+)
 
 
 class Servicio:
-    def __init__(self, repositorio: RepositorioCSV):
+    def __init__(self, repositorio: RepositorioCSV, reglas: ConjuntoReglas | None = None):
         self.repo = repositorio
+        self.reglas = reglas or ConjuntoReglas([])
+        # El normalizador aprende UNA vez cómo se reparten los valores en España (tarda unos
+        # segundos con los datos reales). Después no cambia: las peticiones solo lo leen.
+        self.motor = MotorPuntuacion(self.reglas, Normalizador(repositorio.valores))
 
     def salud(self) -> Salud:
         info = self.repo.info()
@@ -53,3 +69,29 @@ class Servicio:
                 motivo_no_utilizable=motivo,
             ))
         return FichaMunicipio(municipio=municipio, indicadores=indicadores)
+
+    # ------------------------------------------------------------------ actividades
+
+    def existe_actividad(self, actividad: str) -> bool:
+        return self.reglas.existe(actividad)
+
+    def actividades(self) -> ListaActividades:
+        resumenes = [ResumenActividad(**self.reglas.resumen(a)) for a in self.reglas.actividades()]
+        if not resumenes:
+            aviso = "Todavía no hay reglas de actividad cargadas: las aprueba el equipo."
+        elif any(r.estado_reglas == "provisionales" for r in resumenes):
+            aviso = "Hay reglas provisionales (sin aprobar): los resultados no son definitivos."
+        else:
+            aviso = ""
+        return ListaActividades(actividades=resumenes, aviso=aviso)
+
+    def evaluar(self, cod_ine: str, actividad: str) -> RespuestaEvaluacion | None:
+        """Evalúa un municipio para una actividad. None si el municipio no existe.
+
+        Quien llama debe comprobar antes que la actividad existe (`existe_actividad`).
+        """
+        municipio = self.municipio(cod_ine)
+        if municipio is None:
+            return None
+        evaluacion = self.motor.evaluar(cod_ine, actividad, self.repo.observaciones(cod_ine))
+        return RespuestaEvaluacion(municipio=municipio, evaluacion=evaluacion)

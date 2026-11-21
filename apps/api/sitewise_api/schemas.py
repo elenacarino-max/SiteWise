@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from sitewise.scoring.modelos import Evaluacion
+
 AVISO_ALCANCE = (
     "Valoración a escala municipal: no garantiza la aptitud de una parcela concreta. "
     "Las distancias son rectas, no tiempos ni distancias por carretera."
@@ -64,4 +66,29 @@ class ValorIndicador(BaseModel):
 class FichaMunicipio(BaseModel):
     municipio: Municipio
     indicadores: list[ValorIndicador]
+    aviso_alcance: str = AVISO_ALCANCE
+
+
+class ResumenActividad(BaseModel):
+    """Una actividad y el estado de sus reglas (para listarla antes de evaluar nada)."""
+
+    actividad: str
+    estado_reglas: str  # "aprobadas" solo si TODAS las reglas están firmadas; si no, "provisionales"
+    n_reglas: int
+    n_minimos: int
+    n_puntuables: int
+    n_aprobadas: int
+    version_reglas: str
+
+
+class ListaActividades(BaseModel):
+    actividades: list[ResumenActividad]
+    aviso: str = ""  # por ejemplo: todavía no hay reglas, o hay reglas provisionales
+
+
+class RespuestaEvaluacion(BaseModel):
+    """Evaluación de un municipio para una actividad: riesgo y atractivo por separado."""
+
+    municipio: Municipio
+    evaluacion: Evaluacion
     aviso_alcance: str = AVISO_ALCANCE

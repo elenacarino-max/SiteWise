@@ -13,14 +13,23 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Path, Query, Request
 
 from sitewise.db.repositorio import DatosNoDisponibles, RepositorioCSV
+from sitewise.scoring.reglas import ErrorReglas, cargar_reglas
 
 from .config import Ajustes
 from .errores import ErrorApi, registrar_manejadores
-from .schemas import FichaMunicipio, ListaMunicipios, Municipio, Salud
+from .schemas import (
+    FichaMunicipio,
+    ListaActividades,
+    ListaMunicipios,
+    Municipio,
+    RespuestaEvaluacion,
+    Salud,
+)
 from .servicio import Servicio
 
 # Tipos reutilizables: "Annotated" pega a cada parámetro su validación y su documentación.
 CodIne = Annotated[str, Path(pattern=r"^\d{5}$", description="Código INE de 5 dígitos (con ceros iniciales)")]
+Actividad = Annotated[str, Path(min_length=1, max_length=80, description="Nombre de la actividad (ver /actividades)")]
 
 
 def obtener_servicio(request: Request) -> Servicio:
@@ -30,9 +39,13 @@ def obtener_servicio(request: Request) -> Servicio:
         with estado.candado:
             if estado.servicio is None:
                 try:
-                    estado.servicio = Servicio(RepositorioCSV(estado.ajustes.directorio_datos))
+                    reglas = cargar_reglas(estado.ajustes.ruta_reglas)
+                    estado.servicio = Servicio(RepositorioCSV(estado.ajustes.directorio_datos), reglas)
                 except DatosNoDisponibles as exc:
                     raise ErrorApi(503, "datos_no_disponibles", str(exc)) from exc
+                except ErrorReglas as exc:
+                    # El CSV de reglas tiene algo mal escrito: el mensaje dice en qué línea.
+                    raise ErrorApi(500, "reglas_invalidas", str(exc)) from exc
     return estado.servicio
 
 
@@ -83,6 +96,24 @@ def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
         if ficha is None:
             raise ErrorApi(404, "municipio_no_encontrado", f"No existe el municipio '{cod_ine}'.")
         return ficha
+
+    @app.get("/actividades", response_model=ListaActividades, tags=["actividades"])
+    def listar_actividades(servicio: ServicioDep) -> ListaActividades:
+        """Actividades con reglas cargadas y si esas reglas están aprobadas o son provisionales."""
+        return servicio.actividades()
+
+    @app.get(
+        "/municipios/{cod_ine}/evaluacion/{actividad}",
+        response_model=RespuestaEvaluacion,
+        tags=["actividades"],
+    )
+    def evaluar_municipio(cod_ine: CodIne, actividad: Actividad, servicio: ServicioDep) -> RespuestaEvaluacion:
+        """Riesgo y atractivo (por separado) y requisitos mínimos de un municipio para una actividad."""
+        if servicio.municipio(cod_ine) is None:
+            raise ErrorApi(404, "municipio_no_encontrado", f"No existe el municipio '{cod_ine}'.")
+        if not servicio.existe_actividad(actividad):
+            raise ErrorApi(404, "actividad_no_encontrada", f"No hay reglas para la actividad '{actividad}'.")
+        return servicio.evaluar(cod_ine, actividad)
 
     return app
 
