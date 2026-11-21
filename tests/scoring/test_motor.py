@@ -121,13 +121,31 @@ def test_min_confianza_configurable(tmp_path):
     assert nota.nota is None
 
 
-def test_dato_aproximado_no_certifica_minimo_pero_si_puntua(motor):
+def test_proxy_provincial_no_certifica_minimo_pero_si_puntua(motor):
     obs = observaciones("A")
     obs["suelo_ha"] = Observacion(50.0, "aproximado", "provincial")
     ev = motor.evaluar("A", "demo", obs)
-    assert ev.cumple_minimos == EstadoMinimo.NO_EVALUABLE  # no sirve para el mínimo
+    assert ev.cumple_minimos == EstadoMinimo.NO_EVALUABLE  # un proxy provincial no sirve
     assert ev.atractivo.nota == pytest.approx(62.5)  # pero sí entra en la nota
     assert ev.atractivo.componentes[0].aproximado is True
+
+
+def test_dato_aproximado_municipal_si_evalua_el_minimo_con_aviso(motor):
+    # Es lo que pasa con los datos reales: la distancia a un eje o el suelo de un polígono
+    # vienen como "aproximado" pero a escala municipal.
+    obs = observaciones("A")
+    obs["suelo_ha"] = Observacion(50.0, "aproximado", "poligono_industrial")
+    minimo = motor.evaluar("A", "demo", obs).minimos[0]
+    assert minimo.estado == EstadoMinimo.CUMPLE
+    assert minimo.aproximado is True
+    assert "aproximado" in minimo.aviso
+
+
+def test_modo_estricto_rechaza_cualquier_aproximado(tmp_path):
+    estricto = crear_motor(tmp_path, permitir_aproximados_en_minimos=False)
+    obs = observaciones("A")
+    obs["suelo_ha"] = Observacion(50.0, "aproximado", "poligono_industrial")
+    assert estricto.evaluar("A", "demo", obs).cumple_minimos == EstadoMinimo.NO_EVALUABLE
 
 
 def test_reglas_provisionales_hasta_que_se_aprueben(motor):

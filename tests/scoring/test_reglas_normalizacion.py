@@ -42,6 +42,15 @@ def test_dato_aproximado_no_certifica_minimo():
     assert motivo_no_utilizable(float("nan"), "real", None)
 
 
+def test_proxy_provincial_y_aproximado_municipal():
+    # Aproximado a escala municipal: vale por defecto, no en modo estricto
+    assert motivo_no_utilizable(5.0, "aproximado", "eje_infraestructura") is None
+    assert motivo_no_utilizable(5.0, "aproximado", "eje_infraestructura", permitir_aproximados=False)
+    # Proxy provincial: se rechaza cuando se pide no permitir proxies
+    assert motivo_no_utilizable(5.0, "aproximado", "provincia", permitir_proxies=False)
+    assert motivo_no_utilizable(5.0, "real", "municipio", permitir_proxies=False) is None
+
+
 def test_carga_de_reglas(tmp_path):
     f = tmp_path / "reglas.csv"
     f.write_text(CSV, encoding="utf-8")

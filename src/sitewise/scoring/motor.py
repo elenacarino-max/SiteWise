@@ -53,7 +53,7 @@ class MotorPuntuacion:
         reglas: ConjuntoReglas,
         normalizador: Normalizador,
         min_confianza: float = 0.0,
-        permitir_aproximados_en_minimos: bool = False,
+        permitir_aproximados_en_minimos: bool = True,
     ):
         self.reglas = reglas
         self.normalizador = normalizador
@@ -61,7 +61,9 @@ class MotorPuntuacion:
         # si faltan algunos. Si se sube, una nota con menos confianza queda no_evaluable.
         # Ver docs/architecture/decision-notas-parciales.md
         self.min_confianza = min_confianza
-        # Por defecto un dato aproximado/provincial NO certifica un mínimo.
+        # Un dato aproximado a escala municipal SÍ puede evaluar un mínimo (queda marcado).
+        # Con False (modo estricto) ningún dato aproximado lo certifica.
+        # Un proxy PROVINCIAL nunca certifica un mínimo, ni en modo normal.
         self.permitir_aproximados_en_minimos = permitir_aproximados_en_minimos
 
     # ------------------------------------------------------------------ público
@@ -131,7 +133,11 @@ class MotorPuntuacion:
                 "el municipio no tiene observación de este indicador"
                 if o is None
                 else motivo_no_utilizable(
-                    o.valor, o.estado, o.nivel_origen, self.permitir_aproximados_en_minimos
+                    o.valor,
+                    o.estado,
+                    o.nivel_origen,
+                    permitir_aproximados=self.permitir_aproximados_en_minimos,
+                    permitir_proxies=False,  # un proxy provincial nunca certifica un mínimo
                 )
             )
             if motivo:
@@ -143,10 +149,17 @@ class MotorPuntuacion:
 
             # Caso 3: tengo el dato, comparo. OPERADORES[">="] es la función "mayor o igual".
             cumple = OPERADORES[regla.operador](o.valor, regla.umbral)
+            aproximado = es_aproximado(o.estado, o.nivel_origen)
             resultados.append(ResultadoMinimo(
                 **base,
                 estado=EstadoMinimo.CUMPLE if cumple else EstadoMinimo.NO_CUMPLE,
                 valor=o.valor,
+                aproximado=aproximado,
+                # Si el dato es aproximado lo digo junto al resultado, para no darlo por exacto.
+                aviso=(
+                    f"evaluado con un dato aproximado (estado: {o.estado}, nivel: {o.nivel_origen})"
+                    if aproximado else ""
+                ),
             ))
         return resultados
 

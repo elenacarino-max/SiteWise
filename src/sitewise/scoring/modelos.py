@@ -97,6 +97,8 @@ class ResultadoMinimo(BaseModel):
     estado: EstadoMinimo
     valor: float | None = None
     motivo: str = ""  # por qué es no_evaluable, si lo es
+    aproximado: bool = False  # se evaluó con un dato aproximado
+    aviso: str = ""  # cautela que debe mostrarse junto al resultado
     aprobada: bool = False
 
 

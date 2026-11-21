@@ -36,8 +36,8 @@ información útil.
   `no_evaluable`, nunca `cumple`. El contrato del dataset y el plan del equipo lo exigen, y es
   distinto de una nota, que es una valoración orientativa.
 - Un dato ausente nunca se convierte en 0.
-- Un dato aproximado o provincial entra en la nota, pero se marca (`aproximado`) y no sirve para
-  certificar un mínimo.
+- Un dato aproximado o provincial entra en la nota, pero se marca (`aproximado`). Para certificar un
+  mínimo se aplica otra regla: ver `decision-minimos-y-datos-aproximados.md`.
 
 ## Por qué
 

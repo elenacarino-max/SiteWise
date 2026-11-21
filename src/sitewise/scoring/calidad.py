@@ -41,13 +41,22 @@ def es_aproximado(estado: str | None, nivel_origen: str | None) -> bool:
     return (estado or "") in ESTADOS_APROXIMADOS or "provinc" in (nivel_origen or "").lower()
 
 
+def es_proxy_provincial(nivel_origen: str | None) -> bool:
+    """True si el valor se asignó desde el nivel provincia (no es una medición municipal)."""
+    return "provinc" in (nivel_origen or "").lower()
+
+
 def motivo_no_utilizable(
     valor: float | None,
     estado: str | None,
     nivel_origen: str | None,
     permitir_aproximados: bool = True,
+    permitir_proxies: bool = True,
 ) -> str | None:
     """Devuelve el motivo por el que el dato no sirve, o None si SÍ se puede usar.
+
+    - permitir_aproximados=False: rechazo cualquier dato aproximado (modo estricto).
+    - permitir_proxies=False: rechazo solo los datos asignados desde el nivel provincial.
 
     Devuelvo el motivo (y no solo True/False) para poder enseñárselo al usuario
     en la API: "no evaluable porque ...".
@@ -58,4 +67,6 @@ def motivo_no_utilizable(
         return f"estado '{estado}': el dato no es utilizable"
     if not permitir_aproximados and es_aproximado(estado, nivel_origen):
         return "dato aproximado o proxy: no certifica un requisito municipal"
+    if not permitir_proxies and es_proxy_provincial(nivel_origen):
+        return "proxy provincial: no es una medición municipal"
     return None
