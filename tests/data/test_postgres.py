@@ -49,7 +49,9 @@ def test_cargar_dos_veces_no_duplica(directorio_datos, esquema):
 
 
 def test_info_dice_el_origen(repo_pg):
-    assert repo_pg.info() == {"origen": "postgresql", "municipios": 3, "indicadores": 3, "observaciones": 9}
+    assert repo_pg.info() == {
+        "origen": "postgresql", "valores_fichero": None, "municipios": 3, "indicadores": 3, "observaciones": 9,
+    }
 
 
 def test_conserva_el_cero_inicial(repo_pg):
@@ -180,3 +182,16 @@ def test_postgis_si_la_base_lo_tiene(directorio_datos, esquema):
     assert 270 < distancia < 290  # los dos municipios de prueba están a unos 279 km en línea recta
     # El repositorio sigue funcionando igual con la columna extra.
     assert RepositorioPostgres(URL, esquema).municipio("01001")["nombre"] == "Villaverde Alta"
+
+
+def test_con_valores_app_da_lo_mismo_que_el_csv(directorio_datos_app, esquema):
+    """Las estimaciones con vecinos llegan igual desde PostgreSQL que desde el CSV."""
+    cargar_csv(directorio_datos_app, URL, esquema)
+    pg = RepositorioPostgres(URL, esquema)
+    csv = RepositorioCSV(directorio_datos_app)
+    for cod in ("01001", "28001", "41001"):
+        assert pg.observaciones(cod) == csv.observaciones(cod)
+        assert pg.detalle_indicadores(cod) == csv.detalle_indicadores(cod)
+    estres = pg.observaciones("41001")["estres"]
+    assert estres.valor == 30 and estres.estado == "aproximado"
+    assert pg.observaciones("41001")["suelo_ha"].estado == "sin_poligonos_en_catalogo"

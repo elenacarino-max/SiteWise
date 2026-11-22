@@ -18,6 +18,7 @@ import pandas as pd
 
 from sitewise.db.esquema import (
     COLUMNAS,
+    ENTERAS,
     NUMERICAS,
     OBLIGATORIAS,
     con_tiempo_limite,
@@ -25,7 +26,7 @@ from sitewise.db.esquema import (
     url_desde_entorno,
     validar_esquema,
 )
-from sitewise.db.repositorio import FICHEROS, DatosNoDisponibles
+from sitewise.db.repositorio import FICHEROS, DatosNoDisponibles, fichero_valores
 
 CANDIDATAS = ("data/processed/sitewise_v03", "data/processed/sidewise_v03")
 
@@ -36,10 +37,11 @@ class ErrorCarga(RuntimeError):
 
 def _leer(directorio: Path, tabla: str) -> tuple[pd.DataFrame, list[str]]:
     """Leo un CSV como texto, me quedo con las columnas del esquema y devuelvo las que sobran."""
-    df = pd.read_csv(directorio / f"{tabla}.csv", dtype=str, keep_default_na=False)
+    fichero = fichero_valores(directorio) if tabla == "valores" else directorio / f"{tabla}.csv"
+    df = pd.read_csv(fichero, dtype=str, keep_default_na=False)
     faltan = [c for c in OBLIGATORIAS[tabla] if c not in df.columns]
     if faltan:
-        raise ErrorCarga(f"{tabla}.csv no tiene la(s) columna(s) obligatoria(s): {', '.join(faltan)}.")
+        raise ErrorCarga(f"{fichero.name} no tiene la(s) columna(s) obligatoria(s): {', '.join(faltan)}.")
     ignoradas = [c for c in df.columns if c not in COLUMNAS[tabla]]
     presentes = [c for c in COLUMNAS[tabla] if c in df.columns]
     df = df[presentes].copy()
@@ -50,8 +52,9 @@ def _leer(directorio: Path, tabla: str) -> tuple[pd.DataFrame, list[str]]:
         if columna in df.columns:
             # Un campo vacío o un texto que no es número acaba en NULL, igual que en el repositorio CSV.
             df[columna] = pd.to_numeric(df[columna], errors="coerce")
-    if tabla == "municipios" and "anio_geometria" in df.columns:
-        df["anio_geometria"] = df["anio_geometria"].astype("Int64")
+    for columna in ENTERAS[tabla]:
+        if columna in df.columns:
+            df[columna] = df[columna].round().astype("Int64")
     df["orden"] = range(len(df))  # posición en el fichero
     return df, ignoradas
 
@@ -98,6 +101,8 @@ def cargar_csv(directorio: str | Path, url: str, esquema: str = "public") -> dic
     esquema = validar_esquema(esquema)
     directorio = Path(directorio)
     faltan = [f for f in FICHEROS if not (directorio / f).is_file()]
+    if not fichero_valores(directorio).is_file():
+        faltan.append("valores_app.csv o valores.csv")
     if faltan:
         raise DatosNoDisponibles(f"No encuentro {', '.join(faltan)} en '{directorio}'.")
 

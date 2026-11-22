@@ -109,3 +109,17 @@ def test_motivo_de_minimos_nombra_los_que_fallan_y_los_no_evaluables(directorio_
     ev = cliente.get("/municipios/01001/evaluacion/a").json()["evaluacion"]
     assert ev["cumple_minimos"] == "no_cumple"
     assert ev["motivo_minimos"] == "No cumple: suelo_ha."
+
+
+def test_la_estimacion_de_agua_entra_en_el_calculo(cliente_con_datos_app):
+    """Con valores_app.csv, 41001 pasa de "sin riesgo" a tener riesgo, marcado como aproximado."""
+    cliente = cliente_con_datos_app
+    assert cliente.get("/health").json()["valores_fichero"] == "valores_app.csv"
+    ev = cliente.get("/municipios/41001/evaluacion/logistica_prueba").json()["evaluacion"]
+    assert ev["riesgo"]["estado"] == "calculada" and ev["riesgo"]["nota"] is not None
+    assert ev["riesgo"]["componentes"][0]["aproximado"] is True
+    # El suelo sin polígonos sigue sin poder certificar el mínimo.
+    assert ev["cumple_minimos"] == "no_evaluable"
+    ficha = cliente.get("/municipios/41001/ficha").json()["indicadores"]
+    estres = next(i for i in ficha if i["id_indicador"] == "estres")
+    assert estres["estimado"] is True and estres["vecinos"] == 5 and estres["utilizable"] is True

@@ -46,6 +46,11 @@ class RepositorioPostgres(RepositorioCSV):
                 f"La base de datos no tiene las tablas del dataset en el esquema '{esquema}'. "
                 "Cárgalas con: python -m sitewise.db.cargador"
             ) from exc
+        except psycopg.errors.UndefinedColumn as exc:
+            raise DatosNoDisponibles(
+                "Las tablas de la base de datos son de una versión anterior (faltan columnas). "
+                "Vuelve a cargarlas con: python -m sitewise.db.cargador"
+            ) from exc
         except psycopg.OperationalError as exc:
             raise DatosNoDisponibles(f"No puedo conectarme a la base de datos: {exc}") from exc
 

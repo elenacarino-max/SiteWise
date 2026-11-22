@@ -51,6 +51,7 @@ class Servicio:
             estado="ok",
             datos_cargados=True,
             origen=info["origen"],
+            valores_fichero=info.get("valores_fichero"),
             municipios=info["municipios"],
             indicadores=info["indicadores"],
             observaciones=info["observaciones"],

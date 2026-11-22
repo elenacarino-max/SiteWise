@@ -25,6 +25,9 @@ COLUMNAS = {
     "valores": (
         "cod_ine", "id_indicador", "valor", "estado", "nivel_origen", "fecha_dato", "fuente_id",
         "naturaleza", "metodo", "url_fuente", "fuentes_adicionales",
+        # Solo en valores_app.csv (notebook 09): estado para la app y datos de las estimaciones.
+        "estado_app", "valor_original", "metodo_original", "naturaleza_original", "estimado_app",
+        "k_vecinos", "distancia_media_km", "distancia_maxima_km", "fuente_estimacion",
     ),
 }
 # Columnas sin las que una fila no tiene sentido: si faltan en el CSV, el cargador se detiene.
@@ -37,7 +40,13 @@ OBLIGATORIAS = {
 NUMERICAS = {
     "municipios": ("superficie_km2", "lat", "lon", "anio_geometria"),
     "indicadores": (),
-    "valores": ("valor",),
+    "valores": ("valor", "valor_original", "k_vecinos", "distancia_media_km", "distancia_maxima_km"),
+}
+# Numéricas que se guardan como enteros (un "5.0" del CSV no entra en una columna integer).
+ENTERAS = {
+    "municipios": ("anio_geometria",),
+    "indicadores": (),
+    "valores": ("k_vecinos",),
 }
 
 _NOMBRE_VALIDO = re.compile(r"^[a-z_][a-z0-9_]{0,62}$")
@@ -101,6 +110,15 @@ CREATE TABLE {esquema}.valores (
     metodo               text,
     url_fuente           text,
     fuentes_adicionales  text,
+    estado_app           text,
+    valor_original       double precision,
+    metodo_original      text,
+    naturaleza_original  text,
+    estimado_app         boolean,
+    k_vecinos            integer,
+    distancia_media_km   double precision,
+    distancia_maxima_km  double precision,
+    fuente_estimacion    text,
     orden                integer NOT NULL,
     PRIMARY KEY (cod_ine, id_indicador)
 );

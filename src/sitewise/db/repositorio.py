@@ -3,7 +3,8 @@
 Uso los ficheros de `data/processed/sitewise_v03/` descritos en el diccionario:
   - municipios.csv   una fila por municipio (maestro territorial)
   - indicadores.csv  una fila por indicador (definición, unidad, fuente...)
-  - valores.csv      una fila por municipio e indicador (formato largo, con estado)
+  - valores_app.csv  una fila por municipio e indicador (formato largo, con estado). Es el que
+                     prepara el notebook 09 para la app. Si no existe, uso valores.csv.
 
 Este "repositorio" es la única pieza que sabe de dónde salen los datos. Más adelante
 se puede cambiar por una versión que lea de PostgreSQL sin tocar el motor ni la API.
@@ -19,7 +20,21 @@ import pandas as pd
 
 from sitewise.scoring.modelos import Observacion
 
-FICHEROS = ("municipios.csv", "indicadores.csv", "valores.csv")
+FICHEROS = ("municipios.csv", "indicadores.csv")  # los de valores se eligen con `fichero_valores`
+
+# De valores_app.csv solo leo las columnas que uso (el fichero pesa unos 120 MB).
+COLUMNAS_VALORES = frozenset({
+    "cod_ine", "id_indicador", "valor", "estado", "nivel_origen", "fecha_dato", "fuente_id",
+    "naturaleza", "metodo", "estado_app", "estimado_app", "k_vecinos",
+    "distancia_media_km", "distancia_maxima_km",
+})
+
+
+def fichero_valores(directorio: str | Path) -> Path:
+    """valores_app.csv si existe (incluye las estimaciones de agua del notebook 09); si no, valores.csv."""
+    directorio = Path(directorio)
+    app = directorio / "valores_app.csv"
+    return app if app.is_file() else directorio / "valores.csv"
 
 
 class DatosNoDisponibles(RuntimeError):
@@ -45,12 +60,20 @@ def _limpiar(valor: Any) -> Any:
     return valor.item() if hasattr(valor, "item") else valor
 
 
+def _entero(valor: Any) -> int | None:
+    valor = _limpiar(valor)
+    return None if valor is None else int(valor)
+
+
 class RepositorioCSV:
     origen = "csv"
 
     def __init__(self, directorio: str | Path):
         self.directorio = Path(directorio)
+        self.fichero_valores = fichero_valores(self.directorio)
         faltan = [f for f in FICHEROS if not (self.directorio / f).is_file()]
+        if not self.fichero_valores.is_file():
+            faltan.append("valores_app.csv o valores.csv")
         if faltan:
             raise DatosNoDisponibles(
                 f"No encuentro {', '.join(faltan)} en '{self.directorio}'. "
@@ -64,8 +87,12 @@ class RepositorioCSV:
         )
         indicadores = pd.read_csv(self.directorio / "indicadores.csv", dtype=str)
         valores = pd.read_csv(
-            self.directorio / "valores.csv",
-            dtype={"cod_ine": str, "id_indicador": str, "estado": str, "nivel_origen": str},
+            self.fichero_valores,
+            usecols=lambda columna: columna in COLUMNAS_VALORES,
+            dtype={
+                "cod_ine": str, "id_indicador": str, "estado": str, "nivel_origen": str,
+                "estado_app": str, "estimado_app": str,
+            },
         )
         self._preparar(municipios, indicadores, valores)
 
@@ -83,6 +110,15 @@ class RepositorioCSV:
 
         valores["cod_ine"] = valores["cod_ine"].str.zfill(5)
         valores["valor"] = pd.to_numeric(valores["valor"], errors="coerce")  # texto raro -> NaN
+        if "estimado_app" in valores.columns:
+            # Las 722 estimaciones de agua (media de los 5 vecinos con dato) conservan su estado de origen
+            # ("sin_masa_catalogada"), que es un estado sin valor. Pero ahora SÍ tienen valor y son
+            # aproximadas: para calcular uso el estado de la app. El resto de filas NO cambian de estado:
+            # por ejemplo "sin_poligonos_en_catalogo" sigue sin ser utilizable aunque la app lo llame aproximado.
+            estimado = valores["estimado_app"].astype(str).str.lower().eq("true")
+            valores["estimado_app"] = estimado
+            if "estado_app" in valores.columns:
+                valores.loc[estimado, "estado"] = valores.loc[estimado, "estado_app"]
         self.valores = valores
         # Agrupo una sola vez por municipio para que pedir un municipio sea inmediato.
         self._por_municipio = {cod: grupo for cod, grupo in valores.groupby("cod_ine")}
@@ -92,6 +128,7 @@ class RepositorioCSV:
     def info(self) -> dict[str, Any]:
         return {
             "origen": self.origen,
+            "valores_fichero": self.fichero_valores.name if hasattr(self, "fichero_valores") else None,
             "municipios": len(self.municipios),
             "indicadores": len(self.indicadores),
             "observaciones": len(self.valores),
@@ -156,6 +193,7 @@ class RepositorioCSV:
             return []
         salida = []
         for f in grupo.itertuples():
+            estimado = bool(getattr(f, "estimado_app", False))
             meta = self.indicadores.loc[f.id_indicador] if f.id_indicador in self.indicadores.index else None
             salida.append({
                 "id_indicador": f.id_indicador,
@@ -172,5 +210,11 @@ class RepositorioCSV:
                 "fecha_dato": _limpiar(getattr(f, "fecha_dato", None)),
                 "fuente_id": _limpiar(getattr(f, "fuente_id", None)),
                 "naturaleza": _limpiar(getattr(f, "naturaleza", None)),
+                # Solo en los valores estimados (vecinos): cómo se estimó y con qué distancias.
+                "estimado": estimado,
+                "metodo": _limpiar(getattr(f, "metodo", None)) if estimado else None,
+                "vecinos": _entero(getattr(f, "k_vecinos", None)) if estimado else None,
+                "distancia_media_km": _limpiar(getattr(f, "distancia_media_km", None)) if estimado else None,
+                "distancia_maxima_km": _limpiar(getattr(f, "distancia_maxima_km", None)) if estimado else None,
             })
         return salida

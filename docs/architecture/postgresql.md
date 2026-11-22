@@ -7,7 +7,8 @@ sigue leyendo los CSV de `data/processed/sitewise_v03`.
 
 1. Instalar el soporte: `python -m pip install -e ".[db]"`
 2. Arrancar la base de datos: `docker compose up -d` (usa las variables `POSTGRES_*` de `.env`).
-3. Cargar el dataset (borra y vuelve a crear las tres tablas, así que se puede repetir):
+3. Cargar el dataset (borra y vuelve a crear las tres tablas, así que se puede repetir; usa
+   `valores_app.csv` si existe y, si no, `valores.csv`, igual que la API con los CSV):
 
    ```
    python -m sitewise.db.cargador --datos data/processed/sitewise_v03
@@ -34,6 +35,9 @@ dato (nunca 0) y `estado` explica por qué. `valores` tiene claves foráneas a m
 - La base tiene que ser UTF8 (la imagen oficial de PostgreSQL ya lo es); si no, el cargador se detiene.
 - Si la base tiene PostGIS, se añade a `municipios` una columna `geom` con índice espacial. Si no, se
   sigue con `lat` y `lon`, que se guardan siempre. El resto del backend solo usa `lat` y `lon`.
+
+Si la base se cargó con una versión anterior del cargador, faltan columnas (las de las estimaciones del
+notebook 09): la API lo avisa con un error claro y basta con volver a ejecutar el cargador.
 
 ## Cómo lee la API
 

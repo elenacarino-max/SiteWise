@@ -61,3 +61,7 @@ python -m pytest tests/api -q
 
 Por defecto leo los CSV. Si defino `SITEWISE_DATABASE_URL`, leo de PostgreSQL (`SITEWISE_DB_SCHEMA` cambia el
 esquema). `/health` indica el origen en uso. Cómo cargar la base y probarla: `docs/architecture/postgresql.md`.
+
+Los valores se leen de `valores_app.csv` (notebook 09, con las estimaciones de agua) si existe, y si no de
+`valores.csv`. `/health` muestra cuál se usa en `valores_fichero`. Detalle en
+`docs/architecture/decision-valores-app.md`.

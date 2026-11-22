@@ -16,6 +16,7 @@ class Salud(BaseModel):
     estado: str  # "ok"
     datos_cargados: bool
     origen: str | None = None  # "csv" o "postgresql"
+    valores_fichero: str | None = None  # "valores_app.csv" o "valores.csv" (solo con origen csv)
     municipios: int | None = None
     indicadores: int | None = None
     observaciones: int | None = None
@@ -60,6 +61,12 @@ class ValorIndicador(BaseModel):
     fuente_id: str | None = None
     naturaleza: str | None = None
     aproximado: bool = False
+    # Valor estimado con los vecinos (agua subterránea, notebook 09): cómo se estimó y con qué distancias.
+    estimado: bool = False
+    metodo: str | None = None
+    vecinos: int | None = None
+    distancia_media_km: float | None = None
+    distancia_maxima_km: float | None = None
     utilizable: bool = True
     motivo_no_utilizable: str | None = None
 
