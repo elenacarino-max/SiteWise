@@ -42,17 +42,22 @@ export function useIndicadores(activo: boolean) {
   return { datos, error }
 }
 
-export function mostrarIndicador(
+export function formatearIndicador(
   datos: DatosIndicadores | null,
   codigo: string,
   id: string,
 ) {
   const dato = datos?.municipios[codigo]?.[id]
   const indicador = datos?.indicadores[id]
-  if (!dato || !indicador) return 'Sin dato'
+  if (!dato || !indicador) return { texto: 'Sin dato', nota: '' }
   if (id.startsWith('suelo_industrial_cartografiado') && dato.valor === 0) {
-    return `0 ${indicador.unidad} cartografiado · sin polígonos en el catálogo`
+    return { texto: `0 ${indicador.unidad} cartografiado`, nota: 'Sin polígonos en el catálogo' }
   }
   const valor = dato.valor.toLocaleString('es-ES', { maximumFractionDigits: 2 })
-  return valor + ' ' + indicador.unidad + (dato.estado === 'aproximado' ? ' (aproximado)' : '')
+  return { texto: valor + ' ' + indicador.unidad, nota: dato.estado === 'aproximado' ? 'Aproximado' : '' }
+}
+
+export function mostrarIndicador(datos: DatosIndicadores | null, codigo: string, id: string) {
+  const { texto, nota } = formatearIndicador(datos, codigo, id)
+  return nota ? texto + (nota === 'Aproximado' ? ' (aproximado)' : ' · sin polígonos en el catálogo') : texto
 }
