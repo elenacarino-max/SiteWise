@@ -26,6 +26,16 @@ que no están en Git). Para usar otra carpeta, define `SITEWISE_DATA_DIR`. Sin d
 | `GET /municipios` | Búsqueda paginada (`q`, `provincia`, `ccaa`, `limite`, `desplazamiento`) |
 | `GET /municipios/{cod_ine}` | Datos del municipio |
 | `GET /municipios/{cod_ine}/ficha` | Indicadores con valor, estado, fecha, fuente y limitaciones |
+| `GET /actividades` | Actividades con reglas cargadas y si están aprobadas o son provisionales |
+| `GET /municipios/{cod_ine}/evaluacion/{actividad}` | Riesgo y atractivo (separados), requisitos mínimos y cómo se ha calculado cada nota |
+| `GET /comparar?municipios=A,B[,C]&actividad=X` | Compara 2 o 3 municipios: tabla resumen, indicadores lado a lado y evaluación de cada uno |
+
+Al comparar, riesgo y atractivo se muestran por separado: no hay nota única ni un municipio "ganador".
+
+Las reglas (pesos, sentidos y mínimos de cada actividad) se leen de `configs/actividades/reglas_actividad.csv`.
+Para usar otro fichero, define `SITEWISE_REGLAS`. Se cargan al arrancar: si cambias el CSV, reinicia la API.
+Sin reglas, `/actividades` devuelve una lista vacía con un aviso. Si el CSV tiene un error, la API responde
+`reglas_invalidas` indicando la línea. Una actividad sin reglas da `actividad_no_encontrada` (404).
 
 ## Reglas de la API
 

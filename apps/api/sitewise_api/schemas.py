@@ -92,3 +92,43 @@ class RespuestaEvaluacion(BaseModel):
     municipio: Municipio
     evaluacion: Evaluacion
     aviso_alcance: str = AVISO_ALCANCE
+
+
+class FilaResumen(BaseModel):
+    """Una fila de la tabla comparativa: lo esencial de cada municipio, sin mezclar riesgo y atractivo."""
+
+    cod_ine: str
+    nombre: str
+    riesgo_nota: float | None = None
+    riesgo_estado: str
+    riesgo_confianza: float = 0.0
+    atractivo_nota: float | None = None
+    atractivo_estado: str
+    atractivo_confianza: float = 0.0
+    cumple_minimos: str
+
+
+class IndicadorComparado(BaseModel):
+    """Un indicador de las reglas con el valor de cada municipio (clave = cod_ine).
+
+    Si un municipio no tiene observación de ese indicador, su valor es null.
+    """
+
+    id_indicador: str
+    nombre: str | None = None
+    unidad: str | None = None
+    uso: str  # riesgo | atractivo | contexto, según las reglas de la actividad
+    valores: dict[str, ValorIndicador | None]
+
+
+class RespuestaComparacion(BaseModel):
+    actividad: str
+    version_reglas: str
+    reglas_provisionales: bool
+    resumen: list[FilaResumen]
+    indicadores: list[IndicadorComparado]
+    evaluaciones: list[RespuestaEvaluacion]
+    aviso_comparacion: str = (
+        "Riesgo y atractivo se muestran por separado: no hay nota única ni un municipio 'ganador'."
+    )
+    aviso_alcance: str = AVISO_ALCANCE

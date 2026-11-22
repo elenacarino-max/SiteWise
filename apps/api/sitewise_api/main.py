@@ -22,6 +22,7 @@ from .schemas import (
     ListaActividades,
     ListaMunicipios,
     Municipio,
+    RespuestaComparacion,
     RespuestaEvaluacion,
     Salud,
 )
@@ -50,6 +51,21 @@ def obtener_servicio(request: Request) -> Servicio:
 
 
 ServicioDep = Annotated[Servicio, Depends(obtener_servicio)]
+
+MIN_COMPARAR, MAX_COMPARAR = 2, 3
+
+
+def leer_codigos(municipios: list[str]) -> list[str]:
+    """Acepta `?municipios=28079&municipios=44001` y también `?municipios=28079,44001`."""
+    codigos = [c.strip() for texto in municipios for c in texto.split(",") if c.strip()]
+    if not MIN_COMPARAR <= len(codigos) <= MAX_COMPARAR:
+        raise ErrorApi(400, "comparacion_invalida", f"Hay que comparar entre {MIN_COMPARAR} y {MAX_COMPARAR} municipios.")
+    malos = [c for c in codigos if not (len(c) == 5 and c.isdigit())]
+    if malos:
+        raise ErrorApi(400, "comparacion_invalida", f"Códigos INE no válidos (5 dígitos): {', '.join(malos)}.")
+    if len(set(codigos)) != len(codigos):
+        raise ErrorApi(400, "comparacion_invalida", "No se puede repetir un municipio en la comparación.")
+    return codigos
 
 
 def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
@@ -114,6 +130,23 @@ def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
         if not servicio.existe_actividad(actividad):
             raise ErrorApi(404, "actividad_no_encontrada", f"No hay reglas para la actividad '{actividad}'.")
         return servicio.evaluar(cod_ine, actividad)
+
+    @app.get("/comparar", response_model=RespuestaComparacion, tags=["actividades"])
+    def comparar_municipios(
+        servicio: ServicioDep,
+        municipios: Annotated[
+            list[str], Query(description="2 o 3 códigos INE, repetidos o separados por comas")
+        ],
+        actividad: Annotated[str, Query(min_length=1, max_length=80, description="Ver /actividades")],
+    ) -> RespuestaComparacion:
+        """Compara 2 o 3 municipios para una actividad: resumen, indicadores y evaluación de cada uno."""
+        codigos = leer_codigos(municipios)
+        inexistentes = [c for c in codigos if servicio.municipio(c) is None]
+        if inexistentes:
+            raise ErrorApi(404, "municipio_no_encontrado", f"No existe(n): {', '.join(inexistentes)}.")
+        if not servicio.existe_actividad(actividad):
+            raise ErrorApi(404, "actividad_no_encontrada", f"No hay reglas para la actividad '{actividad}'.")
+        return servicio.comparar(codigos, actividad)
 
     return app
 
