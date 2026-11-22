@@ -1,0 +1,13 @@
+[
+  { "nombre": "Suelo y logística", "indicadores": [
+    "suelo_industrial_cartografiado_ha", "suelo_industrial_cartografiado_pct",
+    "dist_recta_eje_autovia_km", "dist_recta_ttm_km", "dist_recta_ttm_intermodal_km"
+  ] },
+  { "nombre": "Conectividad", "indicadores": ["cobertura_ftth_pct", "cobertura_5g_pct"] },
+  { "nombre": "Población y empleo", "indicadores": ["poblacion_2025", "variacion_poblacion_pct", "paro_total"] },
+  { "nombre": "Energía", "indicadores": ["irradiacion_ghi_kwh_m2_anio", "viento_100m_media_m_s"] },
+  { "nombre": "Agua y riesgos históricos", "indicadores": [
+    "estres_hidrico_pct", "agua_subterranea_mal_estado_cuantitativo_pct",
+    "agua_subterranea_mal_estado_quimico_pct", "siniestros_forestales_2006_2015_n", "eventos_cnih_2000_2023_n"
+  ] }
+]

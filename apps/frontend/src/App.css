@@ -1,0 +1,698 @@
+/* Hallmark 2.0 | Atlas territorial | Paleta SiteWise v2 | Rediseño de aplicación */
+/* El mapa domina la vista y el lateral resume el municipio seleccionado. */
+
+#root {
+  width: min(100% - 40px, 1600px);
+  margin-inline: auto;
+  padding-block: 16px 28px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-block-end: 12px;
+}
+
+header h1 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: clamp(2rem, 3.2vw, 2.8rem);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  min-width: 0;
+}
+
+header h1 .icono {
+  inline-size: 0.8em;
+  block-size: 0.8em;
+  color: var(--accent);
+}
+
+header p {
+  margin: 0;
+  border-inline-start: 1px solid var(--border-control);
+  padding-inline-start: 16px;
+}
+
+.icono {
+  inline-size: 1.15em;
+  block-size: 1.15em;
+  flex: none;
+}
+
+button,
+select,
+.campo-asistente textarea,
+.buscador input {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-control);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+button:hover:not(:disabled, [aria-disabled="true"]) {
+  background: var(--surface-raised);
+  border-color: var(--accent);
+}
+
+button:active:not(:disabled, [aria-disabled="true"]) {
+  transform: translateY(1px);
+}
+
+button:disabled,
+button[aria-disabled="true"],
+select:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+select:disabled {
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.navegacion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 12px;
+}
+
+.navegacion button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-inline-size: 108px;
+  font-weight: 600;
+}
+
+.navegacion button[aria-pressed="true"],
+.boton-principal {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.navegacion button[aria-pressed="true"]:hover,
+.boton-principal:hover:not(:disabled, [aria-disabled="true"]) {
+  color: var(--on-accent);
+  background: var(--accent);
+  text-decoration: underline;
+}
+
+.boton-principal[aria-disabled="true"] {
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+  border-color: var(--border-control);
+}
+
+.pestana-atenuada:not([aria-pressed="true"]) {
+  color: var(--text-secondary);
+}
+
+.estado-accion {
+  margin-block: 0 12px;
+  font-weight: 600;
+}
+
+.estado-accion:empty {
+  display: none;
+}
+
+.estado-evaluacion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block: 0 8px;
+  padding: 8px 12px;
+  background: var(--surface-raised);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.configuracion-inversion {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-inline-size: 0;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.configuracion-inversion[hidden] {
+  display: none;
+}
+
+.configuracion-inversion,
+.buscador,
+.resumen-municipal,
+.chatbot-sitewise {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 12px;
+}
+
+.configuracion-inversion label,
+.buscador label {
+  display: block;
+  margin-block-end: 4px;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.configuracion-inversion select,
+.campo-busqueda input {
+  background: var(--surface-raised);
+}
+
+.campo-busqueda {
+  position: relative;
+}
+
+.campo-busqueda .icono {
+  position: absolute;
+  inset-inline-start: 12px;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  pointer-events: none;
+}
+
+.campo-busqueda input {
+  padding-inline-start: 38px;
+}
+
+.configuracion-inversion select,
+.buscador input,
+.resumen-municipal .boton-principal {
+  inline-size: 100%;
+}
+
+.solo-lectura {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  overflow: clip;
+}
+
+.explorar-contenido {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 30%);
+  grid-template-rows: auto auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.explorar-mapa {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  min-inline-size: 0;
+}
+
+.controles-mapa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px 16px;
+  padding-block-end: 8px;
+}
+
+.selector-capa {
+  min-inline-size: 0;
+}
+
+.selector-capa label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.selector-capa select {
+  max-inline-size: 100%;
+}
+
+.leyenda-mapa {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.leyenda-mapa ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leyenda-mapa p {
+  margin: 0;
+}
+
+.leyenda-mapa li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leyenda-mapa li span {
+  inline-size: 12px;
+  block-size: 12px;
+  border: 1px solid var(--border-control);
+  background: var(--map-fill);
+}
+
+.indicadores-resumen > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-block: 8px;
+  border-block-end: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.indicadores-resumen dd {
+  margin: 0;
+  font-weight: 650;
+}
+
+.bloque-indicadores h3 {
+  margin-block-end: 8px;
+}
+
+.bloque-indicadores .ficha-indicadores {
+  margin-block-start: 0;
+}
+
+.metodo-indicador,
+.diferencia-comparacion {
+  display: block;
+  margin-block-start: 4px;
+}
+
+.diferencia-comparacion {
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.mapa-marco {
+  position: relative;
+  isolation: isolate;
+}
+
+.mapa-municipios {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  z-index: 0;
+  font-family: inherit;
+  background: var(--surface);
+}
+
+.mapa-principal {
+  aspect-ratio: 7 / 5;
+}
+
+.mapa-canarias {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1;
+  width: clamp(100px, 15%, 165px);
+}
+
+.mapa-islas {
+  height: clamp(64px, 11vw, 100px);
+  border-color: var(--border-control);
+  border-radius: 8px;
+}
+
+.leaflet-tooltip {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-control);
+  box-shadow: none;
+}
+
+.ayuda-resultados,
+.nota-pequena,
+.provincia-resumen,
+.fuente-indicador {
+  color: var(--text-secondary);
+}
+
+.zona-resultados h2,
+.cabecera-asistente h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.zona-resultados {
+  margin-block-start: 12px;
+}
+
+.resultados,
+.preguntas-asistente {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resultados {
+  max-block-size: 280px;
+  overflow: auto;
+  padding: 8px;
+}
+
+.resultados button {
+  display: grid;
+  width: 100%;
+  text-align: start;
+}
+
+.resultados span {
+  color: var(--text-secondary);
+}
+
+.resumen-municipal h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.cabecera-municipio,
+.cabecera-asistente h2,
+.acciones-ficha .boton-principal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cabecera-municipio > div {
+  min-inline-size: 0;
+}
+
+.marca-municipio {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  flex: none;
+  border-radius: 8px;
+  color: var(--accent);
+  background: var(--surface-raised);
+}
+
+.provincia-resumen {
+  margin-block: 0;
+}
+
+.ficha-indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 8px;
+}
+
+.ficha-indicadores > div {
+  padding: 12px;
+  background: var(--surface-raised);
+  border-radius: 8px;
+}
+
+.ficha-indicadores dt {
+  font-weight: 700;
+}
+
+.ficha-indicadores dd {
+  margin-inline-start: 0;
+}
+
+.fuente-indicador {
+  font-size: 0.875rem;
+}
+
+.fuente-indicador a {
+  color: var(--accent);
+}
+
+.cabecera-asistente {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.estado-chatbot {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface-raised);
+  font-size: 0.875rem;
+}
+
+.campo-asistente {
+  display: grid;
+  gap: 8px;
+  margin-block: 12px;
+}
+
+.campo-asistente label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.campo-asistente textarea {
+  inline-size: 100%;
+  min-inline-size: 0;
+  resize: vertical;
+  background: var(--surface-raised);
+}
+
+.campo-asistente p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.campo-asistente button {
+  justify-self: end;
+}
+
+.preguntas-asistente li {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 850px) {
+  .configuracion-inversion {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .explorar-contenido {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .explorar-mapa {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .mapa-principal {
+    aspect-ratio: auto;
+    height: clamp(360px, 80dvw, 600px);
+  }
+}
+
+@media (max-width: 450px) {
+  header p {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+
+  .navegacion button {
+    min-inline-size: 0;
+    gap: 4px;
+    padding-inline: 8px;
+    font-size: 0.875rem;
+  }
+
+  .configuracion-inversion select {
+    padding-inline: 8px;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .configuracion-inversion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .navegacion button[aria-pressed="true"],
+  .boton-principal {
+    border-color: Highlight;
+  }
+}
+
+.estado-vacio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.estado-vacio p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+article h3 {
+  font-size: 1.5rem;
+}
+
+.acciones-ficha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 16px;
+}
+
+.nota-pequena {
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+}
+
+.tarjetas-comparacion {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-block: 20px 24px;
+}
+
+.tarjeta-municipio {
+  display: flex;
+  min-height: 150px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tarjeta-municipio h3,
+.tarjeta-municipio p {
+  margin: 0;
+}
+
+.tarjeta-municipio p {
+  color: var(--text-secondary);
+}
+
+.tarjeta-municipio .boton-anadir {
+  width: 100%;
+  min-height: 112px;
+  border-style: dashed;
+  border-color: var(--border-control);
+  color: var(--text-secondary);
+  background: transparent;
+  font-weight: 600;
+}
+
+.tabla-comparacion {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: 70vh;
+  margin-block: 24px;
+}
+
+.tabla-comparacion:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.tabla-comparacion table {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: start;
+}
+
+.tabla-comparacion caption {
+  padding-block-end: 12px;
+  font-weight: 700;
+  text-align: start;
+}
+
+.tabla-comparacion th,
+.tabla-comparacion td {
+  min-inline-size: 160px;
+  max-inline-size: 280px;
+  padding: 16px;
+  vertical-align: top;
+  border-block-end: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.tabla-comparacion thead th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background: var(--surface-raised);
+}
+
+.tabla-comparacion tbody th {
+  position: sticky;
+  z-index: 1;
+  inset-inline-start: 0;
+}
+
+.tabla-comparacion .grupo-comparacion th {
+  position: static;
+  background: var(--surface-raised);
+}
+
+.tabla-comparacion thead th:first-child {
+  z-index: 3;
+  inset-inline-start: 0;
+}
+
+@media (max-width: 600px) {
+  #root {
+    width: min(100% - 24px, 1200px);
+    padding-top: 16px;
+  }
+
+  .tarjetas-comparacion {
+    grid-template-columns: 1fr;
+  }
+}
