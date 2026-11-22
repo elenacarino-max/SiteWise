@@ -28,7 +28,12 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
         self.mock_retriever.buscar.return_value = [
             {
                 "content": "PERFIL DE ORTUELLA...",
-                "metadata": {"nombre": "Ortuella", "cod_ine": "48083", "provincia": "Bizkaia", "ccaa": "País Vasco"},
+                "metadata": {
+                    "nombre": "Ortuella",
+                    "cod_ine": "48083",
+                    "provincia": "Bizkaia",
+                    "ccaa": "País Vasco",
+                },
                 "distance_score": 0.12,
             }
         ]
@@ -75,7 +80,9 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
         mock_msg = MagicMock()
         mock_msg.tool_calls = None
         mock_msg.content = "Respuesta directa del consultor."
-        self.mock_client.chat.completions.create.return_value = MagicMock(choices=[MagicMock(message=mock_msg)])
+        self.mock_client.chat.completions.create.return_value = MagicMock(
+            choices=[MagicMock(message=mock_msg)]
+        )
 
         respuesta, docs = self.analyzer.ejecutar("Pregunta directa")
         self.assertEqual(respuesta, "Respuesta directa del consultor.")
@@ -83,7 +90,6 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
 
     def test_ejecutar_con_llamada_a_herramienta(self):
         """Verifica el flujo completo donde el LLM llama a buscar_municipios y luego responde."""
-        # 1er turno: el LLM pide ejecutar buscar_municipios_sitewise
         mock_tool_call = MagicMock()
         mock_tool_call.id = "call_123"
         mock_tool_call.function.name = "buscar_municipios_sitewise"
@@ -98,7 +104,6 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
         turn1_msg.tool_calls = [mock_tool_call]
         turn1_msg.content = None
 
-        # 2do turno: el LLM genera la respuesta final usando el resultado
         turn2_msg = MagicMock()
         turn2_msg.tool_calls = None
         turn2_msg.content = "Basado en los datos, recomiendo Ortuella."
@@ -111,7 +116,12 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
         self.mock_retriever.buscar.return_value = [
             {
                 "content": "Ficha Ortuella: 56.5 ha suelo",
-                "metadata": {"nombre": "Ortuella", "cod_ine": "48083", "provincia": "Bizkaia", "ccaa": "País Vasco"},
+                "metadata": {
+                    "nombre": "Ortuella",
+                    "cod_ine": "48083",
+                    "provincia": "Bizkaia",
+                    "ccaa": "País Vasco",
+                },
                 "distance_score": 0.1,
             }
         ]
@@ -121,11 +131,13 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
         self.assertEqual(len(docs), 1)
 
     def test_ejecutar_con_feedback_supervisor(self):
-        """Verifica que el feedback del supervisor se inyecte en el prompt de sistema."""
+        """Verifica que el feedback del supervisor se incluya en los mensajes enviados al LLM."""
         mock_msg = MagicMock()
         mock_msg.tool_calls = None
         mock_msg.content = "He corregido el análisis incluyendo los riesgos hídricos."
-        self.mock_client.chat.completions.create.return_value = MagicMock(choices=[MagicMock(message=mock_msg)])
+        self.mock_client.chat.completions.create.return_value = MagicMock(
+            choices=[MagicMock(message=mock_msg)]
+        )
 
         respuesta, _ = self.analyzer.ejecutar(
             user_prompt="Fábrica en Navarra",
@@ -133,7 +145,6 @@ class TestSiteWiseAnalyzer(unittest.TestCase):
         )
 
         self.assertIn("He corregido", respuesta)
-        # Comprobar que en los mensajes enviados a Groq se incluyó el feedback
         llamada_args = self.mock_client.chat.completions.create.call_args[1]
         mensajes_enviados = llamada_args["messages"]
         contenidos = [m.get("content", "") for m in mensajes_enviados if isinstance(m, dict)]

@@ -3,6 +3,7 @@ Módulo agent_graph.py: Orquestación multi-agente supervisada con LangGraph.
 Implementa el ciclo de recomendación, auditoría con LLM Judge y feedback reflexivo.
 """
 
+import logging
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
@@ -10,6 +11,8 @@ from langgraph.graph import END, START, StateGraph
 from sitewise.agent.analyzer import SiteWiseAgentDirect
 from sitewise.agent.schemas import SiteWiseGraphState
 from sitewise.agent.supervisor import SiteWiseSupervisor
+
+logger = logging.getLogger(__name__)
 
 
 class SiteWiseGraphOrchestrator:
@@ -26,23 +29,24 @@ class SiteWiseGraphOrchestrator:
         self.max_revisions = max_revisions
         self.graph = self._build_graph()
 
-    # --- 1. Definición de los Nodos del Grafo ---
     def node_analyst(self, state: SiteWiseGraphState) -> dict[str, Any]:
         """Nodo del Agente Analista: busca datos y redacta o refina la recomendación."""
         user_query = state["user_query"]
         feedback_history = state.get("feedback_history", [])
         revision_count = state.get("revision_count", 0)
 
-        ultimo_feedback = feedback_history[-1] if feedback_history else None
-
-        if ultimo_feedback:
-            print(f"\n[LangGraph] 🔄 Analista ejecutando ronda de corrección #{revision_count} con feedback...")
+        if feedback_history:
+            logger.info(
+                "Analista ejecutando ronda de corrección #%d con %d entrada(s) de feedback...",
+                revision_count,
+                len(feedback_history),
+            )
         else:
-            print("\n[LangGraph] 🚀 Analista iniciando primera prospección para el usuario...")
+            logger.info("Analista iniciando primera prospección para el usuario...")
 
         response_text, docs = self.analyst.ejecutar(
             user_prompt=user_query,
-            feedback_supervisor=ultimo_feedback,
+            feedback_history=feedback_history,
         )
 
         return {
@@ -52,7 +56,7 @@ class SiteWiseGraphOrchestrator:
 
     def node_supervisor(self, state: SiteWiseGraphState) -> dict[str, Any]:
         """Nodo del LLM Judge: audita la fidelidad de datos, análisis de riesgos y logística."""
-        print("\n[LangGraph] ⚖️ LLM Judge auditando la propuesta del analista...")
+        logger.info("LLM Judge auditando la propuesta del analista...")
 
         veredicto = self.supervisor.supervisar(
             user_query=state["user_query"],
@@ -66,12 +70,21 @@ class SiteWiseGraphOrchestrator:
 
         revision_count = state.get("revision_count", 0) + 1
 
-        print(
-            f"[LangGraph] 📋 Dictamen del Juez: Aprobado={veredicto.aprobado} | "
-            f"Calidad={veredicto.puntuacion_calidad}/5 | "
-            f"Datos verificados={veredicto.datos_contrastados} | "
-            f"Riesgos evaluados={veredicto.analisis_riesgos_adecuado}"
+        logger.info(
+            "Dictamen del Juez: Aprobado=%s | Calidad=%d/5 | Datos verificados=%s | Riesgos evaluados=%s",
+            veredicto.aprobado,
+            veredicto.puntuacion_calidad,
+            veredicto.datos_contrastados,
+            veredicto.analisis_riesgos_adecuado,
         )
+
+        if not veredicto.aprobado:
+            logger.warning(
+                "Rechazo del Juez (iteración %d) | Logística adecuada=%s | Motivo: %s",
+                revision_count,
+                veredicto.analisis_logistica_adecuado,
+                veredicto.feedback_mejora or "Sin detalle adicional",
+            )
 
         return {
             "judge_evaluation": veredicto.model_dump(),
@@ -89,6 +102,11 @@ class SiteWiseGraphOrchestrator:
 
         insignia_estado = "Aprobado y contrastado con datos reales ✅" if aprobado else "Revisado con advertencias ⚠️"
 
+        feedback_history = state.get("feedback_history", [])
+        aviso_pendiente = ""
+        if not aprobado and feedback_history:
+            aviso_pendiente = f"\n- **Observaciones pendientes:** {feedback_history[-1]}"
+
         pie_supervision = (
             f"\n\n---\n"
             f"🛡️ **Control de Calidad SiteWise (LLM Judge):** {insignia_estado}\n"
@@ -96,38 +114,35 @@ class SiteWiseGraphOrchestrator:
             f"- **Auditoría de riesgos y logística:** {'Completa' if dictamen.get('analisis_riesgos_adecuado') else 'Parcial'}\n"
             f"- **Fidelidad de datos verificada:** {'100% verificada' if dictamen.get('datos_contrastados') else 'Requiere verificación manual'}\n"
             f"- **Iteraciones de supervisión:** {revisado}"
+            f"{aviso_pendiente}"
         )
 
         final_text = state["agent_response"] + pie_supervision
         return {"final_output": final_text}
 
-    # --- 2. Borde Condicional ---
     def route_decision(self, state: SiteWiseGraphState) -> str:
         """Determina si la propuesta pasa la auditoría o necesita volver al analista."""
         is_approved = state.get("is_approved", False)
         revision_count = state.get("revision_count", 0)
 
         if is_approved:
-            print("[LangGraph] ✅ Recomendación APROBADA por el supervisor. Finalizando...")
+            logger.info("Recomendación APROBADA por el supervisor. Finalizando...")
             return "finalizar"
 
         if revision_count >= self.max_revisions:
-            print(f"[LangGraph] ⚠️ Alcanzado límite de {self.max_revisions} revisiones. Entregando con aviso...")
+            logger.warning("Alcanzado límite de %d revisiones. Entregando con aviso...", self.max_revisions)
             return "finalizar"
 
-        print("[LangGraph] 🔁 Recomendación RECHAZADA. Reenviando al analista con instrucciones de mejora...")
+        logger.info("Recomendación RECHAZADA. Reenviando al analista con instrucciones de mejora...")
         return "corregir"
 
-    # --- 3. Construcción y Compilación del Grafo ---
     def _build_graph(self):
         workflow = StateGraph(SiteWiseGraphState)
 
-        # Añadimos los nodos
         workflow.add_node("analista", self.node_analyst)
         workflow.add_node("supervisor", self.node_supervisor)
         workflow.add_node("finalizador", self.node_finalizer)
 
-        # Cableado del flujo
         workflow.add_edge(START, "analista")
         workflow.add_edge("analista", "supervisor")
 

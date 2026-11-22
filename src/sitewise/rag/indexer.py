@@ -2,6 +2,7 @@
 Módulo indexer.py: Chunking selectivo e indexación vectorial para SiteWise.
 """
 
+import logging
 import os
 import shutil
 from typing import Any
@@ -9,6 +10,8 @@ from typing import Any
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+logger = logging.getLogger(__name__)
 
 
 class SiteWiseIndexer:
@@ -50,16 +53,16 @@ class SiteWiseIndexer:
         limpiando el índice previo para evitar duplicidades.
         """
         if os.path.exists(self.persist_directory):
-            print(f"[Info] Limpiando índice anterior en '{self.persist_directory}' para evitar duplicados...")
+            logger.info("Limpiando índice anterior en '%s' para evitar duplicados...", self.persist_directory)
             shutil.rmtree(self.persist_directory)
 
         texts, metadatas = self._preparar_chunks(raw_documents)
 
         if not texts:
-            print("[Aviso] No hay fragmentos para indexar.")
+            logger.warning("No hay fragmentos para indexar.")
             return None
 
-        print(f"[Info] Iniciando indexación de {len(texts)} fragmentos en lotes de {batch_size}...")
+        logger.info("Iniciando indexación de %d fragmentos en lotes de %d...", len(texts), batch_size)
 
         vector_store = None
         for i in range(0, len(texts), batch_size):
@@ -76,9 +79,9 @@ class SiteWiseIndexer:
             else:
                 vector_store.add_texts(texts=batch_texts, metadatas=batch_metas)
 
-            print(f"  -> Indexados {min(i + batch_size, len(texts))} / {len(texts)} fragmentos...")
+            logger.info("Indexados %d / %d fragmentos...", min(i + batch_size, len(texts)), len(texts))
 
-        print(f"[Éxito] Índice vectorial guardado en {self.persist_directory}")
+        logger.info("Índice vectorial guardado en %s", self.persist_directory)
         return vector_store
 
     def load_existing_index(self):
