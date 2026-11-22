@@ -26,6 +26,22 @@ que no están en Git). Para usar otra carpeta, define `SITEWISE_DATA_DIR`. Sin d
 | `GET /municipios` | Búsqueda paginada (`q`, `provincia`, `ccaa`, `limite`, `desplazamiento`) |
 | `GET /municipios/{cod_ine}` | Datos del municipio |
 | `GET /municipios/{cod_ine}/ficha` | Indicadores con valor, estado, fecha, fuente y limitaciones |
+| `GET /actividades` | Actividades con reglas cargadas y si están aprobadas o son provisionales |
+| `GET /municipios/{cod_ine}/evaluacion/{actividad}` | Riesgo y atractivo (separados), requisitos mínimos y cómo se ha calculado cada nota |
+| `GET /comparar?municipios=A,B[,C]&actividad=X` | Compara 2 o 3 municipios: tabla resumen, indicadores lado a lado y evaluación de cada uno |
+| `GET /actividades/{actividad}/ranking` | Municipios ordenados por UNA dimensión (`ordenar_por=atractivo\|riesgo`), con `provincia`, `ccaa`, `cumple_minimos`, `limite`, `desplazamiento` |
+| `GET /actividades/{actividad}/mapa` | Todos los municipios con coordenadas y notas, sin paginar, con los mismos filtros |
+
+La primera llamada de ranking o mapa a una actividad tarda unos segundos (evalúa los 8.132 municipios); después
+responde al instante porque guarda el resultado. En el ranking, atractivo se ordena de mayor a menor y riesgo de menor
+a mayor; los municipios sin nota en esa dimensión no se ordenan y se cuentan en `sin_nota`.
+
+Al comparar, riesgo y atractivo se muestran por separado: no hay nota única ni un municipio "ganador".
+
+Las reglas (pesos, sentidos y mínimos de cada actividad) se leen de `configs/actividades/reglas_actividad.csv`.
+Para usar otro fichero, define `SITEWISE_REGLAS`. Se cargan al arrancar: si cambias el CSV, reinicia la API.
+Sin reglas, `/actividades` devuelve una lista vacía con un aviso. Si el CSV tiene un error, la API responde
+`reglas_invalidas` indicando la línea. Una actividad sin reglas da `actividad_no_encontrada` (404).
 
 ## Reglas de la API
 
@@ -40,3 +56,12 @@ que no están en Git). Para usar otra carpeta, define `SITEWISE_DATA_DIR`. Sin d
 ```bash
 python -m pytest tests/api -q
 ```
+
+## Origen de los datos: CSV o PostgreSQL
+
+Por defecto leo los CSV. Si defino `SITEWISE_DATABASE_URL`, leo de PostgreSQL (`SITEWISE_DB_SCHEMA` cambia el
+esquema). `/health` indica el origen en uso. Cómo cargar la base y probarla: `docs/architecture/postgresql.md`.
+
+Los valores se leen de `valores_app.csv` (notebook 09, con las estimaciones de agua) si existe, y si no de
+`valores.csv`. `/health` muestra cuál se usa en `valores_fichero`. Detalle en
+`docs/architecture/decision-valores-app.md`.

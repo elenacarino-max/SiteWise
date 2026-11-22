@@ -19,6 +19,9 @@ REGLAS_POR_DEFECTO = Path("configs/actividades/reglas_actividad.csv")
 class Ajustes:
     directorio_datos: Path
     ruta_reglas: Path = REGLAS_POR_DEFECTO
+    # Si defino la dirección de la base de datos, leo de PostgreSQL; si no, de los CSV.
+    url_base_datos: str | None = None
+    esquema_base_datos: str = "public"
 
     @classmethod
     def desde_entorno(cls) -> Ajustes:
@@ -26,13 +29,19 @@ class Ajustes:
 
         SITEWISE_DATA_DIR  -> carpeta de los CSV de datos
         SITEWISE_REGLAS    -> CSV de reglas por actividad
+        SITEWISE_DATABASE_URL -> (opcional) si la defino, leo los datos de PostgreSQL en vez de los CSV
+        SITEWISE_DB_SCHEMA    -> (opcional) esquema de PostgreSQL, por defecto "public"
         Si no las defino, uso las rutas por defecto (la primera carpeta de datos que exista).
         """
         reglas = Path(os.environ.get("SITEWISE_REGLAS") or REGLAS_POR_DEFECTO)
+        base = {
+            "url_base_datos": os.environ.get("SITEWISE_DATABASE_URL") or None,
+            "esquema_base_datos": os.environ.get("SITEWISE_DB_SCHEMA") or "public",
+        }
         indicada = os.environ.get("SITEWISE_DATA_DIR")
         if indicada:
-            return cls(Path(indicada), reglas)
+            return cls(Path(indicada), reglas, **base)
         for candidata in CANDIDATAS:
             if Path(candidata).is_dir():
-                return cls(Path(candidata), reglas)
-        return cls(Path(CANDIDATAS[0]), reglas)  # no existe aún: la API avisará con un 503
+                return cls(Path(candidata), reglas, **base)
+        return cls(Path(CANDIDATAS[0]), reglas, **base)  # no existe aún: la API avisará con un 503
