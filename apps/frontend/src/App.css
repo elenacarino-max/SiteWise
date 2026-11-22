@@ -7,20 +7,26 @@
   padding-block: 16px 28px;
 }
 
-header {
+.cabecera-sitewise {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-block-end: 12px;
+  gap: 8px 20px;
+  margin-block-end: 16px;
+  border-block-end: 1px solid var(--border);
 }
 
-header h1 {
+.marca-sitewise {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  font-size: clamp(1.65rem, 2.4vw, 2.1rem);
+}
+
+.marca-sitewise h1 {
   margin: 0;
-  font-size: clamp(2rem, 3.2vw, 2.8rem);
+  font-size: inherit;
   font-weight: 750;
   letter-spacing: -0.045em;
   line-height: 1.15;
@@ -29,16 +35,10 @@ header h1 {
   min-width: 0;
 }
 
-header h1 .icono {
+.marca-sitewise .icono {
   inline-size: 0.8em;
   block-size: 0.8em;
   color: var(--accent);
-}
-
-header p {
-  margin: 0;
-  border-inline-start: 1px solid var(--border-control);
-  padding-inline-start: 16px;
 }
 
 .icono {
@@ -86,7 +86,6 @@ select:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-block-end: 12px;
 }
 
 .navegacion button {
@@ -95,10 +94,20 @@ select:disabled {
   justify-content: center;
   gap: 8px;
   min-inline-size: 108px;
+  min-block-size: 48px;
+  border: 0;
+  border-block-end: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
   font-weight: 600;
 }
 
-.navegacion button[aria-pressed="true"],
+.navegacion button[aria-pressed="true"] {
+  color: var(--accent);
+  border-block-end-color: var(--accent);
+  font-weight: 700;
+}
+
 .boton-principal {
   color: var(--on-accent);
   background: var(--accent);
@@ -106,7 +115,6 @@ select:disabled {
   font-weight: 700;
 }
 
-.navegacion button[aria-pressed="true"]:hover,
 .boton-principal:hover:not(:disabled, [aria-disabled="true"]) {
   color: var(--on-accent);
   background: var(--accent);
@@ -136,7 +144,7 @@ select:disabled {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-block: 0 8px;
+  margin: 0 12px 8px;
   padding: 8px 12px;
   background: var(--surface-raised);
   border-radius: 8px;
@@ -148,21 +156,51 @@ select:disabled {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   min-inline-size: 0;
   gap: 12px;
-  margin: 0 0 12px;
+  margin: 0;
+  padding: 4px 12px 12px;
+  border: 0;
 }
 
-.configuracion-inversion[hidden] {
+.panel-inversion {
+  margin-block-end: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+.titulo-desplegable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.titulo-desplegable::-webkit-details-marker {
   display: none;
 }
 
-.configuracion-inversion,
-.buscador,
-.resumen-municipal,
-.chatbot-sitewise {
+.titulo-desplegable:hover {
+  background: var(--surface);
+}
+
+.flecha-desplegable {
+  display: flex;
+  margin-inline-start: auto;
+}
+
+details[open] > .titulo-desplegable .flecha-desplegable {
+  rotate: 180deg;
+}
+
+.explorar-mapa {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
-  padding: 12px;
 }
 
 .configuracion-inversion label,
@@ -195,8 +233,7 @@ select:disabled {
 }
 
 .configuracion-inversion select,
-.buscador input,
-.resumen-municipal .boton-principal {
+.buscador input {
   inline-size: 100%;
 }
 
@@ -211,27 +248,80 @@ select:disabled {
 
 .explorar-contenido {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 30%);
-  grid-template-rows: auto auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: start;
 }
 
-.explorar-mapa {
-  grid-column: 1;
-  grid-row: 1 / span 3;
+.explorar-contenido > * {
   min-inline-size: 0;
 }
 
+.buscador,
+.resumen-municipal,
+.chatbot-sitewise {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+@media (min-width: 851px) {
+  .explorar-contenido {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 29%);
+    grid-template-rows: auto auto 1fr;
+    row-gap: 0;
+  }
+
+  .explorar-contenido::before {
+    content: "";
+    grid-area: 1 / 2 / span 3;
+    align-self: stretch;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .explorar-mapa {
+    grid-area: 1 / 1 / span 3;
+  }
+
+  .buscador,
+  .resumen-municipal,
+  .chatbot-sitewise {
+    grid-column: 2;
+    position: relative;
+    border: 0;
+    background: transparent;
+  }
+
+  .buscador {
+    grid-row: 1;
+  }
+
+  .resumen-municipal,
+  .chatbot-sitewise {
+    grid-row: 2;
+    padding-block-start: 0;
+  }
+
+  .resumen-municipal + .chatbot-sitewise {
+    grid-row: 3;
+  }
+}
+
 .controles-mapa {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 8px 16px;
-  padding-block-end: 8px;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 12px 16px 0;
 }
 
 .selector-capa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   min-inline-size: 0;
 }
 
@@ -239,7 +329,6 @@ select:disabled {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-block-end: 4px;
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -291,6 +380,25 @@ select:disabled {
 .indicadores-resumen dd {
   margin: 0;
   font-weight: 650;
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+.acciones-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.acciones-resumen button {
+  flex: 1 0 auto;
+  font-size: 0.875rem;
+}
+
+.boton-comparar:not([aria-disabled="true"]) {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 650;
 }
 
 .bloque-indicadores h3 {
@@ -328,6 +436,7 @@ select:disabled {
 
 .mapa-principal {
   aspect-ratio: 7 / 5;
+  border: 0;
 }
 
 .mapa-canarias {
@@ -358,8 +467,7 @@ select:disabled {
   color: var(--text-secondary);
 }
 
-.zona-resultados h2,
-.cabecera-asistente h2 {
+.zona-resultados h2 {
   margin: 0;
   font-size: 1.05rem;
 }
@@ -401,11 +509,16 @@ select:disabled {
 }
 
 .cabecera-municipio,
-.cabecera-asistente h2,
 .acciones-ficha .boton-principal {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.cabecera-municipio {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-raised);
 }
 
 .cabecera-municipio > div {
@@ -435,7 +548,8 @@ select:disabled {
 
 .ficha-indicadores > div {
   padding: 12px;
-  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 8px;
 }
 
@@ -447,6 +561,12 @@ select:disabled {
   margin-inline-start: 0;
 }
 
+.ficha-indicadores dd:first-of-type {
+  margin-block: 4px;
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
 .fuente-indicador {
   font-size: 0.875rem;
 }
@@ -455,21 +575,14 @@ select:disabled {
   color: var(--accent);
 }
 
-.cabecera-asistente {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 12px;
+.chatbot-sitewise .titulo-desplegable {
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
 }
 
-.estado-chatbot {
-  margin: 0;
-  padding: 4px 8px;
-  border-radius: 8px;
-  color: var(--text);
+.chatbot-sitewise .titulo-desplegable:hover {
+  border-color: var(--border-control);
   background: var(--surface-raised);
-  font-size: 0.875rem;
 }
 
 .campo-asistente {
@@ -513,16 +626,6 @@ select:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .explorar-contenido {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-  }
-
-  .explorar-mapa {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
   .mapa-principal {
     aspect-ratio: auto;
     height: clamp(360px, 80dvw, 600px);
@@ -530,11 +633,6 @@ select:disabled {
 }
 
 @media (max-width: 450px) {
-  header p {
-    border-inline-start: 0;
-    padding-inline-start: 0;
-  }
-
   .navegacion button {
     min-inline-size: 0;
     gap: 4px;
@@ -570,6 +668,16 @@ select:disabled {
 
 .estado-vacio p {
   margin: 0;
+  color: var(--text-secondary);
+}
+
+.detalle-municipal > h2 {
+  margin-block: 0 4px;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.detalle-municipal > h2 + p {
+  margin-block: 0 24px;
   color: var(--text-secondary);
 }
 

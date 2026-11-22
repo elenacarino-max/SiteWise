@@ -104,6 +104,7 @@ export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa,
     return {
       base,
       acento: color('--accent'),
+      halo: color('--surface'),
       provincia: color('--province-border'),
       municipio: (feature?: Feature) => {
         if (!feature?.properties || !cortes) return base
@@ -148,7 +149,6 @@ export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa,
           capa.on('mouseover', () => {
             if (capa instanceof Path) {
               capa.setStyle({ weight: 1.6 })
-              capa.bringToFront()
             }
           })
 
@@ -176,9 +176,14 @@ export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa,
     if ((provincia === '35' || provincia === '38') !== canarias) return null
 
     return (
-      <GeoJSON key={codigoSeleccionado} data={seleccionado}
-        style={{ color: estilos.acento, fillColor: estilos.acento, fillOpacity: capa.cortes ? 0 : 0.65, weight: 3 }}
-        interactive={false} />
+      <>
+        <GeoJSON key={codigoSeleccionado + '-halo'} data={seleccionado}
+          style={{ color: estilos.halo, fill: false, weight: 6, opacity: capa.cortes ? 1 : 0 }}
+          interactive={false} />
+        <GeoJSON key={codigoSeleccionado} data={seleccionado}
+          style={{ color: estilos.acento, fillColor: estilos.acento, fillOpacity: capa.cortes ? 0 : 0.65, weight: 3 }}
+          interactive={false} />
+      </>
     )
   }
 
@@ -194,11 +199,18 @@ export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa,
 
     const zona: LimitesProvincia = { type: 'FeatureCollection', features: limites }
     return (
-      <GeoJSON
-        data={zona}
-        style={{ color: estilos.provincia, weight: 1.4, fill: false }}
-        interactive={false}
-      />
+      <>
+        <GeoJSON
+          data={zona}
+          style={{ color: estilos.halo, weight: 3.6, fill: false }}
+          interactive={false}
+        />
+        <GeoJSON
+          data={zona}
+          style={{ color: estilos.provincia, weight: 1.5, fill: false }}
+          interactive={false}
+        />
+      </>
     )
   }
 
