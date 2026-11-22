@@ -11,12 +11,12 @@ const catalogo: Record<string, readonly string[]> = {
 const rangos = ['Menos de 5 M€', 'De 5 a menos de 20 M€', '20 M€ o más']
 const tolerancias = ['Baja', 'Equilibrada', 'Alta']
 
-export default function ConfiguracionInversion({ visible }: { visible: boolean }) {
+export default function ConfiguracionInversion() {
   const [sector, setSector] = useState('')
   const [actividad, setActividad] = useState('')
 
   return (
-    <fieldset className="configuracion-inversion" hidden={!visible}>
+    <fieldset className="configuracion-inversion">
       <legend className="solo-lectura">Configuración de la inversión</legend>
       <div>
         <label htmlFor="sector">Sector</label>

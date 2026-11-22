@@ -9,6 +9,8 @@ import { useMunicipios } from './useMunicipios'
 import './App.css'
 
 const iconos = {
+  desplegar: <path d="m6 9 6 6 6-6" />,
+  inversion: <><path d="M4 6h16M4 12h16M4 18h16" /><path d="M8 4v4m8 2v4m-6 2v4" /></>,
   capas: <><path d="m12 2 10 5-10 5L2 7l10-5Z" /><path d="m2 12 10 5 10-5M2 17l10 5 10-5" /></>,
   pin: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
   ficha: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h4" /></>,
@@ -27,7 +29,7 @@ const pestanas = [
 const indicadoresResumen = [
   ['suelo_industrial_cartografiado_ha', 'Suelo cartografiado'],
   ['dist_recta_eje_autovia_km', 'Distancia a autovía'],
-  ['cobertura_ftth_pct', 'Cobertura de fibra'],
+  ['dist_recta_ttm_km', 'Distancia a terminal de mercancías'],
 ]
 
 const diferencias: Record<string, { sentido: number; texto: string }> = {
@@ -58,7 +60,7 @@ function App() {
   const [municipio, setMunicipio] = useState<Municipio | null>(null)
   const [comparados, setComparados] = useState<Municipio[]>([])
   const [aviso, setAviso] = useState('')
-  const [capaId, setCapaId] = useState('base')
+  const [capaId, setCapaId] = useState('suelo_industrial_cartografiado_ha')
   const capaMapa = capasMapa.find((capa) => capa.id === capaId) ?? capasMapa[0]
   const { datos: tablaIndicadores, error: errorIndicadores } = useIndicadores(
     Boolean(municipio || comparados.length || capaMapa.cortes),
@@ -123,12 +125,11 @@ function App() {
 
   return (
     <>
-      <header>
-        <h1><Icono nombre="capas" /> SiteWise</h1>
-        <p>Encuentra dónde instalar tu empresa.</p>
-      </header>
-
-      <main>
+      <header className="cabecera-sitewise">
+        <div className="marca-sitewise">
+          <Icono nombre="capas" />
+          <h1>SiteWise</h1>
+        </div>
         <div className="navegacion" role="group" aria-label="Seleccionar sección">
           {pestanas.map(({ nombre, icono }) => {
             const sinContenido =
@@ -149,15 +150,21 @@ function App() {
             )
           })}
         </div>
+      </header>
 
+      <main>
         <section ref={contenido} tabIndex={-1}>
           <p className="estado-accion" role="status">{aviso}</p>
 
-          {seccion === 'Explorar' && (
+          <details className="panel-inversion" hidden={seccion !== 'Explorar'}>
+            <summary className="titulo-desplegable">
+              <Icono nombre="inversion" />
+              Configuración de inversión
+              <span className="flecha-desplegable"><Icono nombre="desplegar" /></span>
+            </summary>
             <p className="estado-evaluacion"><Icono nombre="info" /> La evaluación territorial aún no está disponible</p>
-          )}
-
-          <ConfiguracionInversion visible={seccion === 'Explorar'} />
+            <ConfiguracionInversion />
+          </details>
 
           {seccion === 'Explorar' && (
             <div className="explorar-contenido">
@@ -167,7 +174,8 @@ function App() {
                   <Icono nombre="buscar" />
                   <input id="municipio" name="municipio" type="search" value={busqueda}
                     onChange={(event) => setBusqueda(event.target.value)}
-                    autoCorrect="off" autoCapitalize="none" spellCheck={false} />
+                    autoCorrect="off" autoCapitalize="none" spellCheck={false}
+                    placeholder="Buscar municipio o provincia…" />
                 </div>
 
                 {hayBusqueda && (
@@ -247,17 +255,26 @@ function App() {
                   ) : (
                     <p role="status">{errorIndicadores ? 'No se pudieron cargar los indicadores.' : 'Cargando indicadores…'}</p>
                   )}
-                  <button className="boton-principal" type="button" onClick={() => seleccionar(municipio)}>
-                    Ver ficha
-                  </button>
+                  <div className="acciones-resumen">
+                    <button className="boton-principal" type="button" onClick={() => seleccionar(municipio)}>
+                      Ver ficha
+                    </button>
+                    <button type="button" className="boton-comparar"
+                      aria-disabled={estaGuardado(municipio) || comparados.length >= 3}
+                      onClick={() => agregar(municipio)}>
+                      {estaGuardado(municipio) ? 'En la comparación' :
+                        comparados.length >= 3 ? 'Comparación completa' : 'Añadir a comparar'}
+                    </button>
+                  </div>
                 </article>
               )}
 
-              <aside className="chatbot-sitewise" aria-labelledby="titulo-chatbot">
-                <div className="cabecera-asistente">
-                  <h2 id="titulo-chatbot"><Icono nombre="asistente" /> Asistente SiteWise</h2>
-                  <p className="estado-chatbot">En preparación</p>
-                </div>
+              <details className="chatbot-sitewise">
+                <summary className="titulo-desplegable">
+                  <Icono nombre="asistente" />
+                  Asistente SiteWise
+                  <span className="flecha-desplegable"><Icono nombre="desplegar" /></span>
+                </summary>
                 <div className="campo-asistente">
                   <label htmlFor="pregunta-asistente">Tu pregunta</label>
                   <textarea id="pregunta-asistente" name="pregunta" rows={3}
@@ -271,13 +288,13 @@ function App() {
                   <li>¿Cómo está conectado para el transporte de mercancías?</li>
                   <li>¿Qué riesgos debería revisar antes de instalarme?</li>
                 </ul>
-              </aside>
+              </details>
             </div>
           )}
 
           {seccion === 'Detalle' && (
             municipio ? (
-              <article>
+              <article className="detalle-municipal">
                 <h2>{municipio.nombre}</h2>
                 <p>Provincia: {municipio.provincia}</p>
                 {errorIndicadores && <p role="alert">No se pudieron cargar los indicadores municipales.</p>}
