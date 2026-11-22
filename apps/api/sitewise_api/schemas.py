@@ -59,6 +59,8 @@ class ValorIndicador(BaseModel):
     nivel_origen: str | None = None
     fecha_dato: str | None = None
     fuente_id: str | None = None
+    fuente: str | None = None
+    url_fuente: str | None = None
     naturaleza: str | None = None
     aproximado: bool = False
     # Valor estimado con los vecinos (agua subterránea, notebook 09): cómo se estimó y con qué distancias.

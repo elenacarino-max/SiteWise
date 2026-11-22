@@ -1,55 +1,33 @@
-import { useState } from 'react'
+import type { Actividad } from './useApiSitewise'
 
-const catalogo: Record<string, readonly string[]> = {
-  Agroalimentación: ['Planta de procesado de alimentos', 'Almacén frigorífico'],
-  Energía: ['Planta solar fotovoltaica', 'Parque eólico'],
-  Logística: ['Centro de distribución', 'Plataforma intermodal'],
-  Manufactura: ['Fábrica de papel', 'Fábrica de cerámica'],
-  Tecnología: ['Centro de datos'],
+const nombres: Record<string, string> = {
+  centro_logistico: 'Centro logístico',
+  industria_agua: 'Industria intensiva en agua',
 }
 
-const rangos = ['Menos de 5 M€', 'De 5 a menos de 20 M€', '20 M€ o más']
-const tolerancias = ['Baja', 'Equilibrada', 'Alta']
-
-export default function ConfiguracionInversion() {
-  const [sector, setSector] = useState('')
-  const [actividad, setActividad] = useState('')
-
+export default function ConfiguracionInversion({ id, actividades, actividad, onCambiar, estado, aviso }: {
+  id: string
+  actividades: Actividad[]
+  actividad: string
+  onCambiar: (actividad: string) => void
+  estado: 'inactivo' | 'cargando' | 'listo' | 'error'
+  aviso?: string
+}) {
   return (
-    <fieldset className="configuracion-inversion">
-      <legend className="solo-lectura">Configuración de la inversión</legend>
-      <div>
-        <label htmlFor="sector">Sector</label>
-        <select id="sector" name="sector" value={sector} onChange={(event) => {
-          setSector(event.target.value)
-          setActividad('')
-        }}>
-          <option value="">Seleccionar sector</option>
-          {Object.keys(catalogo).map((opcion) => <option key={opcion}>{opcion}</option>)}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="actividad">Industria o actividad</label>
-        <select id="actividad" name="actividad" disabled={!sector} value={actividad}
-          onChange={(event) => setActividad(event.target.value)}>
-          <option value="">Seleccionar actividad</option>
-          {(catalogo[sector] ?? []).map((opcion) => <option key={opcion}>{opcion}</option>)}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="inversion">Inversión estimada</label>
-        <select id="inversion" name="inversion" defaultValue="">
-          <option value="">Seleccionar rango</option>
-          {rangos.map((opcion) => <option key={opcion}>{opcion}</option>)}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="tolerancia">Tolerancia al riesgo</label>
-        <select id="tolerancia" name="tolerancia" defaultValue="">
-          <option value="">Seleccionar nivel</option>
-          {tolerancias.map((opcion) => <option key={opcion}>{opcion}</option>)}
-        </select>
-      </div>
-    </fieldset>
+    <div className="selector-actividad">
+      <label htmlFor={id}>Actividad evaluada</label>
+      <select id={id} value={actividad} onChange={(evento) => onCambiar(evento.target.value)}
+        disabled={actividades.length === 0} aria-describedby={id + '-estado'}>
+        <option value="">Selecciona una actividad</option>
+        {actividades.map(({ actividad: codigo }) => (
+          <option key={codigo} value={codigo}>{nombres[codigo] ?? codigo.replaceAll('_', ' ')}</option>
+        ))}
+      </select>
+      <p id={id + '-estado'} role="status">
+        {estado === 'cargando' ? 'Cargando actividades…' :
+          estado === 'error' ? 'No se pudo conectar con la API de evaluación. Los datos municipales siguen disponibles.' :
+          aviso || 'Las notas dependen de la actividad elegida.'}
+      </p>
+    </div>
   )
 }

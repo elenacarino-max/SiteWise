@@ -25,7 +25,7 @@ FICHEROS = ("municipios.csv", "indicadores.csv")  # los de valores se eligen con
 # De valores_app.csv solo leo las columnas que uso (el fichero pesa unos 120 MB).
 COLUMNAS_VALORES = frozenset({
     "cod_ine", "id_indicador", "valor", "estado", "nivel_origen", "fecha_dato", "fuente_id",
-    "naturaleza", "metodo", "estado_app", "estimado_app", "k_vecinos",
+    "naturaleza", "metodo", "url_fuente", "estado_app", "estimado_app", "k_vecinos",
     "distancia_media_km", "distancia_maxima_km",
 })
 
@@ -195,6 +195,10 @@ class RepositorioCSV:
         for f in grupo.itertuples():
             estimado = bool(getattr(f, "estimado_app", False))
             meta = self.indicadores.loc[f.id_indicador] if f.id_indicador in self.indicadores.index else None
+            fuente_id = _limpiar(getattr(f, "fuente_id", None))
+            fuente_definida = meta is not None and (
+                not fuente_id or fuente_id == _limpiar(meta.get("fuente_id"))
+            )
             salida.append({
                 "id_indicador": f.id_indicador,
                 "nombre": _limpiar(meta["nombre"]) if meta is not None and "nombre" in meta else None,
@@ -207,8 +211,12 @@ class RepositorioCSV:
                 "valor": _limpiar(f.valor),
                 "estado": _limpiar(f.estado),
                 "nivel_origen": _limpiar(getattr(f, "nivel_origen", None)),
-                "fecha_dato": _limpiar(getattr(f, "fecha_dato", None)),
-                "fuente_id": _limpiar(getattr(f, "fuente_id", None)),
+                "fecha_dato": _limpiar(getattr(f, "fecha_dato", None))
+                or (_limpiar(meta.get("fecha_dato")) if fuente_definida else None),
+                "fuente_id": fuente_id or (_limpiar(meta.get("fuente_id")) if fuente_definida else None),
+                "fuente": _limpiar(meta.get("fuente")) if fuente_definida else None,
+                "url_fuente": _limpiar(getattr(f, "url_fuente", None))
+                or (_limpiar(meta.get("url")) if fuente_definida else None),
                 "naturaleza": _limpiar(getattr(f, "naturaleza", None)),
                 # Solo en los valores estimados (vecinos): cómo se estimó y con qué distancias.
                 "estimado": estimado,

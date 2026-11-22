@@ -79,6 +79,8 @@ def test_ficha_con_trazabilidad(cliente):
     assert "parcela" in cuerpo["aviso_alcance"]
     ind = {i["id_indicador"]: i for i in cuerpo["indicadores"]}
     assert ind["suelo_ha"]["unidad"] == "ha"
+    assert ind["suelo_ha"]["fuente"] == "Fuente 1"
+    assert ind["suelo_ha"]["url_fuente"] == "u"
     assert ind["suelo_ha"]["limitaciones"] == "No equivale a suelo disponible"
     assert ind["suelo_ha"]["utilizable"] is True
     # Dato aproximado y provincial: se marca, pero se puede usar
