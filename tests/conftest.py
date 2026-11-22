@@ -44,3 +44,30 @@ def directorio_datos(tmp_path):
     (tmp_path / "indicadores.csv").write_text(INDICADORES, encoding="utf-8")
     (tmp_path / "valores.csv").write_text(VALORES, encoding="utf-8")
     return tmp_path
+
+
+# Igual que VALORES, pero con las columnas de valores_app.csv (notebook 09). Cambios respecto a VALORES:
+# - 41001 / estres: era "pendiente" sin valor; ahora es una ESTIMACIÓN con los vecinos (valor 30).
+#   Conserva su estado de origen (sin_masa_catalogada), como en el dataset real.
+# - 41001 / suelo_ha: sigue "sin_poligonos_en_catalogo" aunque la app lo llame "aproximado".
+VALORES_APP = (
+    "cod_ine,id_indicador,valor,estado,nivel_origen,fecha_dato,fuente_id,naturaleza,metodo,url_fuente,"
+    "estado_app,valor_original,estimado_app,k_vecinos,distancia_media_km,distancia_maxima_km\n"
+    "01001,suelo_ha,50,real,municipal,2020,f1,observado,m,u,real,50,False,,,\n"
+    "01001,autovia_km,80,real,municipal,2026-11-13,f2,calculado,m,u,real,80,False,,,\n"
+    "01001,estres,10,real,municipal,2019,f3,modelizado,m,u,real,10,False,,,\n"
+    "28001,suelo_ha,30,real,municipal,2020,f1,observado,m,u,real,30,False,,,\n"
+    "28001,autovia_km,10,real,municipal,2026-11-13,f2,calculado,m,u,real,10,False,,,\n"
+    "28001,estres,20,aproximado,provincial,2019,f3,modelizado,m,u,aproximado,20,False,,,\n"
+    "41001,suelo_ha,0,sin_poligonos_en_catalogo,municipal,2020,f1,observado,m,u,aproximado,0,False,,,\n"
+    "41001,autovia_km,40,real,municipal,2026-11-13,f2,calculado,m,u,real,40,False,,,\n"
+    "41001,estres,30,sin_masa_catalogada,masa_de_agua,2019,f3,estimado_vecinos_geograficos,"
+    "Media de los 5 vecinos con dato,u,aproximado,,True,5.0,3.0,3.9\n"
+)
+
+
+@pytest.fixture
+def directorio_datos_app(directorio_datos):
+    """Como `directorio_datos`, pero además con un valores_app.csv (que tiene prioridad sobre valores.csv)."""
+    (directorio_datos / "valores_app.csv").write_text(VALORES_APP, encoding="utf-8")
+    return directorio_datos

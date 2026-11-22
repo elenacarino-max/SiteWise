@@ -14,6 +14,7 @@ pytest.importorskip("httpx")
 RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "apps" / "api"))
 
+
 # Reglas INVENTADAS sobre los indicadores inventados: no son las reglas reales del proyecto.
 REGLAS_INVENTADAS = (
     "actividad,id_indicador,uso_en_actividad,peso,es_requisito_minimo,operador,umbral,unidad,sentido,"
@@ -44,6 +45,18 @@ def cliente_con_reglas(directorio_datos):
     ruta = directorio_datos / "reglas.csv"
     ruta.write_text(REGLAS_INVENTADAS, encoding="utf-8")
     return TestClient(crear_app(Ajustes(directorio_datos, ruta)))
+
+
+@pytest.fixture
+def cliente_con_datos_app(directorio_datos_app):
+    """Cliente con datos inventados que incluyen un valores_app.csv (con una estimación de vecinos)."""
+    from fastapi.testclient import TestClient
+    from sitewise_api.config import Ajustes
+    from sitewise_api.main import crear_app
+
+    ruta = directorio_datos_app / "reglas.csv"
+    ruta.write_text(REGLAS_INVENTADAS, encoding="utf-8")
+    return TestClient(crear_app(Ajustes(directorio_datos_app, ruta)))
 
 
 @pytest.fixture

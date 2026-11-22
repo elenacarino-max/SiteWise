@@ -1,7 +1,7 @@
 # Decisión: notas con datos parciales
 
 Fecha: 21 de noviembre de 2026. Responsable: Adriana (Backend API y cálculo).
-Estado: **propuesta provisional**, pendiente de que el equipo la ratifique.
+Estado: **decidida** (22 de noviembre de 2026). El equipo me delegó estas decisiones y las dejo registradas para Gema. Sigue abierta a revisión si el equipo lo pide. Resumen en `decisiones-backend.md`.
 
 ## Contexto
 
