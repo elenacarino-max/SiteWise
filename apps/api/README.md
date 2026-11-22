@@ -29,6 +29,12 @@ que no están en Git). Para usar otra carpeta, define `SITEWISE_DATA_DIR`. Sin d
 | `GET /actividades` | Actividades con reglas cargadas y si están aprobadas o son provisionales |
 | `GET /municipios/{cod_ine}/evaluacion/{actividad}` | Riesgo y atractivo (separados), requisitos mínimos y cómo se ha calculado cada nota |
 | `GET /comparar?municipios=A,B[,C]&actividad=X` | Compara 2 o 3 municipios: tabla resumen, indicadores lado a lado y evaluación de cada uno |
+| `GET /actividades/{actividad}/ranking` | Municipios ordenados por UNA dimensión (`ordenar_por=atractivo\|riesgo`), con `provincia`, `ccaa`, `cumple_minimos`, `limite`, `desplazamiento` |
+| `GET /actividades/{actividad}/mapa` | Todos los municipios con coordenadas y notas, sin paginar, con los mismos filtros |
+
+La primera llamada de ranking o mapa a una actividad tarda unos segundos (evalúa los 8.132 municipios); después
+responde al instante porque guarda el resultado. En el ranking, atractivo se ordena de mayor a menor y riesgo de menor
+a mayor; los municipios sin nota en esa dimensión no se ordenan y se cuentan en `sin_nota`.
 
 Al comparar, riesgo y atractivo se muestran por separado: no hay nota única ni un municipio "ganador".
 

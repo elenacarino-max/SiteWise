@@ -6,7 +6,9 @@ no se pisan (el problema que tenía el estado compartido del analista del agente
 
 from __future__ import annotations
 
-from sitewise.db.repositorio import RepositorioCSV
+import threading
+
+from sitewise.db.repositorio import RepositorioCSV, sin_acentos
 from sitewise.scoring.calidad import es_aproximado, motivo_no_utilizable
 from sitewise.scoring.motor import MotorPuntuacion
 from sitewise.scoring.normalizacion import Normalizador
@@ -14,6 +16,8 @@ from sitewise.scoring.reglas import ConjuntoReglas
 
 from .schemas import (
     FichaMunicipio,
+    FilaMapa,
+    FilaRanking,
     FilaResumen,
     IndicadorComparado,
     ListaActividades,
@@ -21,6 +25,8 @@ from .schemas import (
     Municipio,
     RespuestaComparacion,
     RespuestaEvaluacion,
+    RespuestaMapa,
+    RespuestaRanking,
     ResumenActividad,
     Salud,
     ValorIndicador,
@@ -34,6 +40,10 @@ class Servicio:
         # El normalizador aprende UNA vez cómo se reparten los valores en España (tarda unos
         # segundos con los datos reales). Después no cambia: las peticiones solo lo leen.
         self.motor = MotorPuntuacion(self.reglas, Normalizador(repositorio.valores))
+        # Evaluar los 8.132 municipios tarda un rato: lo hago UNA vez por actividad y guardo el resultado.
+        # Las reglas no cambian mientras la API está arrancada, así que la caché no se queda vieja.
+        self._cache_actividades: dict[str, list[FilaMapa]] = {}
+        self._candado_cache = threading.Lock()
 
     def salud(self) -> Salud:
         info = self.repo.info()
@@ -152,4 +162,88 @@ class Servicio:
             resumen=resumen,
             indicadores=indicadores,
             evaluaciones=evaluaciones,
+        )
+
+    # ------------------------------------------------------------- ranking y mapa
+
+    def _todos(self, actividad: str) -> list[FilaMapa]:
+        """Todos los municipios evaluados para una actividad (se calcula la primera vez)."""
+        if actividad not in self._cache_actividades:
+            with self._candado_cache:
+                if actividad not in self._cache_actividades:
+                    filas = []
+                    for cod, m in self.repo.municipios.iterrows():
+                        ev = self.motor.evaluar(cod, actividad, self.repo.observaciones(cod))
+                        datos = Municipio(**self.repo.municipio(cod))
+                        filas.append(FilaMapa(
+                            cod_ine=cod,
+                            nombre=datos.nombre,
+                            provincia=datos.provincia,
+                            ccaa=datos.ccaa,
+                            lat=datos.lat,
+                            lon=datos.lon,
+                            riesgo_nota=ev.riesgo.nota,
+                            riesgo_estado=ev.riesgo.estado,
+                            riesgo_confianza=ev.riesgo.confianza,
+                            atractivo_nota=ev.atractivo.nota,
+                            atractivo_estado=ev.atractivo.estado,
+                            atractivo_confianza=ev.atractivo.confianza,
+                            cumple_minimos=ev.cumple_minimos.value,
+                        ))
+                    self._cache_actividades[actividad] = filas
+        return self._cache_actividades[actividad]
+
+    def _filtrar(self, actividad: str, provincia, ccaa, cumple_minimos) -> list[FilaMapa]:
+        filas = self._todos(actividad)
+        if provincia:
+            filas = [f for f in filas if sin_acentos(f.provincia or "") == sin_acentos(provincia)]
+        if ccaa:
+            filas = [f for f in filas if sin_acentos(f.ccaa or "") == sin_acentos(ccaa)]
+        if cumple_minimos:
+            filas = [f for f in filas if f.cumple_minimos == cumple_minimos]
+        return filas
+
+    def _estado_reglas(self, actividad: str) -> tuple[str, bool]:
+        resumen = self.reglas.resumen(actividad)
+        return self.reglas.version, resumen["estado_reglas"] != "aprobadas"
+
+    def ranking(
+        self, actividad, ordenar_por, orden, provincia, ccaa, cumple_minimos, limite, desplazamiento
+    ) -> RespuestaRanking:
+        """Ordena por una sola dimensión. Atractivo: más alto es mejor. Riesgo: más bajo es mejor."""
+        filtradas = self._filtrar(actividad, provincia, ccaa, cumple_minimos)
+        campo = f"{ordenar_por}_nota"
+        con_nota = [f for f in filtradas if getattr(f, campo) is not None]
+        signo = -1 if ordenar_por == "atractivo" else 1  # atractivo: de mayor a menor; riesgo: de menor a mayor
+        # Empates: desempato por código INE para que el orden sea siempre el mismo.
+        con_nota.sort(key=lambda f: (signo * getattr(f, campo), f.cod_ine))
+        if orden == "peor_primero":
+            con_nota.reverse()
+        pagina = con_nota[desplazamiento : desplazamiento + limite]
+        version, provisionales = self._estado_reglas(actividad)
+        return RespuestaRanking(
+            actividad=actividad,
+            ordenado_por=ordenar_por,
+            orden=orden,
+            total=len(con_nota),
+            sin_nota=len(filtradas) - len(con_nota),
+            limite=limite,
+            desplazamiento=desplazamiento,
+            filas=[
+                FilaRanking(**f.model_dump(), posicion=desplazamiento + i + 1)
+                for i, f in enumerate(pagina)
+            ],
+            version_reglas=version,
+            reglas_provisionales=provisionales,
+        )
+
+    def mapa(self, actividad, provincia, ccaa, cumple_minimos) -> RespuestaMapa:
+        filtradas = self._filtrar(actividad, provincia, ccaa, cumple_minimos)
+        version, provisionales = self._estado_reglas(actividad)
+        return RespuestaMapa(
+            actividad=actividad,
+            total=len(filtradas),
+            filas=filtradas,
+            version_reglas=version,
+            reglas_provisionales=provisionales,
         )

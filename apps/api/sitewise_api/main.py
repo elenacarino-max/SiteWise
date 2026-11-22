@@ -8,11 +8,13 @@ Documentación interactiva: http://127.0.0.1:8000/docs
 from __future__ import annotations
 
 import threading
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Path, Query, Request
+from fastapi.middleware.gzip import GZipMiddleware
 
 from sitewise.db.repositorio import DatosNoDisponibles, RepositorioCSV
+from sitewise.scoring.modelos import EstadoMinimo
 from sitewise.scoring.reglas import ErrorReglas, cargar_reglas
 
 from .config import Ajustes
@@ -24,6 +26,8 @@ from .schemas import (
     Municipio,
     RespuestaComparacion,
     RespuestaEvaluacion,
+    RespuestaMapa,
+    RespuestaRanking,
     Salud,
 )
 from .servicio import Servicio
@@ -78,6 +82,8 @@ def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
     app.state.servicio = None
     app.state.candado = threading.Lock()
     registrar_manejadores(app)
+    # El mapa completo son unos 2 MB de JSON: comprimido baja mucho. Solo comprime respuestas grandes.
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     @app.get("/health", response_model=Salud, tags=["estado"])
     def health(request: Request) -> Salud:
@@ -147,6 +153,46 @@ def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
         if not servicio.existe_actividad(actividad):
             raise ErrorApi(404, "actividad_no_encontrada", f"No hay reglas para la actividad '{actividad}'.")
         return servicio.comparar(codigos, actividad)
+
+    def _exigir_actividad(servicio: Servicio, actividad: str) -> None:
+        if not servicio.existe_actividad(actividad):
+            raise ErrorApi(404, "actividad_no_encontrada", f"No hay reglas para la actividad '{actividad}'.")
+
+    @app.get("/actividades/{actividad}/ranking", response_model=RespuestaRanking, tags=["actividades"])
+    def ranking_actividad(
+        actividad: Actividad,
+        servicio: ServicioDep,
+        ordenar_por: Annotated[Literal["atractivo", "riesgo"], Query(description="Dimensión por la que ordenar")] = "atractivo",
+        orden: Annotated[
+            Literal["mejor_primero", "peor_primero"],
+            Query(description="Atractivo: mejor es más alto. Riesgo: mejor es más bajo"),
+        ] = "mejor_primero",
+        provincia: str | None = None,
+        ccaa: str | None = None,
+        cumple_minimos: Annotated[EstadoMinimo | None, Query(description="Filtra por estado de los mínimos")] = None,
+        limite: Annotated[int, Query(ge=1, le=200)] = 50,
+        desplazamiento: Annotated[int, Query(ge=0)] = 0,
+    ) -> RespuestaRanking:
+        """Municipios ordenados por UNA dimensión (nunca una nota única). La primera llamada tarda unos segundos."""
+        _exigir_actividad(servicio, actividad)
+        return servicio.ranking(
+            actividad, ordenar_por, orden, provincia, ccaa,
+            cumple_minimos.value if cumple_minimos else None, limite, desplazamiento,
+        )
+
+    @app.get("/actividades/{actividad}/mapa", response_model=RespuestaMapa, tags=["actividades"])
+    def mapa_actividad(
+        actividad: Actividad,
+        servicio: ServicioDep,
+        provincia: str | None = None,
+        ccaa: str | None = None,
+        cumple_minimos: Annotated[EstadoMinimo | None, Query(description="Filtra por estado de los mínimos")] = None,
+    ) -> RespuestaMapa:
+        """Todos los municipios con coordenadas y notas, sin paginar, para pintar el mapa."""
+        _exigir_actividad(servicio, actividad)
+        return servicio.mapa(
+            actividad, provincia, ccaa, cumple_minimos.value if cumple_minimos else None
+        )
 
     return app
 

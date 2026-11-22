@@ -132,3 +132,51 @@ class RespuestaComparacion(BaseModel):
         "Riesgo y atractivo se muestran por separado: no hay nota única ni un municipio 'ganador'."
     )
     aviso_alcance: str = AVISO_ALCANCE
+
+
+class FilaMapa(BaseModel):
+    """Un municipio con sus dos notas para una actividad. Pensada para pintar un mapa o una tabla."""
+
+    cod_ine: str
+    nombre: str
+    provincia: str | None = None
+    ccaa: str | None = None
+    lat: float | None = None
+    lon: float | None = None
+    riesgo_nota: float | None = None
+    riesgo_estado: str
+    riesgo_confianza: float = 0.0
+    atractivo_nota: float | None = None
+    atractivo_estado: str
+    atractivo_confianza: float = 0.0
+    cumple_minimos: str
+
+
+class FilaRanking(FilaMapa):
+    posicion: int  # 1 = primero según el orden pedido
+
+
+class RespuestaRanking(BaseModel):
+    actividad: str
+    ordenado_por: str  # atractivo | riesgo
+    orden: str  # mejor_primero | peor_primero
+    total: int  # municipios con nota en esa dimensión que cumplen los filtros
+    sin_nota: int  # municipios que cumplen los filtros pero no tienen nota en esa dimensión
+    limite: int
+    desplazamiento: int
+    filas: list[FilaRanking]
+    version_reglas: str
+    reglas_provisionales: bool
+    aviso_comparacion: str = (
+        "Se ordena por una sola dimensión cada vez: riesgo y atractivo no se mezclan en una nota única."
+    )
+    aviso_alcance: str = AVISO_ALCANCE
+
+
+class RespuestaMapa(BaseModel):
+    actividad: str
+    total: int
+    filas: list[FilaMapa]
+    version_reglas: str
+    reglas_provisionales: bool
+    aviso_alcance: str = AVISO_ALCANCE

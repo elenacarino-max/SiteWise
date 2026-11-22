@@ -32,6 +32,9 @@ def _sin_acentos(texto: str) -> str:
     return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn").lower().strip()
 
 
+sin_acentos = _sin_acentos  # nombre público: lo usa también la API para filtrar
+
+
 def _limpiar(valor: Any) -> Any:
     """Convierto los huecos de pandas (NaN) en None y los números de numpy en normales.
 
