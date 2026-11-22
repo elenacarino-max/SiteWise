@@ -1,3 +1,5 @@
 # apps/frontend
 
-Interfaz: mapa, selección de actividad, ficha municipal, comparación y asistente. Responsable: Persona 1; apoyo: Persona 4. Framework pendiente de confirmar.
+Responsable: Persona 1. Apoyo: Persona 4.
+
+El [README del frontend](README.md) recoge las funciones actuales, los pasos para probarlas y el origen de los datos.

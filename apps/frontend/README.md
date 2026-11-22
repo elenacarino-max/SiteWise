@@ -1,84 +1,59 @@
 # Frontend de SiteWise
 
-Interfaz desarrollada con React, TypeScript y Vite.
-El mapa utiliza Leaflet y React Leaflet.
+Aplicación para explorar municipios de España y comparar posibles ubicaciones empresariales. Usa React, TypeScript y Vite. La cartografía se muestra con Leaflet y React Leaflet.
 
-## Requisitos
+## Qué incluye
 
-Instalar Node.js en su versión LTS, que incluye npm.
+- **Explorar.** Mapa de 8.132 municipios, con Canarias en un recuadro, y búsqueda por municipio o provincia. Además de la vista base, el mapa ofrece cinco capas de datos con leyenda: suelo industrial cartografiado, distancia a autovía, fibra, 5G y estrés hídrico.
+- **Detalle.** Ficha con 17 indicadores agrupados en suelo y logística, conectividad, población y empleo, energía, y agua y riesgos históricos. Muestra la fuente y el periodo cuando están disponibles.
+- **Comparar.** Tabla para hasta tres municipios, con indicaciones como «Mayor cobertura de fibra» cuando los datos permiten distinguir una ubicación. La selección se borra al recargar la página.
+- **Asistente SiteWise.** Panel con preguntas de ejemplo y un campo para escribir. El envío se habilitará al integrar la API del asistente.
 
-Las dependencias del frontend se encuentran en `package.json`.
-No se instalan mediante el `requirements.txt` de Python.
+## Cómo arrancarlo y probarlo
 
-## Instalación
-
-Desde la raíz del repositorio:
+Usa una versión LTS de Node.js compatible con Vite (22.12 o posterior) con npm. Desde la raíz del repositorio:
 
 ```bash
 cd apps/frontend
 npm ci
-```
-
-Este comando instala las versiones registradas en `package-lock.json`.
-Solo es necesario al preparar el proyecto o cuando cambien las dependencias.
-
-## Preparar el mapa
-
-El frontend necesita el archivo:
-
-`apps/frontend/public/mapas/municipios.geojson`
-
-Si no está disponible, copiarlo desde los datos procesados.
-Desde la raíz del repositorio, en Git Bash:
-
-```bash
-mkdir -p apps/frontend/public/mapas
-cp data/processed/sitewise_v01/municipios.geojson apps/frontend/public/mapas/municipios.geojson
-```
-
-Si tampoco está el archivo de origen, solicitar al equipo de datos
-los datos procesados o seguir las instrucciones de generación del dataset.
-
-## Arrancar la aplicación
-
-Desde `apps/frontend`:
-
-```bash
 npm run dev
 ```
 
-Abrir la dirección que aparece junto a `Local` en la terminal.
-Mantener la terminal abierta. Para detener la aplicación, pulsar Ctrl + C.
+Abre la URL `Local` que imprime Vite. El mapa y los indicadores se cargan desde los archivos incluidos en el repositorio, así que puedes probar el frontend sin iniciar la API ni activar un entorno de Python.
 
-No es necesario activar el entorno de Python para ejecutar el frontend.
+1. En **Explorar**, cambia **Capa del mapa** a **Cobertura de fibra** y revisa la leyenda.
+2. Busca un municipio, selecciónalo y pulsa **Ver ficha**.
+3. En **Detalle**, pulsa **Añadir a comparar**. Vuelve al buscador y repite con otro municipio.
+4. Abre **Comparar** y revisa los indicadores, incluidos los valores aproximados y sin dato.
 
-## Comprobaciones
-
-Desde `apps/frontend`:
+Para compilar y comprobar el código, ejecuta desde `apps/frontend`:
 
 ```bash
 npm run build
 npm run lint
 ```
 
-## Estado actual
+## Datos municipales
 
-- Mapa con contornos municipales de España y Canarias en un recuadro.
-- Selección de municipios desde el mapa.
-- Buscador limitado a cinco municipios de ejemplo.
-- Ficha municipal y selección de hasta tres municipios para comparar.
-- Indicadores, puntuaciones y asistente todavía pendientes de conexión.
-- Los colores del mapa son provisionales y no representan riesgo.
-- La selección se borra al recargar la página.
+La aplicación cruza las geometrías de [municipios.geojson](public/mapas/municipios.geojson) y los valores de [indicadores-municipales.json](public/indicadores-municipales.json) por código INE de cinco dígitos. Los indicadores publicados se definen en [gruposIndicadores.json](src/gruposIndicadores.json).
 
-## Actualizar los indicadores de suelo y logística
+- **Aproximado** indica que el dataset clasifica el valor como estimación o proxy. En las estimaciones de agua subterránea preparadas para la app, la ficha muestra el método.
+- **Sin dato** significa que el extracto no contiene un valor utilizable para ese indicador y municipio.
+- **0 ha cartografiadas** significa que el catálogo no recoge polígonos en el municipio. Por sí solo, ese dato no determina si hay suelo industrial disponible.
+- Las distancias a autovías y terminales se miden en línea recta. Los tramos de color de las capas representan los valores que indica su leyenda.
 
-Detalle y Comparar leen el extracto local `public/indicadores-municipales.json`.
-Cuando cambien los CSV de la entrega v0.3, regenerarlo desde la raíz del repositorio:
+### Regenerar los indicadores
+
+Desde la raíz del repositorio, con Python y los archivos `indicadores.csv` y `valores_app.csv` de `data/processed/sitewise_v03/` disponibles:
 
 ```bash
 python apps/frontend/exportar_indicadores.py
 ```
 
-Los selectores de inversión usan un catálogo provisional en `src/ConfiguracionInversion.tsx`.
-La evaluación por actividad y el asistente siguen pendientes de integración con el backend.
+El comando actualiza `apps/frontend/public/indicadores-municipales.json`. La preparación de `valores_app.csv` se documenta en el [notebook 09](../../notebooks/09_preparacion_datos_app.ipynb) y la estructura de los datos en el [contrato del dataset](../../docs/data/contrato_dataset.md).
+
+## Integraciones pendientes
+
+- Conectar el catálogo y la evaluación por actividad a la API. Los selectores de inversión usan un catálogo provisional.
+- Incorporar los perfiles territoriales cuando se valide la versión de clustering que se publicará.
+- Conectar el envío de preguntas con la API del asistente.
