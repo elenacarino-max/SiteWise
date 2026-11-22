@@ -46,6 +46,8 @@ def _limpiar(valor: Any) -> Any:
 
 
 class RepositorioCSV:
+    origen = "csv"
+
     def __init__(self, directorio: str | Path):
         self.directorio = Path(directorio)
         faltan = [f for f in FICHEROS if not (self.directorio / f).is_file()]
@@ -57,24 +59,28 @@ class RepositorioCSV:
 
         # cod_ine SIEMPRE como texto de 5 dígitos: si pandas lo lee como número, se pierde
         # el cero inicial de "01001" (Álava) y se rompe el cruce entre ficheros.
-        self.municipios = pd.read_csv(
+        municipios = pd.read_csv(
             self.directorio / "municipios.csv", dtype={"cod_ine": str, "cod_provincia": str}
         )
-        self.municipios["cod_ine"] = self.municipios["cod_ine"].str.zfill(5)
-        self.municipios = self.municipios.set_index("cod_ine", drop=False)
-        # Columna auxiliar para buscar sin tildes (no se devuelve a la API).
-        self._busqueda = (
-            self.municipios["nombre"].map(_sin_acentos)
-        )
-
-        self.indicadores = pd.read_csv(self.directorio / "indicadores.csv", dtype=str).set_index(
-            "id_indicador", drop=False
-        )
-
+        indicadores = pd.read_csv(self.directorio / "indicadores.csv", dtype=str)
         valores = pd.read_csv(
             self.directorio / "valores.csv",
             dtype={"cod_ine": str, "id_indicador": str, "estado": str, "nivel_origen": str},
         )
+        self._preparar(municipios, indicadores, valores)
+
+    def _preparar(self, municipios: pd.DataFrame, indicadores: pd.DataFrame, valores: pd.DataFrame) -> None:
+        """Deja las tres tablas listas para consultar. Lo comparte el repositorio de PostgreSQL.
+
+        Así los datos se tratan igual vengan de un CSV o de la base de datos.
+        """
+        municipios["cod_ine"] = municipios["cod_ine"].str.zfill(5)
+        self.municipios = municipios.set_index("cod_ine", drop=False)
+        # Columna auxiliar para buscar sin tildes (no se devuelve a la API).
+        self._busqueda = self.municipios["nombre"].map(_sin_acentos)
+
+        self.indicadores = indicadores.set_index("id_indicador", drop=False)
+
         valores["cod_ine"] = valores["cod_ine"].str.zfill(5)
         valores["valor"] = pd.to_numeric(valores["valor"], errors="coerce")  # texto raro -> NaN
         self.valores = valores
@@ -85,7 +91,7 @@ class RepositorioCSV:
 
     def info(self) -> dict[str, Any]:
         return {
-            "directorio": str(self.directorio),
+            "origen": self.origen,
             "municipios": len(self.municipios),
             "indicadores": len(self.indicadores),
             "observaciones": len(self.valores),

@@ -37,6 +37,17 @@ CodIne = Annotated[str, Path(pattern=r"^\d{5}$", description="Código INE de 5 d
 Actividad = Annotated[str, Path(min_length=1, max_length=80, description="Nombre de la actividad (ver /actividades)")]
 
 
+def crear_repositorio(ajustes: Ajustes):
+    """Elijo de dónde leo los datos: PostgreSQL si hay URL de base de datos, y si no, los CSV."""
+    if ajustes.url_base_datos:
+        from sitewise.db.postgres import (
+            RepositorioPostgres,  # import aquí: psycopg solo se pide si se usa
+        )
+
+        return RepositorioPostgres(ajustes.url_base_datos, ajustes.esquema_base_datos)
+    return RepositorioCSV(ajustes.directorio_datos)
+
+
 def obtener_servicio(request: Request) -> Servicio:
     """Carga los datos la primera vez que se necesitan (el CSV grande tarda unos segundos)."""
     estado = request.app.state
@@ -45,7 +56,7 @@ def obtener_servicio(request: Request) -> Servicio:
             if estado.servicio is None:
                 try:
                     reglas = cargar_reglas(estado.ajustes.ruta_reglas)
-                    estado.servicio = Servicio(RepositorioCSV(estado.ajustes.directorio_datos), reglas)
+                    estado.servicio = Servicio(crear_repositorio(estado.ajustes), reglas)
                 except DatosNoDisponibles as exc:
                     raise ErrorApi(503, "datos_no_disponibles", str(exc)) from exc
                 except ErrorReglas as exc:

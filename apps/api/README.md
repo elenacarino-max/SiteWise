@@ -56,3 +56,8 @@ Sin reglas, `/actividades` devuelve una lista vacía con un aviso. Si el CSV tie
 ```bash
 python -m pytest tests/api -q
 ```
+
+## Origen de los datos: CSV o PostgreSQL
+
+Por defecto leo los CSV. Si defino `SITEWISE_DATABASE_URL`, leo de PostgreSQL (`SITEWISE_DB_SCHEMA` cambia el
+esquema). `/health` indica el origen en uso. Cómo cargar la base y probarla: `docs/architecture/postgresql.md`.

@@ -50,6 +50,7 @@ class Servicio:
         return Salud(
             estado="ok",
             datos_cargados=True,
+            origen=info["origen"],
             municipios=info["municipios"],
             indicadores=info["indicadores"],
             observaciones=info["observaciones"],

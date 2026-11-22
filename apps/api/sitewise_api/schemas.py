@@ -15,6 +15,7 @@ AVISO_ALCANCE = (
 class Salud(BaseModel):
     estado: str  # "ok"
     datos_cargados: bool
+    origen: str | None = None  # "csv" o "postgresql"
     municipios: int | None = None
     indicadores: int | None = None
     observaciones: int | None = None
