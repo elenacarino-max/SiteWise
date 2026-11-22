@@ -1,0 +1,57 @@
+:root {
+  --background: #f4f6f9;
+  --surface: #ffffff;
+  --surface-raised: #eaeef3;
+  --border: #d5dce5;
+  --border-control: #707e90;
+  --text: #1b2430;
+  --text-secondary: #586577;
+  --accent: #235fa6;
+  --on-accent: #ffffff;
+  --map-line: var(--border-control);
+  --map-fill: var(--surface-raised);
+  --mapa-tramo-1: #b5d4f7;
+  --mapa-tramo-2: #4f86c6;
+  --mapa-tramo-3: #1b4a85;
+  --province-border: var(--text-secondary);
+  --font-interface: "Segoe UI", system-ui, sans-serif;
+
+  font-family: var(--font-interface);
+  color: var(--text);
+  background: var(--background);
+  font-synthesis: none;
+  line-height: 1.5;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: var(--border-control);
+  }
+}
