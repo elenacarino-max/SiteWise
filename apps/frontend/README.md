@@ -19,7 +19,7 @@ npm ci
 npm run dev
 ```
 
-Abre la URL `Local` que imprime Vite. El mapa y los indicadores se cargan desde los archivos incluidos en el repositorio, así que puedes probar el frontend sin iniciar la API ni activar un entorno de Python.
+Abre la URL `Local` que imprime Vite. Puedes usar el mapa y consultar o comparar los indicadores incluidos en el repositorio sin iniciar la API.
 
 1. En **Explorar**, cambia **Capa del mapa** a **Cobertura de fibra** y revisa la leyenda.
 2. Busca un municipio, selecciónalo y pulsa **Ver ficha**.
@@ -33,9 +33,24 @@ npm run build
 npm run lint
 ```
 
+## Evaluación por actividad
+
+Para probarla, arranca la [API](../api/README.md) desde la raíz del repositorio en otra terminal:
+
+```bash
+python -m pip install -e ".[api]"
+python -m uvicorn --app-dir apps/api sitewise_api.main:app
+```
+
+El backend necesita los CSV municipales locales o una conexión a PostgreSQL. Vite reenvía `/api` a `http://127.0.0.1:8000` en desarrollo y vista previa. Puedes cambiar el destino con `SITEWISE_API_TARGET` al iniciar Vite. En producción, configura el proxy de `/api` para que lo reenvíe sin ese prefijo, o define `VITE_SITEWISE_API_BASE_URL` al compilar. Si la URL apunta a otro origen, este debe permitir el origen del frontend mediante CORS.
+
+Selecciona una actividad en **Explorar**, **Detalle** o **Comparar**. Detalle consulta la evaluación del municipio. Comparar solicita la evaluación de dos o tres municipios y conserva la tabla de indicadores descriptivos. En Explorar, las capas de riesgo y atractivo usan las notas del endpoint `GET /actividades/{actividad}/mapa`. Las dimensiones se muestran por separado, con el aviso de reglas provisionales cuando corresponda. El mapa distingue las notas parciales con un contorno discontinuo.
+
 ## Datos municipales
 
 La aplicación cruza las geometrías de [municipios.geojson](public/mapas/municipios.geojson) y los valores de [indicadores-municipales.json](public/indicadores-municipales.json) por código INE de cinco dígitos. Los indicadores publicados se definen en [gruposIndicadores.json](src/gruposIndicadores.json).
+
+**Detalle**, el resumen de **Explorar** y la tabla descriptiva de **Comparar** piden los valores a `GET /municipios/{cod_ine}/ficha`. Si falla una ficha, la vista usa la copia local para ese municipio y lo indica. Los contornos y las capas descriptivas del mapa se siguen cargando desde los archivos del repositorio.
 
 - **Aproximado** indica que el dataset clasifica el valor como estimación o proxy. En las estimaciones de agua subterránea preparadas para la app, la ficha muestra el método.
 - **Sin dato** significa que el extracto no contiene un valor utilizable para ese indicador y municipio.
@@ -54,6 +69,5 @@ El comando actualiza `apps/frontend/public/indicadores-municipales.json`. La pre
 
 ## Integraciones pendientes
 
-- Conectar el catálogo y la evaluación por actividad a la API. Los selectores de inversión usan un catálogo provisional.
 - Incorporar los perfiles territoriales cuando se valide la versión de clustering que se publicará.
 - Conectar el envío de preguntas con la API del asistente.

@@ -1,9 +1,12 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import ConfiguracionInversion from './ConfiguracionInversion'
-import { formatearIndicador, mostrarIndicador, useIndicadores } from './useIndicadores'
+import EvaluacionMunicipal from './EvaluacionMunicipal'
+import { useApiSitewise, useFichaMunicipal } from './useApiSitewise'
+import type { ActividadesApi, ComparacionApi, EvaluacionApi, MapaActividadApi } from './useApiSitewise'
+import { adaptarFicha, formatearIndicador, useIndicadores } from './useIndicadores'
 import type { DatosIndicadores } from './useIndicadores'
 import gruposIndicadores from './gruposIndicadores.json'
-import { capasMapa, tonosMapa } from './capasMapa'
+import { capasMapa, notaDeMapa, tonosMapa } from './capasMapa'
 import MapaMunicipios from './MapaMunicipios'
 import type { Municipio } from './municipiosEjemplo'
 import { useMunicipios } from './useMunicipios'
@@ -16,7 +19,6 @@ const iconos = {
   pin: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
   ficha: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h4" /></>,
   comparar: <><rect x="3" y="8" width="13" height="13" rx="2" /><path d="M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3" /></>,
-  info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></>,
   buscar: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></>,
   asistente: <path d="M21 15a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-1-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />,
 }
@@ -92,9 +94,52 @@ function App() {
   const [comparados, setComparados] = useState<Municipio[]>([])
   const [aviso, setAviso] = useState('')
   const [capaId, setCapaId] = useState('suelo_industrial_cartografiado_ha')
+  const [actividad, setActividad] = useState('')
+  const actividadesApi = useApiSitewise<ActividadesApi>('/actividades')
+  const fichaApi = useFichaMunicipal(seccion !== 'Comparar' ? municipio?.cod_ine : undefined)
+  const seleccionComparada = seccion === 'Comparar' ? comparados : []
+  const primeraFicha = useFichaMunicipal(seleccionComparada[0]?.cod_ine)
+  const segundaFicha = useFichaMunicipal(seleccionComparada[1]?.cod_ine)
+  const terceraFicha = useFichaMunicipal(seleccionComparada[2]?.cod_ine)
+  const evaluacionApi = useApiSitewise<EvaluacionApi>(
+    seccion === 'Detalle' && municipio && actividad
+      ? `/municipios/${municipio.cod_ine}/evaluacion/${encodeURIComponent(actividad)}`
+      : null,
+  )
+  const comparacionApi = useApiSitewise<ComparacionApi>(
+    seccion === 'Comparar' && comparados.length >= 2 && actividad
+      ? '/comparar?' + new URLSearchParams({
+        municipios: comparados.map((item) => item.cod_ine).join(','),
+        actividad,
+      })
+      : null,
+  )
   const capaMapa = capasMapa.find((capa) => capa.id === capaId) ?? capasMapa[0]
+  const mapaActividadApi = useApiSitewise<MapaActividadApi>(
+    seccion === 'Explorar' && capaMapa.dimension && actividad
+      ? `/actividades/${encodeURIComponent(actividad)}/mapa` : null,
+  )
+  const filasMapa = mapaActividadApi.datos?.filas
+  const puntuacionesMapa = useMemo(() => new Map(filasMapa?.map((fila) => [fila.cod_ine, fila])), [filasMapa])
   const { datos: tablaIndicadores, error: errorIndicadores } = useIndicadores(
     Boolean(municipio || comparados.length || capaMapa.cortes),
+  )
+  const datosFicha = fichaApi.datos ? adaptarFicha(fichaApi.datos) :
+    fichaApi.estado === 'error' ? tablaIndicadores : null
+  const fichasComparadas = [primeraFicha, segundaFicha, terceraFicha].slice(0, seleccionComparada.length)
+  const datosComparados: DatosIndicadores = { indicadores: { ...tablaIndicadores?.indicadores }, municipios: {} }
+  const respaldoComparado = fichasComparadas.some((ficha) => ficha.estado === 'error')
+  const comparacionHomogenea = fichasComparadas.every((ficha) => ficha.estado === 'listo') ||
+    fichasComparadas.every((ficha) => ficha.estado === 'error')
+  fichasComparadas.forEach((ficha, indice) => {
+    const codigo = seleccionComparada[indice].cod_ine
+    const datos = ficha.datos ? adaptarFicha(ficha.datos) : ficha.estado === 'error' ? tablaIndicadores : null
+    if (!datos) return
+    Object.assign(datosComparados.indicadores, datos.indicadores)
+    datosComparados.municipios[codigo] = datos.municipios[codigo] ?? {}
+  })
+  const notaMunicipioMapa = notaDeMapa(
+    municipio ? puntuacionesMapa.get(municipio.cod_ine) : undefined, capaMapa.dimension,
   )
   const resumen = useRef<HTMLElementTagNameMap['article']>(null)
   const contenido = useRef<HTMLElementTagNameMap['section']>(null)
@@ -160,6 +205,14 @@ function App() {
     contenido.current?.focus()
   }
 
+  function selectorActividad(id: string) {
+    return (
+      <ConfiguracionInversion id={id} actividades={actividadesApi.datos?.actividades ?? []}
+        actividad={actividad} onCambiar={setActividad} estado={actividadesApi.estado}
+        aviso={actividadesApi.datos?.aviso} />
+    )
+  }
+
   return (
     <>
       <header className="cabecera-sitewise">
@@ -199,8 +252,7 @@ function App() {
               Configuración de inversión
               <span className="flecha-desplegable"><Icono nombre="desplegar" /></span>
             </summary>
-            <p className="estado-evaluacion"><Icono nombre="info" /> La evaluación territorial aún no está disponible</p>
-            <ConfiguracionInversion />
+            {selectorActividad('actividad-explorar')}
           </details>
 
           {seccion === 'Explorar' && (
@@ -252,23 +304,34 @@ function App() {
                       {capasMapa.map((capa) => <option key={capa.id} value={capa.id}>{capa.nombre}</option>)}
                     </select>
                   </div>
+                  {capaMapa.dimension && selectorActividad('actividad-mapa')}
                   {capaMapa.tramos && (
                     <div className="leyenda-mapa" aria-live="polite">
-                      {tablaIndicadores ? (
+                      {(capaMapa.dimension ? mapaActividadApi.datos : tablaIndicadores) ? (
                         <ul aria-label={'Leyenda: ' + capaMapa.nombre}>
                           {capaMapa.tramos.map((tramo, indice) => (
                             <li key={tramo}><span aria-hidden="true" style={{ backgroundColor: `var(${tonosMapa[indice]})` }} />{tramo}</li>
                           ))}
-                          <li><span aria-hidden="true" />Sin dato</li>
+                          <li><span aria-hidden="true" />{capaMapa.dimension ? 'Sin nota' : 'Sin dato'}</li>
+                          {capaMapa.dimension && <li><span className="borde-nota-parcial" aria-hidden="true" />Nota parcial</li>}
                         </ul>
                       ) : (
-                        <p>{errorIndicadores ? 'No se pudo cargar esta capa.' : 'Cargando datos de la capa…'}</p>
+                        <p>{capaMapa.dimension && !actividad ? 'Selecciona una actividad para ver las notas.' :
+                          (capaMapa.dimension ? mapaActividadApi.estado === 'error' : errorIndicadores)
+                            ? 'No se pudo cargar esta capa.' : 'Cargando datos de la capa…'}</p>
                       )}
+                      {capaMapa.dimension && mapaActividadApi.datos && (
+                        <p>Escala relativa de 0 a 100.
+                          {mapaActividadApi.datos.reglas_provisionales && ' Evaluación orientativa · Reglas provisionales.'}
+                        </p>
+                      )}
+                      {capaMapa.dimension && mapaActividadApi.datos && <p>{mapaActividadApi.datos.aviso_alcance}</p>}
                     </div>
                   )}
                 </div>
                 <MapaMunicipios datos={datos} error={error} codigoSeleccionado={municipio?.cod_ine}
-                  capa={capaMapa} indicadores={tablaIndicadores} onSeleccionar={previsualizar} />
+                  capa={capaMapa} indicadores={tablaIndicadores} puntuaciones={puntuacionesMapa}
+                  onSeleccionar={previsualizar} />
               </div>
 
               {municipio && (
@@ -280,18 +343,32 @@ function App() {
                       <p className="provincia-resumen">Provincia: {municipio.provincia}</p>
                     </div>
                   </div>
-                  {tablaIndicadores ? (
+                  {datosFicha ? (
                     <dl className="indicadores-resumen">
                       {indicadoresResumen.map(([id, nombre]) => (
-                        <div key={id}><dt>{nombre}</dt><dd>{mostrarIndicador(tablaIndicadores, municipio.cod_ine, id)}</dd></div>
+                        <div key={id}><dt>{nombre}</dt><dd><ValorIndicador datos={datosFicha} codigo={municipio.cod_ine} id={id} /></dd></div>
                       ))}
-                      {capaMapa.cortes && !indicadoresResumen.some(([id]) => id === capaId) && (
-                        <div><dt>{capaMapa.nombre}</dt><dd>{mostrarIndicador(tablaIndicadores, municipio.cod_ine, capaId)}</dd></div>
+                      {capaMapa.cortes && !capaMapa.dimension && !indicadoresResumen.some(([id]) => id === capaId) && (
+                        <div><dt>{capaMapa.nombre}</dt><dd><ValorIndicador datos={datosFicha} codigo={municipio.cod_ine} id={capaId} /></dd></div>
+                      )}
+                      {capaMapa.dimension && mapaActividadApi.datos && (
+                        <div>
+                          <dt>{capaMapa.nombre}</dt>
+                          <dd>{notaMunicipioMapa ? `${notaMunicipioMapa.valor.toLocaleString('es-ES')} / 100` : 'Sin nota'}
+                            {notaMunicipioMapa?.parcial && (
+                              <span className="nota-indicador">Nota parcial · Cobertura: {notaMunicipioMapa.confianza.toLocaleString('es-ES', {
+                                style: 'percent', maximumFractionDigits: 0,
+                              })}</span>
+                            )}
+                          </dd>
+                        </div>
                       )}
                     </dl>
                   ) : (
-                    <p role="status">{errorIndicadores ? 'No se pudieron cargar los indicadores.' : 'Cargando indicadores…'}</p>
+                    <p role="status">{fichaApi.estado === 'error' && errorIndicadores ?
+                      'No se pudieron cargar los indicadores.' : 'Cargando indicadores…'}</p>
                   )}
+                  {fichaApi.estado === 'error' && datosFicha && <p className="nota-pequena">Indicadores de la copia local.</p>}
                   <div className="acciones-resumen">
                     <button className="boton-principal" type="button" onClick={() => seleccionar(municipio)}>
                       Ver ficha
@@ -358,18 +435,41 @@ function App() {
                 <p id="limite-comparacion" className={comparados.length >= 3 && !estaGuardado(municipio) ? 'nota-pequena' : 'solo-lectura'}>
                   Puedes guardar hasta tres municipios. Para cambiar uno, quítalo en Comparar.
                 </p>
-                {errorIndicadores && <p role="alert">No se pudieron cargar los indicadores municipales.</p>}
-                {!tablaIndicadores && !errorIndicadores && <p role="status">Cargando indicadores municipales…</p>}
-                {tablaIndicadores && (
+                {fichaApi.estado === 'cargando' && <p role="status">Cargando ficha municipal…</p>}
+                {fichaApi.estado === 'error' && (
+                  datosFicha
+                    ? <p role="status" className="nota-pequena">API no disponible. Se muestran los datos municipales de la copia local.</p>
+                    : errorIndicadores
+                      ? <p role="alert">No se pudieron cargar los indicadores municipales.</p>
+                      : <p role="status">Cargando la copia local de los indicadores…</p>
+                )}
+                {datosFicha && (
+                  <dl className="cifras-municipio">
+                    {indicadoresResumen.map(([id, nombre]) => (
+                      <div key={id}>
+                        <dt>{nombre}</dt>
+                        <dd><ValorIndicador datos={datosFicha} codigo={municipio.cod_ine} id={id} /></dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                <section className="panel-actividad" aria-labelledby="titulo-evaluacion">
+                  <h3 id="titulo-evaluacion">Evaluación por actividad</h3>
+                  {selectorActividad('actividad-detalle')}
+                  {evaluacionApi.estado === 'cargando' && <p role="status">Calculando evaluación…</p>}
+                  {evaluacionApi.estado === 'error' && <p role="alert">No se pudo obtener la evaluación de este municipio.</p>}
+                  {evaluacionApi.datos && (
+                    <>
+                      {evaluacionApi.datos.evaluacion.reglas_provisionales && (
+                        <p className="aviso-reglas">Evaluación orientativa · Reglas provisionales</p>
+                      )}
+                      <EvaluacionMunicipal evaluacion={evaluacionApi.datos.evaluacion} datos={datosFicha} />
+                      <p className="nota-actividad">{evaluacionApi.datos.aviso_alcance}</p>
+                    </>
+                  )}
+                </section>
+                {datosFicha && (
                   <>
-                    <dl className="cifras-municipio">
-                      {indicadoresResumen.map(([id, nombre]) => (
-                        <div key={id}>
-                          <dt>{nombre}</dt>
-                          <dd><ValorIndicador datos={tablaIndicadores} codigo={municipio.cod_ine} id={id} /></dd>
-                        </div>
-                      ))}
-                    </dl>
                     <div className="panel-indicadores">
                       <table className="tabla-indicadores" role="table" aria-label="Indicadores municipales">
                         <thead role="rowgroup">
@@ -385,17 +485,17 @@ function App() {
                               <th scope="rowgroup" role="rowheader" colSpan={3}>{grupo.nombre}</th>
                             </tr>
                               {grupo.indicadores.map((id) => {
-                                const fuente = tablaIndicadores.indicadores[id]
-                                const dato = tablaIndicadores.municipios[municipio.cod_ine]?.[id]
+                                const fuente = datosFicha.indicadores[id]
+                                const dato = datosFicha.municipios[municipio.cod_ine]?.[id]
                                 if (!fuente) return null
                                 const url = dato?.url ?? fuente.url
                                 const fecha = dato?.fecha_dato ?? fuente.fecha_dato
                                 return (
                                   <tr key={id} role="row">
                                     <th scope="row" role="rowheader">{fuente.nombre}</th>
-                                    <td role="cell"><ValorIndicador datos={tablaIndicadores} codigo={municipio.cod_ine} id={id} /></td>
+                                    <td role="cell"><ValorIndicador datos={datosFicha} codigo={municipio.cod_ine} id={id} /></td>
                                     <td className="fuente-indicador" role="cell">
-                                      {url && !url.includes('{') ? <a href={url}>{fuente.fuente}</a> : fuente.fuente}
+                                      {/^https?:\/\//i.test(url) && !url.includes('{') ? <a href={url}>{fuente.fuente}</a> : fuente.fuente}
                                       {fecha && <> · {fecha.replace('consulta_', 'Consulta ')}</>}
                                       {dato?.metodo && <span className="metodo-indicador">{dato.metodo}</span>}
                                     </td>
@@ -435,8 +535,12 @@ function App() {
                 )}
               </div>
 
-              {errorIndicadores && <p role="alert">No se pudieron cargar los indicadores municipales.</p>}
-              {!tablaIndicadores && !errorIndicadores && <p role="status">Cargando indicadores municipales…</p>}
+              {respaldoComparado && (
+                <p role="status" className="nota-pequena">
+                  {tablaIndicadores ? 'Se usa la copia local para los municipios cuya ficha no pudo cargarse desde la API.' :
+                    errorIndicadores ? 'No se pudieron obtener los indicadores de algunos municipios.' : 'Cargando la copia local de los indicadores…'}
+                </p>
+              )}
               <ul className="municipios-comparados" aria-label="Municipios seleccionados">
                 {comparados.map((item) => (
                   <li key={item.cod_ine}>
@@ -448,6 +552,29 @@ function App() {
                   </li>
                 ))}
               </ul>
+              <section className="panel-actividad" aria-labelledby="titulo-evaluacion-comparar">
+                <h3 id="titulo-evaluacion-comparar">Evaluación por actividad</h3>
+                {selectorActividad('actividad-comparar')}
+                {comparados.length === 1 && <p className="nota-actividad">Añade otro municipio para comparar las evaluaciones.</p>}
+                {comparacionApi.estado === 'cargando' && <p role="status">Calculando comparación…</p>}
+                {comparacionApi.estado === 'error' && <p role="alert">No se pudo obtener la comparación por actividad.</p>}
+                {comparacionApi.datos && (
+                  <>
+                    {comparacionApi.datos.reglas_provisionales && (
+                      <p className="aviso-reglas">Evaluación orientativa · Reglas provisionales</p>
+                    )}
+                    <div className="evaluaciones-comparadas">
+                      {comparacionApi.datos.evaluaciones.map(({ municipio: item, evaluacion }) => (
+                        <section key={item.cod_ine}>
+                          <h4>{item.nombre}</h4>
+                          <EvaluacionMunicipal evaluacion={evaluacion} datos={datosComparados} />
+                        </section>
+                      ))}
+                    </div>
+                    <p className="nota-actividad">{comparacionApi.datos.aviso_comparacion} {comparacionApi.datos.aviso_alcance}</p>
+                  </>
+                )}
+              </section>
               {comparados.length > 1 && (
                 <p className="nota-pequena aviso-tabla-movil" id="ayuda-tabla-comparacion">Desplaza la tabla para ver todos los municipios.</p>
               )}
@@ -458,20 +585,25 @@ function App() {
                   <thead>
                     <tr>
                       <th scope="col">Indicador</th>
-                      {comparados.map((item) => (
-                        <th scope="col" key={item.cod_ine}>{item.nombre}</th>
+                      {comparados.map((item, indice) => (
+                        <th scope="col" key={item.cod_ine}>
+                          {item.nombre}
+                          {fichasComparadas[indice].estado === 'error' && tablaIndicadores?.municipios[item.cod_ine] && (
+                            <span className="origen-indicador nota-indicador">Copia local</span>
+                          )}
+                        </th>
                       ))}
                     </tr>
                   </thead>
-                  {tablaIndicadores && gruposIndicadores.map((grupo) => (
+                  {gruposIndicadores.map((grupo) => (
                     <tbody key={grupo.nombre}>
                       <tr className="grupo-comparacion"><th scope="rowgroup" colSpan={comparados.length + 1}>{grupo.nombre}</th></tr>
                       {grupo.indicadores.map((id) => {
-                        const indicador = tablaIndicadores.indicadores[id]
+                        const indicador = datosComparados.indicadores[id]
                         if (!indicador) return null
                         const diferencia = diferencias[id]
-                        const valores = comparados.map((item) => tablaIndicadores.municipios[item.cod_ine]?.[id])
-                        const orden = diferencia ? valores.map((dato) =>
+                        const valores = comparados.map((item) => datosComparados.municipios[item.cod_ine]?.[id])
+                        const orden = diferencia && comparacionHomogenea ? valores.map((dato) =>
                           dato?.estado === 'real' ? dato.valor * diferencia.sentido : NaN,
                         ) : []
                         const mejor = orden.length > 1 ? Math.max(...orden) : NaN
@@ -481,7 +613,8 @@ function App() {
                             <th scope="row">{indicador.nombre}</th>
                             {comparados.map((item, indice) => (
                               <td key={item.cod_ine}>
-                                <ValorIndicador datos={tablaIndicadores} codigo={item.cod_ine} id={id} />
+                                {fichasComparadas[indice].estado === 'cargando' ? 'Cargando…' :
+                                  <ValorIndicador datos={datosComparados} codigo={item.cod_ine} id={id} />}
                                 {unico && orden[indice] === mejor && <strong className="diferencia-comparacion">{diferencia.texto}</strong>}
                               </td>
                             ))}

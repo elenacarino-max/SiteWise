@@ -5,8 +5,9 @@ import type { LatLngBoundsExpression } from 'leaflet'
 import type { Feature, FeatureCollection, LineString, Position } from 'geojson'
 import type { Municipio } from './municipiosEjemplo'
 import type { Contornos, DatosMunicipio } from './useMunicipios'
-import { tonosMapa, tramoMapa } from './capasMapa'
+import { notaDeMapa, tonosMapa, tramoMapa } from './capasMapa'
 import type { capasMapa } from './capasMapa'
+import type { FilaMapaApi } from './useApiSitewise'
 import type { DatosIndicadores } from './useIndicadores'
 import 'leaflet/dist/leaflet.css'
 
@@ -16,6 +17,7 @@ type Props = {
   codigoSeleccionado?: string
   capa: typeof capasMapa[number]
   indicadores: DatosIndicadores | null
+  puntuaciones: ReadonlyMap<string, FilaMapaApi>
   onSeleccionar: (municipio: Municipio) => void
 }
 
@@ -93,27 +95,30 @@ function crearLimitesProvincia(datos: Contornos | null): LimitesProvincia | null
   return { type: 'FeatureCollection', features }
 }
 
-export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa, indicadores, onSeleccionar }: Props) {
+export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa, indicadores, puntuaciones, onSeleccionar }: Props) {
   const limitesProvincia = useMemo(() => crearLimitesProvincia(datos), [datos])
   const estilos = useMemo(() => {
     const css = getComputedStyle(document.documentElement)
     const color = (variable: string) => css.getPropertyValue(variable).trim()
-    const base = { color: color('--map-line'), weight: 0.3, fillColor: color('--map-fill'), fillOpacity: 1 }
+    const base = { color: color('--map-line'), weight: 0.3, fillColor: color('--map-fill'), fillOpacity: 1, dashArray: '' }
     const tonos = tonosMapa.map(color)
     const cortes = capa.cortes
+    const contornoParcial = color('--text')
     return {
-      base,
       acento: color('--accent'),
       halo: color('--surface'),
       provincia: color('--province-border'),
       municipio: (feature?: Feature) => {
         if (!feature?.properties || !cortes) return base
         const codigo = String(feature.properties.cod_ine).padStart(5, '0')
-        const dato = indicadores?.municipios[codigo]?.[capa.id]
-        return dato ? { ...base, fillColor: tonos[tramoMapa(dato.valor, cortes)] } : base
+        const nota = notaDeMapa(puntuaciones.get(codigo), capa.dimension)
+        const valor = capa.dimension ? nota?.valor : indicadores?.municipios[codigo]?.[capa.id]?.valor
+        if (valor === undefined) return base
+        const relleno = { ...base, fillColor: tonos[tramoMapa(valor, cortes)] }
+        return nota?.parcial ? { ...relleno, dashArray: '3 2', color: contornoParcial, weight: 1 } : relleno
       },
     }
-  }, [capa, indicadores])
+  }, [capa, indicadores, puntuaciones])
 
   const seleccionado = useMemo(() => datos?.features.find((item) =>
     String(item.properties.cod_ine).padStart(5, '0') === codigoSeleccionado,
@@ -148,12 +153,12 @@ export default function MapaMunicipios({ datos, error, codigoSeleccionado, capa,
 
           capa.on('mouseover', () => {
             if (capa instanceof Path) {
-              capa.setStyle({ weight: 1.6 })
+              capa.setStyle({ fillOpacity: 0.7 })
             }
           })
 
           capa.on('mouseout', () => {
-            if (capa instanceof Path) capa.setStyle({ weight: estilos.base.weight })
+            if (capa instanceof Path) capa.setStyle({ fillOpacity: 1 })
           })
 
           capa.on('click', () => {
