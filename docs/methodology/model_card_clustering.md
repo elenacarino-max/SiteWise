@@ -54,6 +54,16 @@ Todas las medianas por grupo están en `data/reference/perfiles_definicion_v01.c
 
 `data/reference/perfiles_municipios_v01.csv` (8.132 filas, ordenado por `cod_ine`): `cod_ine` (texto de 5 dígitos), `cluster` (0–4), `cluster_perfil` (nombre), `es_atipico` (0/1) y `version_modelo`. Lo usan la API (Adriana) y el RAG (Josema).
 
+## Municipios cercanos
+
+Para cada municipio, los 5 más **cercanos en el mapa**, en `data/reference/municipios_cercanos_v01.csv` (40.660 filas, generadas con `notebooks/11_municipios_cercanos.ipynb` y `src/sitewise/ml/cercanos.py`). Columnas: `cod_ine`, `cod_ine_cercano`, `posicion` (1 = el más cercano) y `distancia_km`. No depende del modelo de agrupación: es un cálculo geográfico. Se explica aquí porque lo usan los mismos equipos que el fichero de perfiles.
+
+- "Cercano" es próximo en el mapa (distancia en línea recta entre los puntos `lat` y `lon` de cada municipio), no parecido en características. Se eligió así porque el agua y los riesgos naturales dependen del territorio.
+- El número de cercanos es una constante, `N_CERCANOS` (5), en `cercanos.py`. Para cambiarlo, se cambia ese número y se regenera el fichero.
+- El 92 % de los cercanos son de la misma provincia y la mediana de la distancia media es de 6,7 km.
+- Los cercanos comparten el agua y el estrés hídrico (correlación de 0,88 a 0,97) y menos las inundaciones y los incendios (de 0,52 a 0,74). Con municipios elegidos al azar sale casi 0.
+- Melilla, Ceuta, Canarias y Formentera tienen cercanos lejanos (hasta 164 km de media en Melilla); `distancia_km` permite avisar.
+
 ## Limitaciones
 
 1. **Es un continuo, no cinco bloques separados.** Un municipio cerca de la frontera entre dos perfiles podría estar en cualquiera de los dos.
@@ -65,12 +75,14 @@ Todas las medianas por grupo están en `data/reference/perfiles_definicion_v01.c
 7. **Atípicos**: `es_atipico` marca 360 municipios que DBSCAN consideró ruido en una prueba inicial con 4 variables, no con las 7 finales. Es solo una pista.
 8. **No se comparó sin PCA.** La decisión de usar PCA se tomó con el equipo, sin una comparación detallada en notebook.
 9. Modelo **exploratorio**: no usar para decidir inversiones ni para clasificar municipios como adecuados o no.
+10. **Cercano no es misma cuenca ni mismo relieve.** La distancia es en línea recta entre un punto por municipio: dos municipios cercanos pueden estar en cuencas distintas, y en municipios muy extensos la distancia entre puntos no es la distancia entre sus límites.
 
 ## Cómo regenerarlo
 
 ```bash
 source .venv/Scripts/activate
 jupyter nbconvert --to notebook --execute --inplace notebooks/10_perfiles_municipios.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/11_municipios_cercanos.ipynb
 PYTHONPATH=src python -m pytest tests/ml -q
 ```
 
@@ -78,6 +90,7 @@ Si cambian los datos o las variables, hay que subir `VERSION_MODELO` en `perfile
 
 ## Archivos relacionados
 
-- `src/sitewise/ml/pipeline.py` (pipeline), `src/sitewise/ml/perfiles.py` (nombres y tabla)
+- `src/sitewise/ml/pipeline.py` (pipeline), `src/sitewise/ml/perfiles.py` (nombres y tabla), `src/sitewise/ml/cercanos.py` (municipios cercanos)
 - `notebooks/10_perfiles_municipios.ipynb` (análisis y generación de ficheros)
+- `notebooks/11_municipios_cercanos.ipynb` (municipios cercanos y comprobaciones)
 - `docs/methodology/seleccion_variables_ml.md` (criterios de selección de variables)
