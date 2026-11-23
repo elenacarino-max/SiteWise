@@ -71,3 +71,28 @@ def directorio_datos_app(directorio_datos):
     """Como `directorio_datos`, pero además con un valores_app.csv (que tiene prioridad sobre valores.csv)."""
     (directorio_datos / "valores_app.csv").write_text(VALORES_APP, encoding="utf-8")
     return directorio_datos
+
+
+# Perfiles INVENTADOS (mismo formato que los de Helen en data/reference). 28001 y 41001 comparten perfil.
+PERFILES_MUNICIPIOS = (
+    "cod_ine,cluster,cluster_perfil,es_atipico,version_modelo\n"
+    "01001,0,Perfil de prueba A,0,v01\n"
+    "28001,1,Perfil de prueba B,0,v01\n"
+    "41001,1,Perfil de prueba B,1,v01\n"
+)
+PERFILES_DEFINICION = (
+    "cluster,cluster_perfil,descripcion,n_municipios,mediana_poblacion_2025,"
+    "mediana_suelo_industrial_cartografiado_pct,mediana_dist_recta_eje_autovia_km,mediana_dist_recta_ttm_km,"
+    "mediana_paro_por_100_hab,mediana_viento_100m_media_m_s,mediana_agua_vecinos_pct,version_modelo\n"
+    '0,Perfil de prueba A,"Descripción, con coma y ""comillas"" de prueba.",1,100.0,1.0,2.0,3.0,4.0,5.0,0.0,v01\n'
+    "1,Perfil de prueba B,Otra descripción de prueba.,2,200.0,1.5,2.5,3.5,4.5,5.5,10.0,v01\n"
+)
+
+
+@pytest.fixture
+def directorio_perfiles(tmp_path_factory):
+    """Carpeta temporal con los dos CSV de perfiles inventados (como data/reference)."""
+    carpeta = tmp_path_factory.mktemp("reference")
+    (carpeta / "perfiles_municipios_v01.csv").write_text(PERFILES_MUNICIPIOS, encoding="utf-8")
+    (carpeta / "perfiles_definicion_v01.csv").write_text(PERFILES_DEFINICION, encoding="utf-8")
+    return carpeta

@@ -23,9 +23,11 @@ from sitewise.db.esquema import (
     OBLIGATORIAS,
     con_tiempo_limite,
     ddl,
+    ddl_perfiles,
     url_desde_entorno,
     validar_esquema,
 )
+from sitewise.db.perfiles import DIRECTORIO_POR_DEFECTO, buscar_ficheros
 from sitewise.db.repositorio import FICHEROS, DatosNoDisponibles, fichero_valores
 
 CANDIDATAS = ("data/processed/sitewise_v03", "data/processed/sidewise_v03")
@@ -35,9 +37,10 @@ class ErrorCarga(RuntimeError):
     """Lo lanzo cuando los CSV no se pueden cargar (columnas que faltan, claves que no cruzan...)."""
 
 
-def _leer(directorio: Path, tabla: str) -> tuple[pd.DataFrame, list[str]]:
+def _leer(directorio: Path, tabla: str, fichero: Path | None = None) -> tuple[pd.DataFrame, list[str]]:
     """Leo un CSV como texto, me quedo con las columnas del esquema y devuelvo las que sobran."""
-    fichero = fichero_valores(directorio) if tabla == "valores" else directorio / f"{tabla}.csv"
+    if fichero is None:
+        fichero = fichero_valores(directorio) if tabla == "valores" else directorio / f"{tabla}.csv"
     df = pd.read_csv(fichero, dtype=str, keep_default_na=False)
     faltan = [c for c in OBLIGATORIAS[tabla] if c not in df.columns]
     if faltan:
@@ -94,8 +97,17 @@ def _activar_postgis(conexion: Any, esquema: str) -> bool:
         return False
 
 
-def cargar_csv(directorio: str | Path, url: str, esquema: str = "public") -> dict[str, Any]:
-    """Carga los tres CSV en la base y devuelve un resumen (filas cargadas, columnas ignoradas, PostGIS)."""
+def cargar_csv(
+    directorio: str | Path,
+    url: str,
+    esquema: str = "public",
+    directorio_perfiles: str | Path | None = None,
+) -> dict[str, Any]:
+    """Carga los tres CSV en la base y devuelve un resumen (filas cargadas, columnas ignoradas, PostGIS).
+
+    Si en `directorio_perfiles` están los CSV de perfiles de Helen, también carga sus dos tablas
+    (en la misma transacción). Si no están, la carga sigue igual y la base se queda sin perfiles.
+    """
     import psycopg  # import perezoso: solo hace falta si se usa PostgreSQL
 
     esquema = validar_esquema(esquema)
@@ -110,6 +122,12 @@ def cargar_csv(directorio: str | Path, url: str, esquema: str = "public") -> dic
     for tabla in ("municipios", "indicadores", "valores"):
         tablas[tabla], ignoradas[tabla] = _leer(directorio, tabla)
 
+    f_perfiles, f_definicion = buscar_ficheros(directorio_perfiles)
+    con_perfiles = f_perfiles is not None
+    if con_perfiles:
+        tablas["perfiles_definicion"], ignoradas["perfiles_definicion"] = _leer(directorio, "perfiles_definicion", f_definicion)
+        tablas["perfiles_municipios"], ignoradas["perfiles_municipios"] = _leer(directorio, "perfiles_municipios", f_perfiles)
+
     try:
         with psycopg.connect(con_tiempo_limite(url), autocommit=False) as conexion:
             codificacion = conexion.execute("SHOW server_encoding").fetchone()[0]
@@ -120,10 +138,17 @@ def cargar_csv(directorio: str | Path, url: str, esquema: str = "public") -> dic
                     "Créala con ENCODING 'UTF8' (la imagen oficial de PostgreSQL ya lo hace así)."
                 )
             with conexion.cursor() as cur:
-                cur.execute(f"DROP TABLE IF EXISTS {esquema}.valores, {esquema}.indicadores, {esquema}.municipios")
+                cur.execute(
+                    f"DROP TABLE IF EXISTS {esquema}.perfiles_municipios, {esquema}.perfiles_definicion, "
+                    f"{esquema}.valores, {esquema}.indicadores, {esquema}.municipios"
+                )
                 cur.execute(ddl(esquema))
+                orden = ["municipios", "indicadores", "valores"]
+                if con_perfiles:
+                    cur.execute(ddl_perfiles(esquema))
+                    orden += ["perfiles_definicion", "perfiles_municipios"]  # la definición va antes: la referencian
                 try:
-                    for tabla in ("municipios", "indicadores", "valores"):  # este orden respeta las claves foráneas
+                    for tabla in orden:  # este orden respeta las claves foráneas
                         _copiar(cur, esquema, tabla, tablas[tabla])
                 except psycopg.errors.ForeignKeyViolation as exc:
                     raise ErrorCarga(
@@ -141,6 +166,7 @@ def cargar_csv(directorio: str | Path, url: str, esquema: str = "public") -> dic
         "valores": len(tablas["valores"]),
         "columnas_ignoradas": {t: c for t, c in ignoradas.items() if c},
         "postgis": postgis,
+        "perfiles": len(tablas["perfiles_municipios"]) if con_perfiles else None,
     }
 
 
@@ -152,11 +178,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Carga los CSV del dataset en PostgreSQL.")
     parser.add_argument("--datos", default=_directorio_por_defecto(), help="carpeta con los tres CSV")
     parser.add_argument("--url", default=None, help="dirección de la base (por defecto, SITEWISE_DATABASE_URL o POSTGRES_*)")
+    parser.add_argument(
+        "--perfiles", default=str(DIRECTORIO_POR_DEFECTO),
+        help="carpeta con los CSV de perfiles de Helen (si no están, no se cargan)",
+    )
     parser.add_argument("--esquema", default="public", help="esquema donde crear las tablas")
     args = parser.parse_args()
 
     try:
-        resumen = cargar_csv(args.datos, args.url or url_desde_entorno(), args.esquema)
+        resumen = cargar_csv(args.datos, args.url or url_desde_entorno(), args.esquema, args.perfiles)
     except (ErrorCarga, DatosNoDisponibles, ValueError) as exc:
         raise SystemExit(f"Error: {exc}") from exc
 
@@ -164,6 +194,10 @@ def main() -> None:
     print(f"  municipios  {resumen['municipios']:>8}")
     print(f"  indicadores {resumen['indicadores']:>8}")
     print(f"  valores     {resumen['valores']:>8}")
+    if resumen["perfiles"] is None:
+        print("  perfiles    no cargados (no encuentro los CSV de perfiles en la carpeta indicada)")
+    else:
+        print(f"  perfiles    {resumen['perfiles']:>8}")
     print(f"  PostGIS: {'activado (columna geom)' if resumen['postgis'] else 'no disponible (se usan lat y lon)'}")
     for tabla, columnas in resumen["columnas_ignoradas"].items():
         print(f"  Aviso: {tabla}.csv tiene columnas que no guardo: {', '.join(columnas)}")

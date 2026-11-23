@@ -36,6 +36,15 @@ dato (nunca 0) y `estado` explica por qué. `valores` tiene claves foráneas a m
 - Si la base tiene PostGIS, se añade a `municipios` una columna `geom` con índice espacial. Si no, se
   sigue con `lat` y `lon`, que se guardan siempre. El resto del backend solo usa `lat` y `lon`.
 
+### Perfiles de municipios (clustering de Helen)
+
+Si en `data/reference/` están los CSV de perfiles (`--perfiles OTRA_CARPETA` para cambiarla), el cargador añade
+dos tablas más en la misma transacción: `perfiles_definicion` (una fila por perfil: nombre, descripción y
+medianas) y `perfiles_municipios` (una por municipio, con `cod_ine` como clave y clave foránea a `municipios`).
+Los perfiles son opcionales: si no están los CSV, la carga sigue y la API devuelve `perfil: null`. Si Helen
+saca una versión nueva (v02), se vuelve a ejecutar el cargador (se usa la versión más alta). Si los perfiles
+incluyen un municipio que no está en el dataset, la carga se detiene con un error claro.
+
 Si la base se cargó con una versión anterior del cargador, faltan columnas (las de las estimaciones del
 notebook 09): la API lo avisa con un error claro y basta con volver a ejecutar el cargador.
 

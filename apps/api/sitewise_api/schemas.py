@@ -20,6 +20,7 @@ class Salud(BaseModel):
     municipios: int | None = None
     indicadores: int | None = None
     observaciones: int | None = None
+    perfiles_version: str | None = None  # versión del modelo de perfiles cargado (null si no hay perfiles)
     detalle: str = ""
 
 
@@ -73,8 +74,54 @@ class ValorIndicador(BaseModel):
     motivo_no_utilizable: str | None = None
 
 
+AVISO_PERFIL = (
+    "El perfil describe a qué otros municipios se parece este (agrupación exploratoria). "
+    "No es una nota de riesgo ni de atractivo y no dice si el municipio es adecuado para una actividad."
+)
+
+
+class PerfilMunicipio(BaseModel):
+    """El perfil de un municipio según el clustering de Helen. Es descriptivo: no es una nota."""
+
+    cluster: int
+    nombre: str
+    descripcion: str | None = None
+    es_atipico: bool = False  # solo una pista: DBSCAN lo consideró ruido en una prueba inicial
+    version_modelo: str | None = None
+    aviso: str = AVISO_PERFIL
+
+
+class DefinicionPerfil(BaseModel):
+    cluster: int
+    nombre: str
+    descripcion: str | None = None
+    n_municipios: int | None = None
+    medianas: dict[str, float | None]  # mediana de cada variable en el perfil, p. ej. poblacion_2025
+    version_modelo: str | None = None
+
+
+class ListaPerfiles(BaseModel):
+    perfiles: list[DefinicionPerfil]
+    aviso: str = AVISO_PERFIL
+
+
+class MunicipioSimilar(Municipio):
+    distancia_km: float | None = None  # en línea recta desde el municipio consultado
+
+
+class RespuestaSimilares(BaseModel):
+    municipio: Municipio
+    perfil: PerfilMunicipio
+    total: int  # cuántos municipios similares hay con el filtro (no solo los de esta página)
+    limite: int
+    desplazamiento: int
+    similares: list[MunicipioSimilar]
+    criterio: str = "Mismo perfil, ordenados por distancia en línea recta."
+
+
 class FichaMunicipio(BaseModel):
     municipio: Municipio
+    perfil: PerfilMunicipio | None = None
     indicadores: list[ValorIndicador]
     aviso_alcance: str = AVISO_ALCANCE
 
@@ -100,6 +147,7 @@ class RespuestaEvaluacion(BaseModel):
     """Evaluación de un municipio para una actividad: riesgo y atractivo por separado."""
 
     municipio: Municipio
+    perfil: PerfilMunicipio | None = None
     evaluacion: Evaluacion
     aviso_alcance: str = AVISO_ALCANCE
 

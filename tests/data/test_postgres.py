@@ -51,6 +51,7 @@ def test_cargar_dos_veces_no_duplica(directorio_datos, esquema):
 def test_info_dice_el_origen(repo_pg):
     assert repo_pg.info() == {
         "origen": "postgresql", "valores_fichero": None, "municipios": 3, "indicadores": 3, "observaciones": 9,
+        "perfiles_version": None,
     }
 
 
@@ -195,3 +196,47 @@ def test_con_valores_app_da_lo_mismo_que_el_csv(directorio_datos_app, esquema):
     estres = pg.observaciones("41001")["estres"]
     assert estres.valor == 30 and estres.estado == "aproximado"
     assert pg.observaciones("41001")["suelo_ha"].estado == "sin_poligonos_en_catalogo"
+
+
+# ------------------------------------------------------------------ perfiles (clustering de Helen)
+
+
+@pytest.fixture
+def repo_pg_perfiles(directorio_datos, directorio_perfiles, esquema):
+    cargar_csv(directorio_datos, URL, esquema, directorio_perfiles)
+    return RepositorioPostgres(URL, esquema)
+
+
+def test_la_carga_incluye_los_perfiles(directorio_datos, directorio_perfiles, esquema):
+    assert cargar_csv(directorio_datos, URL, esquema, directorio_perfiles)["perfiles"] == 3
+
+
+def test_sin_csv_de_perfiles_la_carga_sigue_y_no_hay_perfiles(directorio_datos, tmp_path, esquema):
+    resumen = cargar_csv(directorio_datos, URL, esquema, tmp_path)
+    assert resumen["perfiles"] is None
+    repo = RepositorioPostgres(URL, esquema)
+    assert repo.perfil("28001") is None and repo.info()["perfiles_version"] is None
+
+
+def test_perfiles_desde_postgres_igual_que_desde_csv(directorio_datos, directorio_perfiles, repo_pg_perfiles):
+    repo_csv = RepositorioCSV(directorio_datos, directorio_perfiles)
+    for cod in ("01001", "28001", "41001"):
+        assert repo_pg_perfiles.perfil(cod) == repo_csv.perfil(cod)
+    assert repo_pg_perfiles.definiciones_perfiles() == repo_csv.definiciones_perfiles()
+    assert repo_pg_perfiles.similares("28001") == repo_csv.similares("28001")
+    assert repo_pg_perfiles.info()["perfiles_version"] == "v01"
+
+
+def test_recargar_sin_perfiles_elimina_las_tablas_viejas(directorio_datos, directorio_perfiles, tmp_path, esquema):
+    cargar_csv(directorio_datos, URL, esquema, directorio_perfiles)
+    cargar_csv(directorio_datos, URL, esquema, tmp_path)  # sin perfiles
+    assert RepositorioPostgres(URL, esquema).perfil("28001") is None
+
+
+def test_perfiles_de_otro_dataset_dan_un_error_claro(directorio_datos, directorio_perfiles, esquema):
+    (directorio_perfiles / "perfiles_municipios_v01.csv").write_text(
+        "cod_ine,cluster,cluster_perfil,es_atipico,version_modelo\n99999,0,Perfil de prueba A,0,v01\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ErrorCarga, match="no existe"):
+        cargar_csv(directorio_datos, URL, esquema, directorio_perfiles)
