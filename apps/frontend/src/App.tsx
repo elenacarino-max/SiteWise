@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import ConfiguracionInversion from './ConfiguracionInversion'
-import { mostrarIndicador, useIndicadores } from './useIndicadores'
+import { formatearIndicador, mostrarIndicador, useIndicadores } from './useIndicadores'
+import type { DatosIndicadores } from './useIndicadores'
 import gruposIndicadores from './gruposIndicadores.json'
 import { capasMapa, tonosMapa } from './capasMapa'
 import MapaMunicipios from './MapaMunicipios'
@@ -52,6 +53,36 @@ function normalizar(texto: string) {
   return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim()
 }
 
+function ValorIndicador({ datos, codigo, id }: { datos: DatosIndicadores; codigo: string; id: string }) {
+  const { texto, nota } = formatearIndicador(datos, codigo, id)
+  return (
+    <span className="valor-indicador">
+      <strong>{texto}</strong>
+      {nota && <span className="nota-indicador">{nota}</span>}
+    </span>
+  )
+}
+
+function PantallaSinMunicipios({ icono, titulo, descripcion, accion, onBuscar }: {
+  icono: 'ficha' | 'comparar'
+  titulo: string
+  descripcion: string
+  accion: string
+  onBuscar: () => void
+}) {
+  return (
+    <section className="estado-vacio" aria-labelledby="titulo-estado-vacio">
+      <span className="icono-estado-vacio"><Icono nombre={icono} /></span>
+      <h2 id="titulo-estado-vacio">{titulo}</h2>
+      <p>{descripcion}</p>
+      <button className="boton-principal" type="button" onClick={onBuscar}>
+        <Icono nombre="buscar" />
+        {accion}
+      </button>
+    </section>
+  )
+}
+
 function App() {
   const { datos, municipios, error } = useMunicipios()
   const [seccion, setSeccion] = useState('Explorar')
@@ -67,6 +98,7 @@ function App() {
   )
   const resumen = useRef<HTMLElementTagNameMap['article']>(null)
   const contenido = useRef<HTMLElementTagNameMap['section']>(null)
+  const campoBusqueda = useRef<HTMLInputElement>(null)
 
   function estaGuardado(item: Municipio) {
     return comparados.some((guardado) =>
@@ -115,6 +147,11 @@ function App() {
     setMunicipio(item)
     setBusqueda('')
     if (desdeBusqueda) requestAnimationFrame(() => resumen.current?.focus())
+  }
+
+  function abrirBuscador() {
+    cambiarSeccion('Explorar')
+    requestAnimationFrame(() => campoBusqueda.current?.focus())
   }
 
   function seleccionar(item: Municipio) {
@@ -172,7 +209,7 @@ function App() {
                 <label htmlFor="municipio">Buscar municipio o provincia</label>
                 <div className="campo-busqueda">
                   <Icono nombre="buscar" />
-                  <input id="municipio" name="municipio" type="search" value={busqueda}
+                  <input id="municipio" name="municipio" type="search" value={busqueda} ref={campoBusqueda}
                     onChange={(event) => setBusqueda(event.target.value)}
                     autoCorrect="off" autoCapitalize="none" spellCheck={false}
                     placeholder="Buscar municipio o provincia…" />
@@ -295,174 +332,169 @@ function App() {
           {seccion === 'Detalle' && (
             municipio ? (
               <article className="detalle-municipal">
-                <h2>{municipio.nombre}</h2>
-                <p>Provincia: {municipio.provincia}</p>
+                <div className="cabecera-informe">
+                  <div className="identidad-municipio">
+                    <span className="marca-municipio"><Icono nombre="pin" /></span>
+                    <div>
+                      <h2>{municipio.nombre}</h2>
+                      <p>Provincia de {municipio.provincia}</p>
+                    </div>
+                  </div>
+                  <div className="acciones-ficha">
+                    <button type="button" onClick={() => cambiarSeccion('Explorar')}>Volver a Explorar</button>
+                    {comparados.length > 0 && (
+                      <button type="button" onClick={() => cambiarSeccion('Comparar')}>
+                        Ver comparación ({comparados.length}/3)
+                      </button>
+                    )}
+                    <button className="boton-principal" type="button"
+                      aria-disabled={estaGuardado(municipio) || comparados.length >= 3}
+                      aria-describedby="limite-comparacion" onClick={() => agregar(municipio)}>
+                      <Icono nombre="comparar" />
+                      {estaGuardado(municipio) ? 'Ya está en la comparación' : 'Añadir a comparar'}
+                    </button>
+                  </div>
+                </div>
+                <p id="limite-comparacion" className={comparados.length >= 3 && !estaGuardado(municipio) ? 'nota-pequena' : 'solo-lectura'}>
+                  Puedes guardar hasta tres municipios. Para cambiar uno, quítalo en Comparar.
+                </p>
                 {errorIndicadores && <p role="alert">No se pudieron cargar los indicadores municipales.</p>}
                 {!tablaIndicadores && !errorIndicadores && <p role="status">Cargando indicadores municipales…</p>}
                 {tablaIndicadores && (
                   <>
-                    {gruposIndicadores.map((grupo) => (
-                      <section key={grupo.nombre} className="bloque-indicadores">
-                        <h3>{grupo.nombre}</h3>
-                        <dl className="ficha-indicadores">
-                          {grupo.indicadores.map((id) => {
-                            const fuente = tablaIndicadores.indicadores[id]
-                            const dato = tablaIndicadores.municipios[municipio.cod_ine]?.[id]
-                            if (!fuente) return null
-                            const url = dato?.url ?? fuente.url
-                            const fecha = dato?.fecha_dato ?? fuente.fecha_dato
-                            return (
-                              <div key={id}>
-                                <dt>{fuente.nombre}</dt>
-                                <dd>{mostrarIndicador(tablaIndicadores, municipio.cod_ine, id)}</dd>
-                                <dd className="fuente-indicador">
-                                  {url && !url.includes('{') ? <a href={url}>{fuente.fuente}</a> : fuente.fuente}
-                                  {fecha && <> · {fecha.replace('consulta_', 'Consulta ')}</>}
-                                  {dato?.metodo && <span className="metodo-indicador">{dato.metodo}</span>}
-                                </dd>
-                              </div>
-                            )
-                          })}
-                        </dl>
-                      </section>
-                    ))}
+                    <dl className="cifras-municipio">
+                      {indicadoresResumen.map(([id, nombre]) => (
+                        <div key={id}>
+                          <dt>{nombre}</dt>
+                          <dd><ValorIndicador datos={tablaIndicadores} codigo={municipio.cod_ine} id={id} /></dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <div className="panel-indicadores">
+                      <table className="tabla-indicadores" role="table" aria-label="Indicadores municipales">
+                        <thead role="rowgroup">
+                          <tr role="row">
+                            <th scope="col" role="columnheader">Indicador</th>
+                            <th scope="col" role="columnheader">Valor</th>
+                            <th scope="col" role="columnheader">Fuente y periodo</th>
+                          </tr>
+                        </thead>
+                        {gruposIndicadores.map((grupo) => (
+                          <tbody key={grupo.nombre} role="rowgroup">
+                            <tr className="grupo-indicadores" role="row">
+                              <th scope="rowgroup" role="rowheader" colSpan={3}>{grupo.nombre}</th>
+                            </tr>
+                              {grupo.indicadores.map((id) => {
+                                const fuente = tablaIndicadores.indicadores[id]
+                                const dato = tablaIndicadores.municipios[municipio.cod_ine]?.[id]
+                                if (!fuente) return null
+                                const url = dato?.url ?? fuente.url
+                                const fecha = dato?.fecha_dato ?? fuente.fecha_dato
+                                return (
+                                  <tr key={id} role="row">
+                                    <th scope="row" role="rowheader">{fuente.nombre}</th>
+                                    <td role="cell"><ValorIndicador datos={tablaIndicadores} codigo={municipio.cod_ine} id={id} /></td>
+                                    <td className="fuente-indicador" role="cell">
+                                      {url && !url.includes('{') ? <a href={url}>{fuente.fuente}</a> : fuente.fuente}
+                                      {fecha && <> · {fecha.replace('consulta_', 'Consulta ')}</>}
+                                      {dato?.metodo && <span className="metodo-indicador">{dato.metodo}</span>}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                          </tbody>
+                        ))}
+                      </table>
+                    </div>
                     <p className="nota-pequena">Las distancias se miden en línea recta. El suelo cartografiado indica superficie industrial registrada en el catálogo.</p>
                   </>
                 )}
-                <div className="acciones-ficha">
-                  <button
-                    className="boton-principal"
-                    type="button"
-                    aria-disabled={estaGuardado(municipio) || comparados.length >= 3}
-                    aria-describedby="limite-comparacion"
-                    onClick={() => agregar(municipio)}
-                  >
-                    <Icono nombre="comparar" />
-                    {estaGuardado(municipio) ? 'Ya está en la comparación' : 'Añadir a comparar'}
-                  </button>
-                  <button type="button" onClick={() => cambiarSeccion('Comparar')}>
-                    Ver comparación ({comparados.length}/3)
-                  </button>
-                  <button type="button" onClick={() => cambiarSeccion('Explorar')}>
-                    Volver al buscador
-                  </button>
-                </div>
-                <p id="limite-comparacion">Puedes guardar hasta tres municipios. Para cambiar uno, quítalo en Comparar.</p>
               </article>
             ) : (
-              <div className="estado-vacio">
-                <p>Selecciona un municipio para ver su ficha.</p>
-                <button type="button" onClick={() => cambiarSeccion('Explorar')}>
-                  Ir a Explorar
-                </button>
-              </div>
+              <PantallaSinMunicipios icono="ficha" titulo="Consulta una ficha municipal"
+                descripcion="Selecciona un municipio para ver sus indicadores, las fuentes y el periodo de cada dato."
+                accion="Buscar municipio" onBuscar={abrirBuscador} />
             )
           )}
 
-          {seccion === 'Comparar' && (
-            <>
-              <p className="nota-pequena">
-                {comparados.length} de 3 municipios seleccionados. La selección se conserva mientras navegas y se borra al recargar la página.
-              </p>
-
-              <div className="tarjetas-comparacion" aria-label="Municipios de la comparación">
-                {[0, 1, 2].map((indice) => {
-                  const item = comparados[indice]
-                  return (
-                    <article className="tarjeta-municipio" key={item ? item.cod_ine : `vacio-${indice}`}>
-                      {item ? (
-                        <>
-                          <span className="numero-tarjeta">Municipio {indice + 1}</span>
-                          <h3>{item.nombre}</h3>
-                          <p>{item.provincia}</p>
-                          <button type="button" onClick={() => quitar(item)}>
-                            Quitar
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          className="boton-anadir"
-                          type="button"
-                          onClick={() => cambiarSeccion('Explorar')}
-                        >
-                          + Añadir municipio
-                        </button>
-                      )}
-                    </article>
-                  )
-                })}
+          {seccion === 'Comparar' && (comparados.length === 0 ? (
+            <PantallaSinMunicipios icono="comparar" titulo="Compara municipios"
+              descripcion="Añade hasta tres municipios desde Explorar o desde su ficha para ver sus indicadores lado a lado."
+              accion="Buscar primer municipio" onBuscar={abrirBuscador} />
+          ) : (
+            <section className="informe-comparacion" aria-labelledby="titulo-comparar">
+              <div className="cabecera-informe">
+                <div>
+                  <h2 id="titulo-comparar">Comparar municipios</h2>
+                  <p>{comparados.length} de 3 municipios seleccionados</p>
+                </div>
+                {comparados.length < 3 && (
+                  <button type="button" className="boton-principal" onClick={() => cambiarSeccion('Explorar')}>
+                    Añadir otro municipio
+                  </button>
+                )}
               </div>
 
-              {comparados.length > 0 && errorIndicadores && <p role="alert">No se pudieron cargar los indicadores municipales.</p>}
-              {comparados.length > 0 && !tablaIndicadores && !errorIndicadores && <p role="status">Cargando indicadores municipales…</p>}
-              {comparados.length > 0 && (
-                <div className="tabla-comparacion" role="region" aria-labelledby="titulo-tabla" tabIndex={0}>
-                  <table>
-                    <caption id="titulo-tabla">Comparación de municipios</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Información</th>
-                        {comparados.map((item) => (
-                          <th scope="col" key={item.cod_ine}>{item.nombre}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">Provincia</th>
-                        {comparados.map((item) => (
-                          <td key={item.cod_ine}>{item.provincia}</td>
-                        ))}
-                      </tr>
-                    </tbody>
-                    {tablaIndicadores && gruposIndicadores.map((grupo) => (
-                      <tbody key={grupo.nombre}>
-                        <tr className="grupo-comparacion"><th scope="rowgroup" colSpan={comparados.length + 1}>{grupo.nombre}</th></tr>
-                        {grupo.indicadores.map((id) => {
-                          const indicador = tablaIndicadores.indicadores[id]
-                          if (!indicador) return null
-                          const diferencia = diferencias[id]
-                          const valores = comparados.map((item) => tablaIndicadores.municipios[item.cod_ine]?.[id])
-                          const orden = diferencia ? valores.map((dato) =>
-                            dato?.estado === 'real' ? dato.valor * diferencia.sentido : NaN,
-                          ) : []
-                          const mejor = orden.length > 1 ? Math.max(...orden) : NaN
-                          const unico = orden.filter((valor) => valor === mejor).length === 1
-                          return (
-                            <tr key={id}>
-                              <th scope="row">{indicador.nombre}</th>
-                              {comparados.map((item, indice) => (
-                                <td key={item.cod_ine}>
-                                  {mostrarIndicador(tablaIndicadores, item.cod_ine, id)}
-                                  {unico && orden[indice] === mejor && <strong className="diferencia-comparacion">{diferencia.texto}</strong>}
-                                </td>
-                              ))}
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    ))}
-                    <tbody>
-                      <tr>
-                        <th scope="row">Acciones</th>
-                        {comparados.map((item) => (
-                          <td key={item.cod_ine}>
-                            <button type="button" onClick={() => seleccionar(item)} aria-label={'Ver ficha de ' + item.nombre}>
-                              Ver ficha
-                            </button>
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+              {errorIndicadores && <p role="alert">No se pudieron cargar los indicadores municipales.</p>}
+              {!tablaIndicadores && !errorIndicadores && <p role="status">Cargando indicadores municipales…</p>}
+              <ul className="municipios-comparados" aria-label="Municipios seleccionados">
+                {comparados.map((item) => (
+                  <li key={item.cod_ine}>
+                    <div><strong>{item.nombre}</strong><span>{item.provincia}</span></div>
+                    <div className="acciones-municipio">
+                      <button type="button" onClick={() => seleccionar(item)} aria-label={'Ver ficha de ' + item.nombre}>Ver ficha</button>
+                      <button type="button" onClick={() => quitar(item)} aria-label={'Quitar ' + item.nombre + ' de la comparación'}>Quitar</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {comparados.length > 1 && (
+                <p className="nota-pequena aviso-tabla-movil" id="ayuda-tabla-comparacion">Desplaza la tabla para ver todos los municipios.</p>
               )}
-
-              <button type="button" onClick={() => cambiarSeccion('Explorar')}>
-                {comparados.length === 0 ? 'Ir a Explorar' : 'Buscar otro municipio'}
-              </button>
-            </>
-          )}
+              <div className="tabla-comparacion" role="region" aria-labelledby="titulo-tabla"
+                aria-describedby={comparados.length > 1 ? 'ayuda-tabla-comparacion' : undefined} tabIndex={0}>
+                <table>
+                  <caption id="titulo-tabla" className="solo-lectura">Comparación de indicadores municipales</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Indicador</th>
+                      {comparados.map((item) => (
+                        <th scope="col" key={item.cod_ine}>{item.nombre}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  {tablaIndicadores && gruposIndicadores.map((grupo) => (
+                    <tbody key={grupo.nombre}>
+                      <tr className="grupo-comparacion"><th scope="rowgroup" colSpan={comparados.length + 1}>{grupo.nombre}</th></tr>
+                      {grupo.indicadores.map((id) => {
+                        const indicador = tablaIndicadores.indicadores[id]
+                        if (!indicador) return null
+                        const diferencia = diferencias[id]
+                        const valores = comparados.map((item) => tablaIndicadores.municipios[item.cod_ine]?.[id])
+                        const orden = diferencia ? valores.map((dato) =>
+                          dato?.estado === 'real' ? dato.valor * diferencia.sentido : NaN,
+                        ) : []
+                        const mejor = orden.length > 1 ? Math.max(...orden) : NaN
+                        const unico = orden.filter((valor) => valor === mejor).length === 1
+                        return (
+                          <tr key={id}>
+                            <th scope="row">{indicador.nombre}</th>
+                            {comparados.map((item, indice) => (
+                              <td key={item.cod_ine}>
+                                <ValorIndicador datos={tablaIndicadores} codigo={item.cod_ine} id={id} />
+                                {unico && orden[indice] === mejor && <strong className="diferencia-comparacion">{diferencia.texto}</strong>}
+                              </td>
+                            ))}
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  ))}
+                </table>
+              </div>
+              <p className="nota-pequena">La selección se conserva mientras navegas y se borra al recargar la página.</p>
+            </section>
+          ))}
         </section>
       </main>
     </>

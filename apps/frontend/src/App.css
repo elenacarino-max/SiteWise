@@ -401,14 +401,6 @@ details[open] > .titulo-desplegable .flecha-desplegable {
   font-weight: 650;
 }
 
-.bloque-indicadores h3 {
-  margin-block-end: 8px;
-}
-
-.bloque-indicadores .ficha-indicadores {
-  margin-block-start: 0;
-}
-
 .metodo-indicador,
 .diferencia-comparacion {
   display: block;
@@ -540,33 +532,6 @@ details[open] > .titulo-desplegable .flecha-desplegable {
   margin-block: 0;
 }
 
-.ficha-indicadores {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
-  gap: 8px;
-}
-
-.ficha-indicadores > div {
-  padding: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 8px;
-}
-
-.ficha-indicadores dt {
-  font-weight: 700;
-}
-
-.ficha-indicadores dd {
-  margin-inline-start: 0;
-}
-
-.ficha-indicadores dd:first-of-type {
-  margin-block: 4px;
-  font-size: 1.125rem;
-  font-weight: 650;
-}
-
 .fuente-indicador {
   font-size: 0.875rem;
 }
@@ -660,94 +625,146 @@ details[open] > .titulo-desplegable .flecha-desplegable {
 }
 
 .estado-vacio {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-inline-size: 560px;
+  margin: clamp(24px, 8dvh, 88px) auto 0;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.icono-estado-vacio {
+  display: grid;
+  place-items: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--surface-raised);
+  font-size: 1.4rem;
+}
+
+.estado-vacio h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  min-inline-size: 0;
 }
 
 .estado-vacio p {
   margin: 0;
+  max-inline-size: 34ch;
   color: var(--text-secondary);
 }
 
-.detalle-municipal > h2 {
+.estado-vacio button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-block-start: 4px;
+}
+
+.detalle-municipal,
+.informe-comparacion {
+  max-inline-size: 1240px;
+  margin-inline: auto;
+  padding-block-start: 12px;
+}
+
+.cabecera-informe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-block-end: 20px;
+}
+
+.identidad-municipio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.identidad-municipio > div {
+  min-inline-size: 0;
+}
+
+.cabecera-informe h2 {
   margin-block: 0 4px;
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-size: clamp(1.75rem, 3vw, 2.6rem);
+  line-height: 1.15;
+  overflow-wrap: break-word;
 }
 
-.detalle-municipal > h2 + p {
-  margin-block: 0 24px;
+.cabecera-informe p {
+  margin: 0;
   color: var(--text-secondary);
-}
-
-article h3 {
-  font-size: 1.5rem;
 }
 
 .acciones-ficha {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-block: 16px;
 }
 
-.nota-pequena {
-  margin-bottom: 16px;
-  font-size: 0.88rem;
-}
-
-.tarjetas-comparacion {
+.cifras-municipio {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-block: 20px 24px;
-}
-
-.tarjeta-municipio {
-  display: flex;
-  min-height: 150px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px;
-  background: var(--surface-raised);
+  margin: 0 0 20px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
+  background: var(--surface);
 }
 
-.tarjeta-municipio h3,
-.tarjeta-municipio p {
-  margin: 0;
+.cifras-municipio > div {
+  padding: 16px 20px;
 }
 
-.tarjeta-municipio p {
+.cifras-municipio > div + div {
+  border-inline-start: 1px solid var(--border);
+}
+
+.cifras-municipio dt {
   color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 650;
 }
 
-.tarjeta-municipio .boton-anadir {
-  width: 100%;
-  min-height: 112px;
-  border-style: dashed;
-  border-color: var(--border-control);
+.cifras-municipio dd {
+  margin: 4px 0 0;
+  font-size: clamp(1.25rem, 2.2vw, 1.9rem);
+  line-height: 1.2;
+}
+
+.valor-indicador {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.nota-indicador {
   color: var(--text-secondary);
-  background: transparent;
-  font-weight: 600;
+  font-size: 0.79rem;
 }
 
+.panel-indicadores,
 .tabla-comparacion {
-  overflow: auto;
-  max-inline-size: 100%;
-  max-block-size: 70vh;
-  margin-block: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
 }
 
-.tabla-comparacion:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 4px;
-}
-
+.tabla-indicadores,
 .tabla-comparacion table {
   inline-size: 100%;
   border-collapse: separate;
@@ -755,18 +772,113 @@ article h3 {
   text-align: start;
 }
 
-.tabla-comparacion caption {
-  padding-block-end: 12px;
-  font-weight: 700;
+.tabla-indicadores th,
+.tabla-indicadores td {
+  padding: 8px 16px;
+  border-block-end: 1px solid var(--border);
+  vertical-align: top;
   text-align: start;
+}
+
+.tabla-indicadores thead th,
+.grupo-indicadores th {
+  background: var(--surface-raised);
+}
+
+.grupo-indicadores th {
+  color: var(--accent);
+}
+
+.tabla-indicadores tbody th[scope="row"] {
+  inline-size: 37%;
+  font-weight: 600;
+}
+
+.tabla-indicadores td:nth-child(2) {
+  inline-size: 24%;
+}
+
+.tabla-indicadores tbody:last-child tr:last-child > * {
+  border-block-end: 0;
+}
+
+.tabla-indicadores thead th:first-child {
+  border-start-start-radius: 8px;
+}
+
+.tabla-indicadores thead th:last-child {
+  border-start-end-radius: 8px;
+}
+
+.nota-pequena {
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+}
+
+.municipios-comparados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.municipios-comparados li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.municipios-comparados strong,
+.municipios-comparados span {
+  display: block;
+}
+
+.municipios-comparados span {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.acciones-municipio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.acciones-municipio button {
+  padding-inline: 8px;
+  font-size: 0.875rem;
+}
+
+.aviso-tabla-movil {
+  display: none;
+}
+
+.tabla-comparacion {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: 70dvh;
+}
+
+.tabla-comparacion:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
 }
 
 .tabla-comparacion th,
 .tabla-comparacion td {
   min-inline-size: 160px;
   max-inline-size: 280px;
-  padding: 16px;
+  padding: 8px 12px;
   vertical-align: top;
+  text-align: start;
   border-block-end: 1px solid var(--border);
   background: var(--surface);
 }
@@ -787,6 +899,7 @@ article h3 {
 .tabla-comparacion .grupo-comparacion th {
   position: static;
   background: var(--surface-raised);
+  color: var(--accent);
 }
 
 .tabla-comparacion thead th:first-child {
@@ -800,7 +913,56 @@ article h3 {
     padding-top: 16px;
   }
 
-  .tarjetas-comparacion {
-    grid-template-columns: 1fr;
+  .cifras-municipio {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cifras-municipio > div + div {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--border);
+  }
+
+  .tabla-indicadores,
+  .tabla-indicadores tbody {
+    display: block;
+  }
+
+  .tabla-indicadores thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: clip;
+    clip-path: inset(50%);
+  }
+
+  .tabla-indicadores tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px 12px;
+    border-block-end: 1px solid var(--border);
+  }
+
+  .tabla-indicadores th,
+  .tabla-indicadores td {
+    padding: 0;
+    border: 0;
+  }
+
+  .tabla-indicadores tbody th[scope="row"],
+  .tabla-indicadores td:nth-child(2) {
+    inline-size: auto;
+  }
+
+  .tabla-indicadores .grupo-indicadores {
+    background: var(--surface-raised);
+  }
+
+  .aviso-tabla-movil {
+    display: block;
+  }
+
+  .tabla-comparacion th:first-child {
+    min-inline-size: 116px;
+    max-inline-size: 136px;
   }
 }
