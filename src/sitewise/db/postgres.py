@@ -16,6 +16,11 @@ from sitewise.db.esquema import COLUMNAS, con_tiempo_limite, validar_esquema
 from sitewise.db.repositorio import DatosNoDisponibles, RepositorioCSV
 
 
+def _existe(cursor: Any, esquema: str, tabla: str) -> bool:
+    cursor.execute("SELECT to_regclass(%s)", (f"{esquema}.{tabla}",))
+    return cursor.fetchone()[0] is not None
+
+
 def _tabla(cursor: Any, esquema: str, tabla: str) -> pd.DataFrame:
     """Leo una tabla entera como DataFrame, en el orden del CSV original, sin la columna `orden`."""
     columnas = ", ".join(COLUMNAS[tabla])
@@ -41,6 +46,10 @@ class RepositorioPostgres(RepositorioCSV):
                 municipios = _tabla(cur, esquema, "municipios")
                 indicadores = _tabla(cur, esquema, "indicadores")
                 valores = _tabla(cur, esquema, "valores")
+                # Los perfiles son opcionales: si la base no los tiene, la API funciona sin ellos.
+                perfiles = None
+                if _existe(cur, esquema, "perfiles_municipios") and _existe(cur, esquema, "perfiles_definicion"):
+                    perfiles = (_tabla(cur, esquema, "perfiles_municipios"), _tabla(cur, esquema, "perfiles_definicion"))
         except psycopg.errors.UndefinedTable as exc:
             raise DatosNoDisponibles(
                 f"La base de datos no tiene las tablas del dataset en el esquema '{esquema}'. "
@@ -60,3 +69,4 @@ class RepositorioPostgres(RepositorioCSV):
             )
         self.esquema = esquema
         self._preparar(municipios, indicadores, valores)
+        self._preparar_perfiles(*(perfiles or (None, None)))

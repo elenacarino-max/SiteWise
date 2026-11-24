@@ -3,6 +3,7 @@
 Uso los ficheros de `data/processed/sitewise_v03/` descritos en el diccionario:
   - municipios.csv   una fila por municipio (maestro territorial)
   - indicadores.csv  una fila por indicador (definición, unidad, fuente...)
+  - perfiles_*.csv   (opcional, de `data/reference/`) el perfil de cada municipio según el clustering de Helen
   - valores_app.csv  una fila por municipio e indicador (formato largo, con estado). Es el que
                      prepara el notebook 09 para la app. Si no existe, uso valores.csv.
 
@@ -16,8 +17,10 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
+from sitewise.db.perfiles import ErrorPerfiles, leer_perfiles
 from sitewise.scoring.modelos import Observacion
 
 FICHEROS = ("municipios.csv", "indicadores.csv")  # los de valores se eligen con `fichero_valores`
@@ -68,7 +71,7 @@ def _entero(valor: Any) -> int | None:
 class RepositorioCSV:
     origen = "csv"
 
-    def __init__(self, directorio: str | Path):
+    def __init__(self, directorio: str | Path, directorio_perfiles: str | Path | None = None):
         self.directorio = Path(directorio)
         self.fichero_valores = fichero_valores(self.directorio)
         faltan = [f for f in FICHEROS if not (self.directorio / f).is_file()]
@@ -95,6 +98,12 @@ class RepositorioCSV:
             },
         )
         self._preparar(municipios, indicadores, valores)
+        # Los perfiles son opcionales: si no están sus CSV, la API funciona igual pero sin perfil.
+        try:
+            perfiles = leer_perfiles(directorio_perfiles)
+        except ErrorPerfiles as exc:
+            raise DatosNoDisponibles(str(exc)) from exc
+        self._preparar_perfiles(*(perfiles or (None, None)))
 
     def _preparar(self, municipios: pd.DataFrame, indicadores: pd.DataFrame, valores: pd.DataFrame) -> None:
         """Deja las tres tablas listas para consultar. Lo comparte el repositorio de PostgreSQL.
@@ -123,6 +132,31 @@ class RepositorioCSV:
         # Agrupo una sola vez por municipio para que pedir un municipio sea inmediato.
         self._por_municipio = {cod: grupo for cod, grupo in valores.groupby("cod_ine")}
 
+    def _preparar_perfiles(self, municipios: pd.DataFrame | None, definicion: pd.DataFrame | None) -> None:
+        """Dejo los perfiles listos para consultar. Lo comparte el repositorio de PostgreSQL.
+
+        Compruebo que cada municipio con perfil existe en el maestro: si no, es que los ficheros
+        no son de la misma versión del dataset y prefiero avisar a servir datos que no cruzan.
+        """
+        self.perfiles = None
+        self.definiciones = None
+        if municipios is None or definicion is None or municipios.empty:
+            return
+        municipios = municipios.copy()
+        municipios["cod_ine"] = municipios["cod_ine"].str.zfill(5)
+        desconocidos = sorted(set(municipios["cod_ine"]) - set(self.municipios.index))
+        if desconocidos:
+            raise DatosNoDisponibles(
+                f"Los perfiles incluyen {len(desconocidos)} municipios que no están en el dataset "
+                f"(por ejemplo {', '.join(desconocidos[:3])}). Revisa que sean de la misma versión."
+            )
+        municipios["cluster"] = municipios["cluster"].astype(int)
+        municipios["es_atipico"] = municipios["es_atipico"].astype(int).astype(bool)
+        self.perfiles = municipios.set_index("cod_ine", drop=False)
+        definicion = definicion.copy()
+        definicion["cluster"] = definicion["cluster"].astype(int)
+        self.definiciones = definicion.set_index("cluster", drop=False).sort_index()
+
     # ---------------------------------------------------------------- información
 
     def info(self) -> dict[str, Any]:
@@ -132,7 +166,13 @@ class RepositorioCSV:
             "municipios": len(self.municipios),
             "indicadores": len(self.indicadores),
             "observaciones": len(self.valores),
+            "perfiles_version": self._version_perfiles(),
         }
+
+    def _version_perfiles(self) -> str | None:
+        if self.perfiles is None or self.perfiles.empty:
+            return None
+        return _limpiar(self.perfiles["version_modelo"].iloc[0])
 
     # ------------------------------------------------------------------ municipios
 
@@ -226,3 +266,90 @@ class RepositorioCSV:
                 "distancia_maxima_km": _limpiar(getattr(f, "distancia_maxima_km", None)) if estimado else None,
             })
         return salida
+
+    # ------------------------------------------------------------------ perfiles
+
+    def perfil(self, cod_ine: str) -> dict[str, Any] | None:
+        """El perfil del municipio con su descripción, o None si no hay perfiles cargados o no lo tiene."""
+        if self.perfiles is None or cod_ine not in self.perfiles.index:
+            return None
+        fila = self.perfiles.loc[cod_ine]
+        cluster = int(fila["cluster"])
+        descripcion = None
+        if self.definiciones is not None and cluster in self.definiciones.index:
+            descripcion = _limpiar(self.definiciones.loc[cluster, "descripcion"])
+        return {
+            "cluster": cluster,
+            "nombre": _limpiar(fila["cluster_perfil"]),
+            "descripcion": descripcion,
+            "es_atipico": bool(fila["es_atipico"]),
+            "version_modelo": _limpiar(fila["version_modelo"]),
+        }
+
+    def definiciones_perfiles(self) -> list[dict[str, Any]]:
+        """Los perfiles existentes con su descripción y las medianas de cada variable."""
+        if self.definiciones is None:
+            return []
+        salida = []
+        for _, f in self.definiciones.iterrows():
+            salida.append({
+                "cluster": int(f["cluster"]),
+                "nombre": _limpiar(f["cluster_perfil"]),
+                "descripcion": _limpiar(f["descripcion"]),
+                "n_municipios": _entero(f["n_municipios"]),
+                "medianas": {
+                    c.removeprefix("mediana_"): _limpiar(f[c]) for c in f.index if c.startswith("mediana_")
+                },
+                "version_modelo": _limpiar(f["version_modelo"]),
+            })
+        return salida
+
+    def similares(
+        self,
+        cod_ine: str,
+        provincia: str | None = None,
+        ccaa: str | None = None,
+        limite: int = 50,
+        desplazamiento: int = 0,
+    ) -> tuple[int, list[dict[str, Any]]]:
+        """Municipios con el mismo perfil que `cod_ine` (sin incluirlo), del más cercano al más lejano.
+
+        La distancia es en línea recta entre los centros (lat/lon). Si el municipio de origen no tiene
+        coordenadas, ordeno por nombre y no devuelvo distancia. Devuelvo (total, página).
+        """
+        if self.perfiles is None or cod_ine not in self.perfiles.index:
+            return 0, []
+        cluster = self.perfiles.loc[cod_ine, "cluster"]
+        codigos = self.perfiles.index[(self.perfiles["cluster"] == cluster) & (self.perfiles.index != cod_ine)]
+        candidatos = self.municipios.loc[codigos.intersection(self.municipios.index)]
+        if provincia:
+            candidatos = candidatos[candidatos["provincia"].map(_sin_acentos) == _sin_acentos(provincia)]
+        if ccaa:
+            candidatos = candidatos[candidatos["ccaa"].map(_sin_acentos) == _sin_acentos(ccaa)]
+
+        origen = self.municipios.loc[cod_ine]
+        candidatos = candidatos.copy()
+        if pd.notna(origen["lat"]) and pd.notna(origen["lon"]):
+            candidatos["distancia_km"] = _distancia_km(
+                origen["lat"], origen["lon"], candidatos["lat"].to_numpy(float), candidatos["lon"].to_numpy(float)
+            )
+            # Sin coordenadas no sé a qué distancia está: va al final, ordenado por nombre.
+            candidatos = candidatos.sort_values(["distancia_km", "nombre"], na_position="last", kind="stable")
+        else:
+            candidatos["distancia_km"] = np.nan
+            candidatos = candidatos.sort_values("nombre", kind="stable")
+        pagina = candidatos.iloc[desplazamiento : desplazamiento + limite]
+        filas = []
+        for _, f in pagina.iterrows():
+            fila = self._fila_municipio(f)
+            fila["distancia_km"] = None if pd.isna(f["distancia_km"]) else round(float(f["distancia_km"]), 1)
+            filas.append(fila)
+        return len(candidatos), filas
+
+
+def _distancia_km(lat0: float, lon0: float, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
+    """Distancia en línea recta (haversine) en km desde un punto a muchos. NaN si falta una coordenada."""
+    radio_tierra = 6371.0088
+    f0, f1 = np.radians(lat0), np.radians(lat)
+    a = np.sin((f1 - f0) / 2) ** 2 + np.cos(f0) * np.cos(f1) * np.sin(np.radians(lon - lon0) / 2) ** 2
+    return 2 * radio_tierra * np.arcsin(np.sqrt(a))

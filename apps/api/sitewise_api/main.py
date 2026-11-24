@@ -23,11 +23,13 @@ from .schemas import (
     FichaMunicipio,
     ListaActividades,
     ListaMunicipios,
+    ListaPerfiles,
     Municipio,
     RespuestaComparacion,
     RespuestaEvaluacion,
     RespuestaMapa,
     RespuestaRanking,
+    RespuestaSimilares,
     Salud,
 )
 from .servicio import Servicio
@@ -45,7 +47,7 @@ def crear_repositorio(ajustes: Ajustes):
         )
 
         return RepositorioPostgres(ajustes.url_base_datos, ajustes.esquema_base_datos)
-    return RepositorioCSV(ajustes.directorio_datos)
+    return RepositorioCSV(ajustes.directorio_datos, ajustes.directorio_perfiles)
 
 
 def obtener_servicio(request: Request) -> Servicio:
@@ -129,6 +131,31 @@ def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
         if ficha is None:
             raise ErrorApi(404, "municipio_no_encontrado", f"No existe el municipio '{cod_ine}'.")
         return ficha
+
+    @app.get("/perfiles", response_model=ListaPerfiles, tags=["perfiles"])
+    def listar_perfiles(servicio: ServicioDep) -> ListaPerfiles:
+        """Los perfiles de municipios (clustering) con su descripción y las medianas de cada variable."""
+        return servicio.perfiles()
+
+    @app.get("/municipios/{cod_ine}/similares", response_model=RespuestaSimilares, tags=["perfiles"])
+    def municipios_similares(
+        cod_ine: CodIne,
+        servicio: ServicioDep,
+        provincia: str | None = None,
+        ccaa: str | None = None,
+        limite: Annotated[int, Query(ge=1, le=200)] = 10,
+        desplazamiento: Annotated[int, Query(ge=0)] = 0,
+    ) -> RespuestaSimilares:
+        """Municipios con el mismo perfil, del más cercano al más lejano. No son notas ni una recomendación."""
+        if servicio.municipio(cod_ine) is None:
+            raise ErrorApi(404, "municipio_no_encontrado", f"No existe el municipio '{cod_ine}'.")
+        respuesta = servicio.similares(cod_ine, provincia, ccaa, limite, desplazamiento)
+        if respuesta is None:
+            raise ErrorApi(
+                404, "perfil_no_disponible",
+                f"No hay perfil para el municipio '{cod_ine}' (los perfiles no están cargados o no lo incluyen).",
+            )
+        return respuesta
 
     @app.get("/actividades", response_model=ListaActividades, tags=["actividades"])
     def listar_actividades(servicio: ServicioDep) -> ListaActividades:

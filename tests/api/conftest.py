@@ -67,3 +67,15 @@ def cliente_sin_datos(tmp_path):
     from sitewise_api.main import crear_app
 
     return TestClient(crear_app(Ajustes(tmp_path / "no_existe")))
+
+
+@pytest.fixture
+def cliente_con_perfiles(directorio_datos, directorio_perfiles):
+    """Cliente con datos inventados, la actividad inventada y los perfiles inventados."""
+    from fastapi.testclient import TestClient
+    from sitewise_api.config import Ajustes
+    from sitewise_api.main import crear_app
+
+    ruta = directorio_datos / "reglas.csv"
+    ruta.write_text(REGLAS_INVENTADAS, encoding="utf-8")
+    return TestClient(crear_app(Ajustes(directorio_datos, ruta, directorio_perfiles=directorio_perfiles)))

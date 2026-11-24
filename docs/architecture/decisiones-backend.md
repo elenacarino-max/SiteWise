@@ -18,6 +18,9 @@ se cambian editando un CSV o un ajuste, sin reescribir código.
 | D6 | Fuente de los valores | Lee `valores.csv` (columna `estado`) | Nada: el cambio sería interno |
 | D7 | Sesgo del recuento CNIH | Se mantiene como recuento absoluto, con peso moderado | Enseñar la limitación del indicador |
 | D8 | Un indicador por grupo | Las reglas evitan contar dos veces lo mismo | Nada |
+| D9 | PostgreSQL | Es el almacén del MVP; la API lee de la base si se define `SITEWISE_DATABASE_URL` (ver `postgresql.md`) | Nada |
+| D10 | Valores de la app | Lee `valores_app.csv` y decide con el `estado` original (ver `decision-valores-app.md`) | Nada |
+| D11 | Perfiles de municipios | Sirve el perfil de Helen aparte de las notas (`perfil`, `/similares`); nunca lo mezcla con ellas | Enseñarlo como descripción ("se parece a..."), no como puntuación |
 
 ## D1. Notas con datos parciales
 
@@ -80,6 +83,15 @@ Para Gema: mostrar siempre el campo `limitaciones` del indicador junto a su valo
 Para no contar dos veces lo mismo, cada actividad usa un solo indicador de cada grupo correlacionado:
 una distancia a terminal (la intermodal da el mismo valor), una cobertura (1 Gbps) y una tasa de incendios.
 Suelo y autovía cuentan como mínimo y también en la nota: es intencionado y se explica en `actividades-demo.md`.
+
+## D11. Perfiles de municipios
+
+Helen agrupa los municipios en 5 perfiles (K-Means). La API los sirve para que el agente y la interfaz
+puedan decir "se parece a...", pero **un perfil no es una nota**: no entra en el riesgo ni en el atractivo
+y no dice si un municipio es adecuado. Se guardan en PostgreSQL (`perfiles_municipios`, `perfiles_definicion`)
+y se leen del CSV de Helen si no hay base. Los "similares" son los del mismo perfil, ordenados por distancia
+en línea recta. La ficha del modelo (`docs/methodology/model_card_clustering.md`) recuerda sus límites:
+silhouette baja (0,23), los grupos se solapan y el grupo 0 es muy amplio.
 
 ## Qué comprueba Gema antes de la demo
 

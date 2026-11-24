@@ -15,6 +15,7 @@ from sitewise.scoring.normalizacion import Normalizador
 from sitewise.scoring.reglas import ConjuntoReglas
 
 from .schemas import (
+    DefinicionPerfil,
     FichaMunicipio,
     FilaMapa,
     FilaRanking,
@@ -22,11 +23,15 @@ from .schemas import (
     IndicadorComparado,
     ListaActividades,
     ListaMunicipios,
+    ListaPerfiles,
     Municipio,
+    MunicipioSimilar,
+    PerfilMunicipio,
     RespuestaComparacion,
     RespuestaEvaluacion,
     RespuestaMapa,
     RespuestaRanking,
+    RespuestaSimilares,
     ResumenActividad,
     Salud,
     ValorIndicador,
@@ -55,6 +60,7 @@ class Servicio:
             municipios=info["municipios"],
             indicadores=info["indicadores"],
             observaciones=info["observaciones"],
+            perfiles_version=info.get("perfiles_version"),
         )
 
     def buscar(self, q, provincia, ccaa, limite: int, desplazamiento: int) -> ListaMunicipios:
@@ -75,7 +81,31 @@ class Servicio:
         if municipio is None:
             return None
         indicadores = [self._valor_indicador(d) for d in self.repo.detalle_indicadores(cod_ine)]
-        return FichaMunicipio(municipio=municipio, indicadores=indicadores)
+        return FichaMunicipio(municipio=municipio, perfil=self.perfil(cod_ine), indicadores=indicadores)
+
+    # --------------------------------------------------------------------- perfiles
+
+    def perfil(self, cod_ine: str) -> PerfilMunicipio | None:
+        datos = self.repo.perfil(cod_ine)
+        return PerfilMunicipio(**datos) if datos else None
+
+    def perfiles(self) -> ListaPerfiles:
+        return ListaPerfiles(perfiles=[DefinicionPerfil(**d) for d in self.repo.definiciones_perfiles()])
+
+    def similares(self, cod_ine, provincia, ccaa, limite: int, desplazamiento: int) -> RespuestaSimilares | None:
+        """Municipios con el mismo perfil. None si el municipio no tiene perfil."""
+        perfil = self.perfil(cod_ine)
+        if perfil is None:
+            return None
+        total, pagina = self.repo.similares(cod_ine, provincia, ccaa, limite, desplazamiento)
+        return RespuestaSimilares(
+            municipio=self.municipio(cod_ine),
+            perfil=perfil,
+            total=total,
+            limite=limite,
+            desplazamiento=desplazamiento,
+            similares=[MunicipioSimilar(**m) for m in pagina],
+        )
 
     @staticmethod
     def _valor_indicador(d: dict) -> ValorIndicador:
@@ -112,7 +142,7 @@ class Servicio:
         if municipio is None:
             return None
         evaluacion = self.motor.evaluar(cod_ine, actividad, self.repo.observaciones(cod_ine))
-        return RespuestaEvaluacion(municipio=municipio, evaluacion=evaluacion)
+        return RespuestaEvaluacion(municipio=municipio, perfil=self.perfil(cod_ine), evaluacion=evaluacion)
 
     def comparar(self, codigos: list[str], actividad: str) -> RespuestaComparacion:
         """Compara varios municipios (ya validados) para una actividad, en el orden pedido.

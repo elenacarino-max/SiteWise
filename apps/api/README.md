@@ -26,6 +26,8 @@ que no están en Git). Para usar otra carpeta, define `SITEWISE_DATA_DIR`. Sin d
 | `GET /municipios` | Búsqueda paginada (`q`, `provincia`, `ccaa`, `limite`, `desplazamiento`) |
 | `GET /municipios/{cod_ine}` | Datos del municipio |
 | `GET /municipios/{cod_ine}/ficha` | Indicadores con valor, estado, fecha, fuente y limitaciones |
+| `GET /perfiles` | Los perfiles de municipios (clustering de Helen): descripción y medianas |
+| `GET /municipios/{cod_ine}/similares` | Municipios con el mismo perfil, del más cercano al más lejano (`provincia`, `ccaa`, `limite`, `desplazamiento`) |
 | `GET /actividades` | Actividades con reglas cargadas y si están aprobadas o son provisionales |
 | `GET /municipios/{cod_ine}/evaluacion/{actividad}` | Riesgo y atractivo (separados), requisitos mínimos y cómo se ha calculado cada nota |
 | `GET /comparar?municipios=A,B[,C]&actividad=X` | Compara 2 o 3 municipios: tabla resumen, indicadores lado a lado y evaluación de cada uno |
@@ -65,3 +67,11 @@ esquema). `/health` indica el origen en uso. Cómo cargar la base y probarla: `d
 Los valores se leen de `valores_app.csv` (notebook 09, con las estimaciones de agua) si existe, y si no de
 `valores.csv`. `/health` muestra cuál se usa en `valores_fichero`. Detalle en
 `docs/architecture/decision-valores-app.md`.
+
+## Perfiles de municipios
+
+`/ficha` y `/evaluacion` incluyen `perfil` (cluster, nombre y descripción). Es descriptivo: **no es una nota**.
+Con CSV, los perfiles se leen de `data/reference/` (`perfiles_municipios_vNN.csv` y `perfiles_definicion_vNN.csv`,
+los genera Helen; se usa la versión más alta). Para otra carpeta, define `SITEWISE_PERFILES_DIR`.
+Con PostgreSQL salen de las tablas `perfiles_municipios` y `perfiles_definicion`, que carga el cargador.
+Si no hay perfiles, la API funciona igual y `perfil` es `null`.

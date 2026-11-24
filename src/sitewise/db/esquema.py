@@ -29,24 +29,43 @@ COLUMNAS = {
         "estado_app", "valor_original", "metodo_original", "naturaleza_original", "estimado_app",
         "k_vecinos", "distancia_media_km", "distancia_maxima_km", "fuente_estimacion",
     ),
+    # Perfiles de municipios (clustering de Helen). Son opcionales: la carga los añade si encuentra los CSV.
+    "perfiles_municipios": ("cod_ine", "cluster", "cluster_perfil", "es_atipico", "version_modelo"),
+    "perfiles_definicion": (
+        "cluster", "cluster_perfil", "descripcion", "n_municipios", "mediana_poblacion_2025",
+        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km",
+        "mediana_dist_recta_ttm_km", "mediana_paro_por_100_hab", "mediana_viento_100m_media_m_s",
+        "mediana_agua_vecinos_pct", "version_modelo",
+    ),
 }
+TABLAS_PERFILES = ("perfiles_municipios", "perfiles_definicion")
 # Columnas sin las que una fila no tiene sentido: si faltan en el CSV, el cargador se detiene.
 OBLIGATORIAS = {
     "municipios": ("cod_ine", "nombre"),
     "indicadores": ("id_indicador",),
     "valores": ("cod_ine", "id_indicador"),
+    "perfiles_municipios": ("cod_ine", "cluster", "cluster_perfil"),
+    "perfiles_definicion": ("cluster", "cluster_perfil"),
 }
 # Las que deben guardarse como número (el resto son texto).
 NUMERICAS = {
     "municipios": ("superficie_km2", "lat", "lon", "anio_geometria"),
     "indicadores": (),
     "valores": ("valor", "valor_original", "k_vecinos", "distancia_media_km", "distancia_maxima_km"),
+    "perfiles_municipios": ("cluster", "es_atipico"),
+    "perfiles_definicion": (
+        "cluster", "n_municipios", "mediana_poblacion_2025", "mediana_suelo_industrial_cartografiado_pct",
+        "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km", "mediana_paro_por_100_hab",
+        "mediana_viento_100m_media_m_s", "mediana_agua_vecinos_pct",
+    ),
 }
 # Numéricas que se guardan como enteros (un "5.0" del CSV no entra en una columna integer).
 ENTERAS = {
     "municipios": ("anio_geometria",),
     "indicadores": (),
     "valores": ("k_vecinos",),
+    "perfiles_municipios": ("cluster", "es_atipico"),
+    "perfiles_definicion": ("cluster", "n_municipios"),
 }
 
 _NOMBRE_VALIDO = re.compile(r"^[a-z_][a-z0-9_]{0,62}$")
@@ -124,6 +143,40 @@ CREATE TABLE {esquema}.valores (
 );
 
 CREATE INDEX valores_indicador_idx ON {esquema}.valores (id_indicador);
+"""
+
+
+def ddl_perfiles(esquema: str) -> str:
+    """Las dos tablas de perfiles. Van aparte porque son opcionales (dependen de que existan los CSV de Helen)."""
+    esquema = validar_esquema(esquema)
+    return f"""
+CREATE TABLE {esquema}.perfiles_definicion (
+    cluster                                      integer PRIMARY KEY,
+    cluster_perfil                               text NOT NULL,
+    descripcion                                  text,
+    n_municipios                                 integer,
+    mediana_poblacion_2025                       double precision,
+    mediana_suelo_industrial_cartografiado_pct   double precision,
+    mediana_dist_recta_eje_autovia_km            double precision,
+    mediana_dist_recta_ttm_km                    double precision,
+    mediana_paro_por_100_hab                     double precision,
+    mediana_viento_100m_media_m_s                double precision,
+    mediana_agua_vecinos_pct                     double precision,
+    version_modelo                               text,
+    orden                                        integer NOT NULL
+);
+
+-- Un perfil por municipio. Es descriptivo: NO es una nota de riesgo ni de atractivo.
+CREATE TABLE {esquema}.perfiles_municipios (
+    cod_ine          text PRIMARY KEY REFERENCES {esquema}.municipios (cod_ine),
+    cluster          integer NOT NULL REFERENCES {esquema}.perfiles_definicion (cluster),
+    cluster_perfil   text NOT NULL,
+    es_atipico       integer CHECK (es_atipico IN (0, 1)),
+    version_modelo   text,
+    orden            integer NOT NULL
+);
+
+CREATE INDEX perfiles_municipios_cluster_idx ON {esquema}.perfiles_municipios (cluster);
 """
 
 
