@@ -20,7 +20,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from sitewise.db.perfiles import leer_perfiles
+from sitewise.db.perfiles import ErrorPerfiles, leer_perfiles
 from sitewise.scoring.modelos import Observacion
 
 FICHEROS = ("municipios.csv", "indicadores.csv")  # los de valores se eligen con `fichero_valores`
@@ -99,7 +99,11 @@ class RepositorioCSV:
         )
         self._preparar(municipios, indicadores, valores)
         # Los perfiles son opcionales: si no están sus CSV, la API funciona igual pero sin perfil.
-        self._preparar_perfiles(*(leer_perfiles(directorio_perfiles) or (None, None)))
+        try:
+            perfiles = leer_perfiles(directorio_perfiles)
+        except ErrorPerfiles as exc:
+            raise DatosNoDisponibles(str(exc)) from exc
+        self._preparar_perfiles(*(perfiles or (None, None)))
 
     def _preparar(self, municipios: pd.DataFrame, indicadores: pd.DataFrame, valores: pd.DataFrame) -> None:
         """Deja las tres tablas listas para consultar. Lo comparte el repositorio de PostgreSQL.

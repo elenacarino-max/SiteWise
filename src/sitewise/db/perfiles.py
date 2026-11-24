@@ -6,7 +6,7 @@ Son dos CSV de `data/reference/`:
 
 Un perfil NO es un riesgo ni una nota: solo describe a qué otros municipios se parece uno. Por eso
 lo sirvo aparte de las notas y nunca lo mezclo con ellas.
-No toco los ficheros de Helen: solo los leo. Si ella saca una versión nueva (v02), cojo la más alta.
+No toco los ficheros de Helen: solo los leo. Si ella saca una versión nueva (v02), cojo la más alta que tengan los dos ficheros.
 """
 
 from __future__ import annotations
@@ -20,24 +20,40 @@ DIRECTORIO_POR_DEFECTO = Path("data/reference")
 _VERSION = re.compile(r"_v(\d+)\.csv$")
 
 
-def _ultima_version(directorio: Path, prefijo: str) -> Path | None:
-    """El fichero `prefijo_vNN.csv` con el NN más alto (v10 va después de v9, no antes)."""
-    candidatos = [
-        (int(m.group(1)), f) for f in directorio.glob(f"{prefijo}_v*.csv") if (m := _VERSION.search(f.name))
-    ]
-    return max(candidatos, key=lambda c: c[0])[1] if candidatos else None
+class ErrorPerfiles(Exception):
+    """Los ficheros de perfiles no son coherentes entre sí (por ejemplo, de versiones distintas)."""
+
+
+def _versiones(directorio: Path, prefijo: str) -> dict[int, Path]:
+    """Los ficheros `prefijo_vNN.csv` de la carpeta, por número de versión."""
+    return {
+        int(m.group(1)): f for f in directorio.glob(f"{prefijo}_v*.csv") if (m := _VERSION.search(f.name))
+    }
 
 
 def buscar_ficheros(directorio: str | Path | None) -> tuple[Path | None, Path | None]:
-    """(perfiles_municipios, perfiles_definicion) de la última versión, o (None, None) si no están."""
+    """(perfiles_municipios, perfiles_definicion) de UNA misma versión, o (None, None) si no hay perfiles.
+
+    Elijo la versión más alta que tengan los DOS ficheros, para no mezclar municipios de una versión
+    con definiciones de otra. Si hay ficheros pero ninguna versión está completa, doy error en vez de
+    seguir sin perfiles en silencio.
+    """
     if directorio is None or not Path(directorio).is_dir():
         return None, None
     directorio = Path(directorio)
-    municipios = _ultima_version(directorio, "perfiles_municipios")
-    definicion = _ultima_version(directorio, "perfiles_definicion")
-    if municipios is None or definicion is None:
+    municipios = _versiones(directorio, "perfiles_municipios")
+    definicion = _versiones(directorio, "perfiles_definicion")
+    if not municipios and not definicion:
         return None, None
-    return municipios, definicion
+    comunes = municipios.keys() & definicion.keys()
+    if not comunes:
+        raise ErrorPerfiles(
+            f"En '{directorio}' hay ficheros de perfiles pero ninguna versión tiene los dos "
+            f"(perfiles_municipios: {sorted(municipios) or 'ninguna'}, "
+            f"perfiles_definicion: {sorted(definicion) or 'ninguna'})."
+        )
+    version = max(comunes)
+    return municipios[version], definicion[version]
 
 
 def leer_perfiles(directorio: str | Path | None) -> tuple[pd.DataFrame, pd.DataFrame] | None:
@@ -47,6 +63,9 @@ def leer_perfiles(directorio: str | Path | None) -> tuple[pd.DataFrame, pd.DataF
         return None
     municipios = pd.read_csv(f_municipios, dtype={"cod_ine": str, "version_modelo": str})
     definicion = pd.read_csv(f_definicion, dtype={"version_modelo": str})
+    versiones = set(municipios["version_modelo"].dropna()) | set(definicion["version_modelo"].dropna())
+    if len(versiones) > 1:
+        raise ErrorPerfiles(f"Los perfiles mezclan versiones del modelo: {sorted(versiones)}.")
     # cod_ine siempre como texto de 5 dígitos (si no, "01001" pierde el cero inicial).
     municipios["cod_ine"] = municipios["cod_ine"].str.strip().str.zfill(5)
     return municipios, definicion

@@ -27,7 +27,7 @@ from sitewise.db.esquema import (
     url_desde_entorno,
     validar_esquema,
 )
-from sitewise.db.perfiles import DIRECTORIO_POR_DEFECTO, buscar_ficheros
+from sitewise.db.perfiles import DIRECTORIO_POR_DEFECTO, ErrorPerfiles, buscar_ficheros
 from sitewise.db.repositorio import FICHEROS, DatosNoDisponibles, fichero_valores
 
 CANDIDATAS = ("data/processed/sitewise_v03", "data/processed/sidewise_v03")
@@ -122,7 +122,10 @@ def cargar_csv(
     for tabla in ("municipios", "indicadores", "valores"):
         tablas[tabla], ignoradas[tabla] = _leer(directorio, tabla)
 
-    f_perfiles, f_definicion = buscar_ficheros(directorio_perfiles)
+    try:
+        f_perfiles, f_definicion = buscar_ficheros(directorio_perfiles)
+    except ErrorPerfiles as exc:
+        raise ErrorCarga(str(exc)) from exc
     con_perfiles = f_perfiles is not None
     if con_perfiles:
         tablas["perfiles_definicion"], ignoradas["perfiles_definicion"] = _leer(directorio, "perfiles_definicion", f_definicion)
