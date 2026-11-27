@@ -30,7 +30,7 @@ Tres índices de 0 a 100, que son las 3 entradas del clustering:
 
 Población, paro, viento, irradiación y riesgos naturales **no entran**: quedan como datos sueltos para filtros, scoring por actividad y RAG. El clustering no incluye amenazas naturales ni el riesgo, que se calcula aparte.
 
-Detalle de cada variable y de los ficheros derivados: `docs/governance/DICCIONARIO_DATASET.md` (sección 7).
+Detalle de cada variable y de los ficheros derivados: `docs/data/DICCIONARIO_DATASET.md` (sección 7).
 
 ## 4. Cómo se prepara cada variable
 
@@ -98,4 +98,4 @@ indices = construir_indices(datos, componentes)  # idx_logistica, idx_hidrica, i
 
 > **Perfiles de municipio.** SiteWise agrupa los municipios españoles en 4 perfiles según su logística (suelo industrial, autovía y terminal de mercancías), su presión hídrica y su conectividad digital, mediante K-Means sobre tres índices de 0 a 100. Cada experimento se registra en MLflow. El código reutilizable está en `src/sitewise/ml/` (scikit-learn, con pruebas en `tests/ml/`). Los grupos son exploratorios y describen el territorio: no puntúan. Los valores estimados con municipios cercanos (agua) se muestran siempre como `aproximado`.
 
-Enlaces recomendados: `docs/governance/DICCIONARIO_DATASET.md`, `docs/methodology/seleccion_variables_ml.md` y `docs/methodology/model_card_clustering.md`.
+Enlaces recomendados: `docs/data/DICCIONARIO_DATASET.md`, `docs/methodology/seleccion_variables_ml.md` y `docs/methodology/model_card_clustering.md`.
