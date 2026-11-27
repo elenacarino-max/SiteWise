@@ -971,6 +971,29 @@ details[open] > .titulo-desplegable .flecha-desplegable {
   inset-inline-start: 0;
 }
 
+.ranking-actividad {
+  margin-block-start: 16px;
+}
+
+.tabla-ranking th,
+.tabla-ranking td {
+  min-inline-size: 120px;
+}
+
+.provincia-ranking {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.paginacion-ranking {
+  display: flex;
+  justify-content: end;
+  gap: 8px;
+  margin-block-start: 12px;
+}
+
 @media (max-width: 600px) {
   #root {
     width: min(100% - 24px, 1200px);

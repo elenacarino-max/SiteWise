@@ -3,8 +3,8 @@ export type Municipio = {
   cod_ine: string
   nombre: string
   provincia: string
-  lat: number
-  lon: number
+  lat: number | null
+  lon: number | null
 }
 
 export const municipiosEjemplo: Municipio[] = [
