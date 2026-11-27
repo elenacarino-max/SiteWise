@@ -4,7 +4,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from sitewise.ml.perfiles import PERFILES, ordenar_clusters_por_poblacion, tabla_perfiles
+from sitewise.ml.perfiles import (
+    PERFILES,
+    PERFILES_V02,
+    VERSION_V02,
+    ordenar_clusters_por_indice,
+    ordenar_clusters_por_poblacion,
+    tabla_perfiles,
+)
 
 
 def test_hay_cinco_perfiles_con_nombre_y_descripcion():
@@ -64,3 +71,41 @@ def test_resultado_es_un_dataframe_sin_huecos():
     t = tabla_perfiles(pd.Series(["28079", "08019"]), np.array([0, 1]))
     assert isinstance(t, pd.DataFrame)
     assert not t.isna().any().any()
+
+
+# --- v02: logística + hídrica + conectividad, 4 grupos -------------------------------------------
+
+
+def test_v02_tiene_cuatro_perfiles_con_nombre_y_descripcion():
+    assert sorted(PERFILES_V02) == [0, 1, 2, 3]
+    assert all(p["nombre"] and p["descripcion"] for p in PERFILES_V02.values())
+    assert len({p["nombre"] for p in PERFILES_V02.values()}) == 4
+
+
+def test_ordenar_por_indice_deja_la_mejor_logistica_en_el_0():
+    etiquetas = [2, 2, 0, 0, 1, 1]
+    logistica = [10, 20, 90, 80, 50, 60]
+    nuevas = ordenar_clusters_por_indice(etiquetas, logistica)
+    assert nuevas.tolist() == [2, 2, 0, 0, 1, 1]  # 0 -> 85, 1 -> 55, 2 -> 15
+
+
+def test_ordenar_por_indice_exige_misma_longitud():
+    with pytest.raises(ValueError):
+        ordenar_clusters_por_indice([0, 1], [1.0])
+
+
+def test_tabla_v02_usa_los_nombres_de_v02_y_su_version():
+    t = tabla_perfiles(["01001", "01002", "01003"], [0, 3, 2], version=VERSION_V02)
+    assert (t["version_modelo"] == "v02").all()
+    assert t["cluster_perfil"].tolist() == [PERFILES_V02[0]["nombre"], PERFILES_V02[3]["nombre"], PERFILES_V02[2]["nombre"]]
+    assert t["es_atipico"].tolist() == [0, 0, 0]
+
+
+def test_tabla_v02_rechaza_el_grupo_4_que_solo_existe_en_v01():
+    with pytest.raises(ValueError):
+        tabla_perfiles(["01001"], [4], version=VERSION_V02)
+
+
+def test_tabla_rechaza_una_version_desconocida():
+    with pytest.raises(ValueError):
+        tabla_perfiles(["01001"], [0], version="v99")
