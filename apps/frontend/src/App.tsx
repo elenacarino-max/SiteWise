@@ -8,11 +8,13 @@ import type { DatosIndicadores } from './useIndicadores'
 import gruposIndicadores from './gruposIndicadores.json'
 import { capasMapa, notaDeMapa, tonosMapa } from './capasMapa'
 import MapaMunicipios from './MapaMunicipios'
+import RankingActividad from './RankingActividad'
 import type { Municipio } from './municipiosEjemplo'
 import { useMunicipios } from './useMunicipios'
 import './App.css'
 
 const iconos = {
+  ranking: <path d="M4 20h16M7 16v-4m5 4V8m5 8V4" />,
   desplegar: <path d="m6 9 6 6 6-6" />,
   inversion: <><path d="M4 6h16M4 12h16M4 18h16" /><path d="M8 4v4m8 2v4m-6 2v4" /></>,
   capas: <><path d="m12 2 10 5-10 5L2 7l10-5Z" /><path d="m2 12 10 5 10-5M2 17l10 5 10-5" /></>,
@@ -27,6 +29,7 @@ const pestanas = [
   { nombre: 'Explorar', icono: 'pin' },
   { nombre: 'Detalle', icono: 'ficha' },
   { nombre: 'Comparar', icono: 'comparar' },
+  { nombre: 'Ranking', icono: 'ranking' },
 ] as const
 
 const indicadoresResumen = [
@@ -147,7 +150,7 @@ function App() {
 
   function estaGuardado(item: Municipio) {
     return comparados.some((guardado) =>
-      guardado.nombre === item.nombre && guardado.provincia === item.provincia,
+      guardado.cod_ine === item.cod_ine,
     )
   }
 
@@ -166,7 +169,7 @@ function App() {
 
   function quitar(item: Municipio) {
     setComparados((actuales) => actuales.filter((guardado) =>
-      guardado.nombre !== item.nombre || guardado.provincia !== item.provincia,
+      guardado.cod_ine !== item.cod_ine,
     ))
     setAviso(item.nombre + ' eliminado de la comparación.')
     contenido.current?.focus()
@@ -628,6 +631,20 @@ function App() {
               <p className="nota-pequena">La selección se conserva mientras navegas y se borra al recargar la página.</p>
             </section>
           ))}
+          {seccion === 'Ranking' && (
+            <section className="informe-comparacion" aria-labelledby="titulo-ranking">
+              <div className="cabecera-informe">
+                <h2 id="titulo-ranking">Ranking por actividad</h2>
+              </div>
+              {selectorActividad('actividad-ranking')}
+              {actividad ? (
+                <RankingActividad key={actividad} actividad={actividad} onVerFicha={seleccionar}
+                  onComparar={agregar} estaGuardado={estaGuardado} comparacionLlena={comparados.length >= 3} />
+              ) : (
+                <p className="nota-pequena">Elige una actividad para consultar el ranking.</p>
+              )}
+            </section>
+          )}
         </section>
       </main>
     </>
