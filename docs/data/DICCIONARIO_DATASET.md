@@ -1,4 +1,4 @@
-# Diccionario de datos · Sidewise v0.3
+# Diccionario de datos · SiteWise v0.3
 
 Última actualización del dataset: **14 de noviembre de 2026**.
 
@@ -6,7 +6,7 @@
 
 El dataset contiene **8.132 municipios**, **36 indicadores** y **292.752 observaciones**. La clave municipal es `cod_ine`, siempre tratada como texto de cinco caracteres para conservar ceros iniciales.
 
-Los ficheros principales se encuentran en `data/processed/sidewise_v03/`:
+Los ficheros principales se encuentran en `data/processed/sitewise_v03/`:
 
 | Fichero | Granularidad | Clave | Contenido |
 |---|---|---|---|
@@ -14,6 +14,11 @@ Los ficheros principales se encuentran en `data/processed/sidewise_v03/`:
 | `indicadores.csv` | Una fila por indicador | `id_indicador` | Catálogo canónico de definiciones, fuentes y metodología |
 | `valores.csv` | Una fila por municipio e indicador | `cod_ine` + `id_indicador` | Valores en formato largo con trazabilidad |
 | `dataset_municipal.csv` | Una fila por municipio | `cod_ine` | Matriz ancha para análisis, visualización y ML |
+| `valores_app.csv` | Una fila por municipio e indicador | `cod_ine` + `id_indicador` | Igual que `valores.csv` con una columna más, `estado_app` (ver sección 3) |
+| `dataset_municipal_app.csv` | Una fila por municipio | `cod_ine` | Igual que `dataset_municipal.csv` (119 columnas) más 36 columnas `estado_app__<id_indicador>`: 155 en total |
+| `correspondencia_estados.csv` | Una fila por estado | `estado_original` | Tabla que traduce cada `estado` a `estado_app` |
+
+Las variables y ficheros que se generan para machine learning (sección 7) **no forman parte del dataset oficial**: se derivan de él y se guardan en `data/processed/sitewise_ml/`.
 
 Los campos vacíos representan información no disponible o no publicable. **No deben convertirse automáticamente en cero.** El motivo se conserva en `estado` o en la columna `estado__<id_indicador>`.
 
@@ -139,6 +144,16 @@ Fichero: `valores.csv`. Contiene 292.752 filas: 8.132 municipios × 36 indicador
 | `sin_poligonos_en_catalogo` | No hay suelo industrial registrado en el catálogo utilizado. |
 | `pendiente` | No existe un valor utilizable con las fuentes incorporadas. |
 
+### Estado simplificado para la aplicación (`estado_app`)
+
+`valores_app.csv` y `dataset_municipal_app.csv` añaden `estado_app`, que agrupa los estados anteriores en tres valores según `correspondencia_estados.csv`:
+
+| `estado_app` | Estados originales que agrupa |
+|---|---|
+| `real` | `real`, `publicado`, `derivado_mismos_meses`, `agregado_fusion_documentada` |
+| `aproximado` | `aproximado`, `aproximado_modelo`, `calculado_sobre_masas_catalogadas`, `sin_poligonos_en_catalogo` |
+| `pendiente` | `pendiente`, `ocultado_menor5`, `blanco_fuente`, `sin_datos_comparables`, `sin_masa_catalogada`, `sin_destino_catalogado_en_tierra`, `base_cero`, `sin_cobertura_suficiente`, `fusion_con_celdas_no_publicadas`, `cobertura_insuficiente` |
+
 Los estados distintos de `real` o `publicado` no implican necesariamente que el dato sea inválido; obligan a consultar el método y sus limitaciones.
 
 ## 4. Matriz municipal ancha
@@ -181,4 +196,78 @@ indicadores.id_indicador 1 ─── N valores.id_indicador
 dataset_municipal = municipios + pivot(valores)
 ```
 
-La metodología ampliada de empleo, viento y aguas subterráneas está documentada en `docs/data/sidewise_v03/METODOLOGIA.md`.
+La metodología ampliada de empleo, viento y aguas subterráneas está documentada en `docs/data/sitewise_v03/METODOLOGIA.md`.
+
+## 7. Variables y ficheros derivados para machine learning
+
+Esta sección describe lo que se **calcula a partir del dataset** para el perfil de municipio (issues #12–#16, modelo v02). Nada de esto forma parte del dataset oficial ni se publica en la aplicación como dato observado. Los ficheros intermedios se guardan en `data/processed/sitewise_ml/` (en `.gitignore`: se regeneran ejecutando los notebooks 04 a 08 y 10, en orden) y los resultados que consume la aplicación, en `data/reference/`.
+
+### 7.1 Índices del perfil
+
+El perfil usa tres índices de 0 a 100 (código en `src/sitewise/ml/indices.py`). Cada componente se convierte en percentil (rango medio) sobre los municipios con dato; las distancias se invierten y el índice es la media de sus componentes.
+
+| Índice | Componentes | Sentido | Huecos |
+|---|---|---|---|
+| `idx_logistica` | `suelo_industrial_cartografiado_pct`, `dist_recta_eje_autovia_km` (invertida), `dist_recta_ttm_km` (invertida) | Más alto, mejor | No se imputan: sin distancia a terminal, el municipio no tiene perfil (161) |
+| `idx_hidrica` | `estres_hidrico_pct`, `agua_subterranea_mal_estado_cuantitativo_pct` | Más alto, **más presión** | Estimados con la media de los 5 municipios cercanos con dato (722 de agua subterránea y 24 de estrés hídrico) |
+| `idx_conectividad` | `cobertura_ftth_pct`, `cobertura_5g_pct` | Más alto, mejor | Sin huecos relevantes |
+
+Población, paro, viento, irradiación y riesgos naturales **no entran** en el perfil: se usan como datos sueltos (filtros, scoring, RAG). La justificación variable a variable está en `docs/methodology/seleccion_variables_ml.md`.
+
+Reglas de uso del dato estimado:
+
+1. Un municipio sin dato de agua subterránea no intersecta una masa catalogada (`sin_masa_catalogada`): rellenarlo con 0 **no** significa «buen estado». Para el perfil se estima con la media de los 5 municipios cercanos con dato.
+2. Validación (ocultando municipios con dato y estimándolos con vecinos de otras provincias): error medio de 12,8 puntos, frente a 16,5 poniendo 0 y 26,1 con la media de todos los municipios; correlación con el valor real de 0,67. Es una aproximación, no un dato medido.
+3. La app muestra esa estimación como `aproximado`. El fichero `agua_estimada_vecinos_v01.csv` (7.2) es la propuesta; **no se añade a `valores.csv`**: Elena ha decidido incorporarla solo a los ficheros de la app (`valores_app.csv` y `dataset_municipal_app.csv`). Mientras no se aplique, los 722 municipios siguen como `sin_masa_catalogada` (`pendiente`).
+
+### 7.2 Fichero propuesto: agua estimada
+
+Fichero: `data/processed/sitewise_ml/agua_estimada_vecinos_v01.csv` (lo crea el notebook 08; el notebook 09 de Elena lo lee). Una fila por cada uno de los 722 municipios sin masa catalogada.
+
+| Columna | Definición |
+|---|---|
+| `cod_ine` | Clave municipal (texto de 5 caracteres). |
+| `valor_estimado_pct` | Media del indicador en los 5 municipios con dato más cercanos. |
+| `k_vecinos` | Número de vecinos usados (5). |
+| `distancia_media_km`, `distancia_maxima_km` | Distancia media y máxima a esos vecinos. |
+| `estado_propuesto` | `aproximado`, definido en la sección 3 como valor estimado mediante una aproximación documentada. |
+| `metodo` | Texto del método, listo para `valores.csv`. |
+
+### 7.3 Ficheros de la decisión y del modelo
+
+| Fichero | Lo crea | Contenido |
+|---|---|---|
+| `variables_perfil_v02.csv` | Notebook 04 | Tabla de decisión: cada variable, su uso (perfil, dato suelto o scoring), sentido, motivo y % con dato. |
+| `experimentos_v02.csv` | Notebook 05 | Una fila por prueba: K de 2 a 8 y alternativas de entradas, con inercia, silhouette, Davies-Bouldin, Calinski-Harabasz, tamaño del grupo menor, estabilidad entre semillas (`ari_medio`, `ari_minimo`), cobertura y huella `sha256_dataset` de los datos. |
+| `modelo_elegido_v02.json` | Notebook 05 | Modelo elegido: versión, K (4), entradas, semilla (42), `n_init` (20) y motivo. Lo leen los notebooks 06 y 07. |
+
+K=4 se elige por interpretación y cobertura, **no** por una métrica (el silhouette es más alto con K=2). La justificación está en el notebook 05 y en `docs/methodology/model_card_clustering.md`.
+
+### 7.4 Ficheros de salida para la aplicación
+
+Se guardan en `data/reference/`. Los crea el notebook 07 (perfiles) y el notebook 10 (municipios cercanos).
+
+| Fichero | Columnas | Definición |
+|---|---|---|
+| `perfiles_municipios_v02.csv` | `cod_ine`, `cluster`, `cluster_perfil`, `es_atipico`, `version_modelo` | Perfil de cada uno de los 7.971 municipios con perfil. `cluster` va de 0 (mejor logística) a 3. `es_atipico` vale 0 en todos: **no se evalúa en v02**. |
+| `perfiles_definicion_v02.csv` | `cluster`, `cluster_perfil`, `descripcion`, `n_municipios`, medianas de las 6 variables, `media_idx_*`, `version_modelo` | Definición y cifras de cada grupo. Los nombres son provisionales. |
+| `perfiles_estado_v02.csv` | `cod_ine`, `tiene_perfil`, `motivo_sin_perfil`, `acuifero_estimado_vecinos`, `estres_hidrico_estimado_vecinos`, `idx_logistica`, `idx_hidrica`, `idx_conectividad` | Una fila por municipio (8.132). Indica si tiene perfil, por qué no (161 sin distancia a terminal) y qué valores del índice hídrico son estimados. |
+| `municipios_cercanos_v01.csv` | `cod_ine`, `cod_ine_cercano`, `posicion`, `distancia_km` | Municipios cercanos para el RAG y la API. |
+
+Los grupos son **exploratorios** y describen el territorio: no puntúan. Los ficheros `*_v01.csv` de perfiles (K=5, PCA) se conservan solo como historia; la API carga la versión más alta común a los dos CSV de perfiles.
+
+### 7.5 Registro de experimentos en MLflow
+
+MLflow guarda los experimentos en `mlruns/mlflow.db` (SQLite) y `mlruns/artifacts*`, también fuera de Git. El notebook 06 lee los resultados del 05 y los registra, sin recalcular.
+
+| Experimento | Notebook | Qué registra |
+|---|---|---|
+| `sitewise-perfil-v02` | 06 | Barrido de K (2 a 8) y alternativas de entradas del modelo v02. |
+
+Parámetros habituales: `configuracion`, `variables`, `k`, `semilla`, `n_init`, `filas`, `cobertura_pct`, `sha256_dataset`. Métricas: `inercia`, `silhouette`, `davies_bouldin`, `calinski_harabasz`, `grupo_menor_pct`, `ari_medio`, `ari_minimo`.
+
+Para abrir la interfaz: `python -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db`.
+
+### 7.6 Historia (v01)
+
+El primer modelo (v01: 7 variables, PCA, K=5, DBSCAN y tasa de paro derivada) se sustituyó tras la revisión técnica. Sus notebooks están en el historial de Git (commit `bc30250`). Los ficheros `dataset_municipal_tasa_paro.csv`, `clusters_*_v01.csv` y `perfiles_kmeans_v01.csv` que pudieran quedar en `data/processed/sitewise_ml/` ya no los usa ningún notebook y se pueden borrar.
