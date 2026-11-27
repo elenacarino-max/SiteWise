@@ -200,31 +200,29 @@ La metodología ampliada de empleo, viento y aguas subterráneas está documenta
 
 ## 7. Variables y ficheros derivados para machine learning
 
-Esta sección describe lo que se **calcula a partir del dataset** para el clustering (issues #12–#16). Nada de esto forma parte del dataset oficial ni se publica en la aplicación como dato observado. Todo se guarda en `data/processed/sitewise_ml/`, que está en `.gitignore` y se regenera ejecutando los notebooks 04 a 08.
+Esta sección describe lo que se **calcula a partir del dataset** para el perfil de municipio (issues #12–#16, modelo v02). Nada de esto forma parte del dataset oficial ni se publica en la aplicación como dato observado. Los ficheros intermedios se guardan en `data/processed/sitewise_ml/` (en `.gitignore`: se regeneran ejecutando los notebooks 04 a 08 y 10, en orden) y los resultados que consume la aplicación, en `data/reference/`.
 
-### 7.1 CSV derivado con la tasa de paro y la marca de agua
+### 7.1 Índices del perfil
 
-Fichero: `dataset_municipal_tasa_paro.csv` (lo crea el notebook 08). Es una copia de `dataset_municipal.csv` con siete columnas más. El original no se modifica.
+El perfil usa tres índices de 0 a 100 (código en `src/sitewise/ml/indices.py`). Cada componente se convierte en percentil (rango medio) sobre los municipios con dato; las distancias se invierten y el índice es la media de sus componentes.
 
-| Columna | Tipo lógico | Nulo | Definición |
+| Índice | Componentes | Sentido | Huecos |
 |---|---|---|---|
-| `paro_origen` | categoría | No | Estado de `paro_total` en `valores.csv` (`agregado_fusion_documentada` se cuenta como `publicado`). Valores: `publicado` (6.280), `ocultado_menor5` (1.587) y `blanco_fuente` (265). Sirve para saber qué municipios tienen la tasa calculada con una regla. |
-| `paro_por_100_hab_sin_ocultos` | decimal | Sí | `paro_total / poblacion_2025 × 100`, solo para `publicado`. Los 1.852 municipios sin dato quedan vacíos. Se usa en la prueba de sensibilidad. |
-| `paro_por_100_hab` | decimal | No | Paro registrado por cada 100 habitantes (población total, **no** población activa). Para `ocultado_menor5` se usa 2,5 parados (punto medio de 1 a 4) y para `blanco_fuente`, 1 parado (supuesto acordado con el equipo). |
-| `agua_vecinos_pct` | decimal | No | `agua_subterranea_mal_estado_cuantitativo_pct` observado y, para los 722 municipios sin masa catalogada, la media de los 5 municipios con dato más cercanos (distancia entre coordenadas `lat`/`lon`). Es la variable de agua que entra en el clustering. |
-| `agua_origen` | categoría | No | `observado` (7.410) o `estimado_vecinos` (722). |
-| `agua_sin_dato` | entero 0/1 | No | 1 si `agua_subterranea_mal_estado_cuantitativo_pct` está vacío (722 municipios) y 0 si tiene dato (7.410). Solo se usa en la variante descartada que añade esta marca. |
+| `idx_logistica` | `suelo_industrial_cartografiado_pct`, `dist_recta_eje_autovia_km` (invertida), `dist_recta_ttm_km` (invertida) | Más alto, mejor | No se imputan: sin distancia a terminal, el municipio no tiene perfil (161) |
+| `idx_hidrica` | `estres_hidrico_pct`, `agua_subterranea_mal_estado_cuantitativo_pct` | Más alto, **más presión** | Estimados con la media de los 5 municipios cercanos con dato (722 de agua subterránea y 24 de estrés hídrico) |
+| `idx_conectividad` | `cobertura_ftth_pct`, `cobertura_5g_pct` | Más alto, mejor | Sin huecos relevantes |
 
-Reglas de uso:
+Población, paro, viento, irradiación y riesgos naturales **no entran** en el perfil: se usan como datos sueltos (filtros, scoring, RAG). La justificación variable a variable está en `docs/methodology/seleccion_variables_ml.md`.
 
-1. Los valores de `paro_por_100_hab` calculados con 2,5 o con 1 parado son **solo para entrenar**. La aplicación debe mostrar el dato observado y su estado (`estado_app = pendiente`), no la tasa rellenada.
-2. En esos municipios la tasa depende de la población por construcción (250 / población y 100 / población).
-3. Un municipio sin dato de agua subterránea no intersecta una masa catalogada (`sin_masa_catalogada`): rellenarlo con 0 **no** significa "buen estado". Para entrenar se estima con los 5 municipios con dato más cercanos. En la comprobación con municipios que sí tienen dato, el error medio fue de 4,9 puntos (poniendo 0, 16,5). Los 722 están algo más lejos de sus vecinos que el resto (mediana de 11,75 km a los 5 vecinos), así que el error real puede ser mayor.
-4. El equipo ha decidido mostrar esa estimación en la app como `aproximado`. El fichero `agua_estimada_vecinos_v01.csv` (7.1b) es la propuesta; **no se añade a `valores.csv`**: Elena ha decidido incorporarla solo a los ficheros de la app (`valores_app.csv` y `dataset_municipal_app.csv`). Mientras no se aplique en el dataset, los 722 municipios siguen como `sin_masa_catalogada` (`pendiente`).
+Reglas de uso del dato estimado:
 
-### 7.1b Fichero propuesto: agua estimada
+1. Un municipio sin dato de agua subterránea no intersecta una masa catalogada (`sin_masa_catalogada`): rellenarlo con 0 **no** significa «buen estado». Para el perfil se estima con la media de los 5 municipios cercanos con dato.
+2. Validación (ocultando municipios con dato y estimándolos con vecinos de otras provincias): error medio de 12,8 puntos, frente a 16,5 poniendo 0 y 26,1 con la media de todos los municipios; correlación con el valor real de 0,67. Es una aproximación, no un dato medido.
+3. La app muestra esa estimación como `aproximado`. El fichero `agua_estimada_vecinos_v01.csv` (7.2) es la propuesta; **no se añade a `valores.csv`**: Elena ha decidido incorporarla solo a los ficheros de la app (`valores_app.csv` y `dataset_municipal_app.csv`). Mientras no se aplique, los 722 municipios siguen como `sin_masa_catalogada` (`pendiente`).
 
-Fichero: `agua_estimada_vecinos_v01.csv` (lo crea el notebook 08). Una fila por cada uno de los 722 municipios sin masa catalogada.
+### 7.2 Fichero propuesto: agua estimada
+
+Fichero: `data/processed/sitewise_ml/agua_estimada_vecinos_v01.csv` (lo crea el notebook 08; el notebook 09 de Elena lo lee). Una fila por cada uno de los 722 municipios sin masa catalogada.
 
 | Columna | Definición |
 |---|---|
@@ -235,71 +233,41 @@ Fichero: `agua_estimada_vecinos_v01.csv` (lo crea el notebook 08). Una fila por 
 | `estado_propuesto` | `aproximado`, definido en la sección 3 como valor estimado mediante una aproximación documentada. |
 | `metodo` | Texto del método, listo para `valores.csv`. |
 
-### 7.2 Salidas del generador de matrices
+### 7.3 Ficheros de la decisión y del modelo
 
-El script `data/processed/generadorMatrices/generar_matriz.py` crea una carpeta nueva por prueba (no sobrescribe). En los notebooks 07 y 08 el nombre de la carpeta incluye una huella (`<nombre>_<8 caracteres>`) calculada con el CSV de entrada y la configuración. Todas las tablas conservan `cod_ine` como texto.
-
-| Fichero | Contenido |
-|---|---|
-| `matriz_original.csv` | Variables seleccionadas, sin transformar. Los huecos siguen vacíos. |
-| `matriz_imputada.csv` | Con el relleno elegido para cada variable, antes de transformar. |
-| `matriz_transformada.csv` | Tras `log1p` / `sqrt` y recorte por percentiles. |
-| `matriz_ml.csv` | Escalada (StandardScaler por defecto), antes de PCA. |
-| `matriz_pca.csv` | Columnas `PC1`, `PC2`… Es la entrada del clustering cuando hay PCA. |
-| `mascara_imputaciones.csv` | Una columna `imputado__<variable>` (0/1) por variable: 1 si el valor se ha rellenado. |
-| `municipios.csv` | `cod_ine` y columnas de contexto (`nombre`, `provincia`, `ccaa`, `paro_origen`). |
-| `filas_excluidas.csv` | `cod_ine` y `motivo` de los municipios eliminados (vacío si no se eliminó ninguno). |
-| `informe.json` | Configuración, huella `sha256` del CSV de entrada, municipios de entrada y de salida, valores imputados, parámetros por variable, escalador, PCA y versiones. |
-
-Esquema del JSON de configuración:
-
-| Campo | Valores admitidos |
-|---|---|
-| `id` | Columna clave (`cod_ine`). |
-| `contexto` | Columnas que se copian a `municipios.csv` y no entran en el cálculo. |
-| `variables.<columna>.ausentes` | `error` (por defecto), `eliminar_filas`, `mediana`, `media`, `maximo`, `constante` |
-| `variables.<columna>.valor` | Número, obligatorio si `ausentes` es `constante`. |
-| `variables.<columna>.transformacion` | `ninguna` (por defecto), `log1p`, `sqrt` |
-| `variables.<columna>.recorte` | `null` o `[cuantil_inferior, cuantil_superior]`, por ejemplo `[0.01, 0.99]` |
-| `escalado` | `standard` (por defecto), `robust`, `minmax`, `ninguno` |
-| `pca` | `null`, fracción de varianza (por ejemplo `0.85`) o número de componentes |
-
-El generador ajusta el preprocesado con todos los municipios de entrada (exploración). Para evaluar con particiones habrá que ajustarlo solo con los datos de entrenamiento (pendiente en el issue #15). Su documentación completa está en `data/processed/generadorMatrices/LEEME.md`.
-
-### 7.3 Variables usadas en el clustering
-
-| Prueba | Variables | Tratamiento de huecos |
+| Fichero | Lo crea | Contenido |
 |---|---|---|
-| Primera (notebooks 04–07, 4 variables) | `poblacion_2025`, `suelo_industrial_cartografiado_pct`, `dist_recta_eje_autovia_km`, `dist_recta_ttm_km` | Distancias vacías → máximo observado. `log1p`, recorte p1–p99, `StandardScaler`, PCA ≥ 85 %. |
-| Segunda (notebook 08, 7 variables) | Las 4 anteriores + `paro_por_100_hab`, `viento_100m_media_m_s`, `agua_subterranea_mal_estado_cuantitativo_pct` | Paro sin huecos (reglas de 7.1); viento → mediana (2 municipios); agua → estimada con los 5 vecinos más cercanos (722, columna `agua_vecinos_pct`). Paro y viento sin transformar; paro con recorte p1–p99. |
-| Variante agua = 0 (7 variables) | Las 7, con el agua de los 722 rellenada con 0 | Opción anterior, solo para comparar. |
-| Variante sin agua (6 variables) | Las 7 menos el agua | Igual que la segunda. |
-| Variante con marca (8 variables, descartada) | Las 7 + `agua_sin_dato` | Agua → 0. Crea un grupo de «sin dato». |
-| Sensibilidad | Las 7 con `paro_por_100_hab_sin_ocultos` | `eliminar_filas`: se pierden los 1.852 municipios sin dato de paro. |
+| `variables_perfil_v02.csv` | Notebook 04 | Tabla de decisión: cada variable, su uso (perfil, dato suelto o scoring), sentido, motivo y % con dato. |
+| `experimentos_v02.csv` | Notebook 05 | Una fila por prueba: K de 2 a 8 y alternativas de entradas, con inercia, silhouette, Davies-Bouldin, Calinski-Harabasz, tamaño del grupo menor, estabilidad entre semillas (`ari_medio`, `ari_minimo`), cobertura y huella `sha256_dataset` de los datos. |
+| `modelo_elegido_v02.json` | Notebook 05 | Modelo elegido: versión, K (4), entradas, semilla (42), `n_init` (20) y motivo. Lo leen los notebooks 06 y 07. |
 
-La lista definitiva de variables **no está decidida**; la decide el equipo. Las conclusiones de la segunda prueba están al final del notebook 08.
+K=4 se elige por interpretación y cobertura, **no** por una métrica (el silhouette es más alto con K=2). La justificación está en el notebook 05 y en `docs/methodology/model_card_clustering.md`.
 
-### 7.4 Resultados del clustering
+### 7.4 Ficheros de salida para la aplicación
 
-Todos se guardan en `data/processed/sitewise_ml/` (la primera prueba, K-Means con K=5 provisional).
+Se guardan en `data/reference/`. Los crea el notebook 07 (perfiles) y el notebook 10 (municipios cercanos).
 
 | Fichero | Columnas | Definición |
 |---|---|---|
-| `clusters_kmeans_v01.csv` | `cod_ine`, `grupo_kmeans` | Grupo K-Means (1 a 5) de cada municipio. |
-| `clusters_dbscan_v01.csv` | `cod_ine`, `grupo_dbscan` | Grupo DBSCAN; `-1` significa ruido (municipio atípico). Es un complemento para detectar atípicos, no la segmentación principal. |
-| `perfiles_kmeans_v01.csv` | `grupo`, `municipios`, `% del total`, medianas de las 4 variables | Perfil de cada grupo de K-Means. |
+| `perfiles_municipios_v02.csv` | `cod_ine`, `cluster`, `cluster_perfil`, `es_atipico`, `version_modelo` | Perfil de cada uno de los 7.971 municipios con perfil. `cluster` va de 0 (mejor logística) a 3. `es_atipico` vale 0 en todos: **no se evalúa en v02**. |
+| `perfiles_definicion_v02.csv` | `cluster`, `cluster_perfil`, `descripcion`, `n_municipios`, medianas de las 6 variables, `media_idx_*`, `version_modelo` | Definición y cifras de cada grupo. Los nombres son provisionales. |
+| `perfiles_estado_v02.csv` | `cod_ine`, `tiene_perfil`, `motivo_sin_perfil`, `acuifero_estimado_vecinos`, `estres_hidrico_estimado_vecinos`, `idx_logistica`, `idx_hidrica`, `idx_conectividad` | Una fila por municipio (8.132). Indica si tiene perfil, por qué no (161 sin distancia a terminal) y qué valores del índice hídrico son estimados. |
+| `municipios_cercanos_v01.csv` | `cod_ine`, `cod_ine_cercano`, `posicion`, `distancia_km` | Municipios cercanos para el RAG y la API. |
 
-Estos grupos son **exploratorios**. La columna `cluster_perfil` que espera el módulo RAG (PR #40) todavía no existe: la entregará el issue #16.
+Los grupos son **exploratorios** y describen el territorio: no puntúan. Los ficheros `*_v01.csv` de perfiles (K=5, PCA) se conservan solo como historia; la API carga la versión más alta común a los dos CSV de perfiles.
 
 ### 7.5 Registro de experimentos en MLflow
 
-MLflow guarda los experimentos en `mlruns/mlflow.db` (SQLite) y `mlruns/artifacts*`, también fuera de Git. Cada ejecución del notebook añade ejecuciones nuevas.
+MLflow guarda los experimentos en `mlruns/mlflow.db` (SQLite) y `mlruns/artifacts*`, también fuera de Git. El notebook 06 lee los resultados del 05 y los registra, sin recalcular.
 
 | Experimento | Notebook | Qué registra |
 |---|---|---|
-| `sitewise-clustering-4-variables` | 07 | K-Means K de 2 a 10 con y sin PCA, estabilidad con 5 semillas, DBSCAN. |
-| `sitewise-clustering-segunda-prueba` | 08 | K-Means K de 2 a 10 para tres listas de variables, sensibilidad, estabilidad. |
+| `sitewise-perfil-v02` | 06 | Barrido de K (2 a 8) y alternativas de entradas del modelo v02. |
 
-Parámetros habituales: `configuracion`, `variables`, `usa_pca`, `n_dimensiones`, `varianza_pca`, `k`, `semilla`, `filas`, `filas_excluidas`, `sha256_dataset`. Métricas: `inercia`, `silhouette`, `davies_bouldin`, `calinski_harabasz`, `grupo_menor_pct`, `ari_medio`, `ari_minimo` y las ARI de comparación entre configuraciones.
+Parámetros habituales: `configuracion`, `variables`, `k`, `semilla`, `n_init`, `filas`, `cobertura_pct`, `sha256_dataset`. Métricas: `inercia`, `silhouette`, `davies_bouldin`, `calinski_harabasz`, `grupo_menor_pct`, `ari_medio`, `ari_minimo`.
 
 Para abrir la interfaz: `python -m mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db`.
+
+### 7.6 Historia (v01)
+
+El primer modelo (v01: 7 variables, PCA, K=5, DBSCAN y tasa de paro derivada) se sustituyó tras la revisión técnica. Sus notebooks están en el historial de Git (commit `bc30250`). Los ficheros `dataset_municipal_tasa_paro.csv`, `clusters_*_v01.csv` y `perfiles_kmeans_v01.csv` que pudieran quedar en `data/processed/sitewise_ml/` ya no los usa ningún notebook y se pueden borrar.

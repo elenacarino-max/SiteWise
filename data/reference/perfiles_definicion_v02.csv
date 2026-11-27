@@ -1,0 +1,5 @@
+cluster,cluster_perfil,descripcion,n_municipios,mediana_suelo_industrial_cartografiado_pct,mediana_dist_recta_eje_autovia_km,mediana_dist_recta_ttm_km,mediana_estres_hidrico_pct,mediana_cobertura_ftth_pct,mediana_cobertura_5g_pct,media_idx_logistica,media_idx_hidrica,media_idx_conectividad,version_modelo
+0,Buena logística y buena conectividad,"Municipios con buena logística (suelo industrial, autovía y terminal cercanos), buena conectividad digital y presión hídrica moderada.",1871,0.55,3.03,28.82,41.46,95.92,100.0,75.3,40.3,66.5,v02
+1,Logística media-buena con mucha presión hídrica,"Municipios con logística media-buena y buena conectividad, pero con estrés hídrico alto y acuíferos en mal estado.",1587,0.1,6.71,53.19,294.75,94.65,100.0,57.6,80.3,58.6,v02
+2,Logística baja y mal conectados,Municipios con poca logística y conectividad digital baja: zonas aisladas.,2470,0.0,15.05,62.34,58.36,75.44,88.62,39.6,42.4,24.4,v02
+3,Logística baja pero bien conectados,Municipios con poca logística pero buena conectividad digital (fibra y 5G).,2043,0.0,19.46,77.3,58.74,93.55,100.0,33.4,42.8,59.3,v02
