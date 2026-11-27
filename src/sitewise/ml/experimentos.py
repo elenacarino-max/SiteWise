@@ -9,7 +9,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
-from sklearn.metrics import adjusted_rand_score, calinski_harabasz_score, davies_bouldin_score, silhouette_score
+from sklearn.metrics import (
+    adjusted_rand_score,
+    calinski_harabasz_score,
+    davies_bouldin_score,
+    silhouette_score,
+)
 
 SEMILLA = 42
 N_INIT = 20
