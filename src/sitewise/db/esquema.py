@@ -32,10 +32,11 @@ COLUMNAS = {
     # Perfiles de municipios (clustering de Helen). Son opcionales: la carga los añade si encuentra los CSV.
     "perfiles_municipios": ("cod_ine", "cluster", "cluster_perfil", "es_atipico", "version_modelo"),
     "perfiles_definicion": (
-        "cluster", "cluster_perfil", "descripcion", "n_municipios", "mediana_poblacion_2025",
-        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km",
-        "mediana_dist_recta_ttm_km", "mediana_paro_por_100_hab", "mediana_viento_100m_media_m_s",
-        "mediana_agua_vecinos_pct", "version_modelo",
+        "cluster", "cluster_perfil", "descripcion", "n_municipios",
+        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km",
+        "mediana_estres_hidrico_pct", "mediana_cobertura_ftth_pct", "mediana_cobertura_5g_pct",
+        "media_idx_logistica", "media_idx_hidrica", "media_idx_conectividad",
+        "version_modelo",
     ),
 }
 TABLAS_PERFILES = ("perfiles_municipios", "perfiles_definicion")
@@ -54,9 +55,10 @@ NUMERICAS = {
     "valores": ("valor", "valor_original", "k_vecinos", "distancia_media_km", "distancia_maxima_km"),
     "perfiles_municipios": ("cluster", "es_atipico"),
     "perfiles_definicion": (
-        "cluster", "n_municipios", "mediana_poblacion_2025", "mediana_suelo_industrial_cartografiado_pct",
-        "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km", "mediana_paro_por_100_hab",
-        "mediana_viento_100m_media_m_s", "mediana_agua_vecinos_pct",
+        "cluster", "n_municipios",
+        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km",
+        "mediana_estres_hidrico_pct", "mediana_cobertura_ftth_pct", "mediana_cobertura_5g_pct",
+        "media_idx_logistica", "media_idx_hidrica", "media_idx_conectividad",
     ),
 }
 # Numéricas que se guardan como enteros (un "5.0" del CSV no entra en una columna integer).
@@ -155,13 +157,15 @@ CREATE TABLE {esquema}.perfiles_definicion (
     cluster_perfil                               text NOT NULL,
     descripcion                                  text,
     n_municipios                                 integer,
-    mediana_poblacion_2025                       double precision,
     mediana_suelo_industrial_cartografiado_pct   double precision,
     mediana_dist_recta_eje_autovia_km            double precision,
     mediana_dist_recta_ttm_km                    double precision,
-    mediana_paro_por_100_hab                     double precision,
-    mediana_viento_100m_media_m_s                double precision,
-    mediana_agua_vecinos_pct                     double precision,
+    mediana_estres_hidrico_pct                   double precision,
+    mediana_cobertura_ftth_pct                   double precision,
+    mediana_cobertura_5g_pct                     double precision,
+    media_idx_logistica                          double precision,
+    media_idx_hidrica                            double precision,
+    media_idx_conectividad                       double precision,
     version_modelo                               text,
     orden                                        integer NOT NULL
 );

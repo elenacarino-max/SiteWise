@@ -70,17 +70,19 @@ Todos los indicadores del municipio. Para cada uno: `valor`, `estado`, `unidad`,
 - `utilizable`: si es `false`, el dato no sirve para calcular y `motivo_no_utilizable` explica por qué.
 
 ### Perfiles: `perfil`, `/perfiles` y `/municipios/{cod_ine}/similares`
-Helen agrupa los 8.132 municipios en 5 perfiles (K-Means, v01) para describirlos en lenguaje sencillo.
+Helen agrupa los municipios en 4 perfiles (v02) para describirlos en lenguaje sencillo.
 **Un perfil NO es una nota ni un riesgo**: dice a qué otros municipios se parece, no si es bueno o malo
 para una actividad. El agente nunca lo mezcla con riesgo o atractivo.
 
 - `/ficha` y `/evaluacion` incluyen `perfil`: `cluster` (0–4), `nombre`, `descripcion`, `es_atipico`
   (solo una pista), `version_modelo` y un `aviso`. Es `null` si la API no tiene perfiles cargados.
-- `GET /perfiles`: los 5 perfiles con su descripción y las medianas de cada variable.
+- `GET /perfiles`: los perfiles (4 en la v02) con su descripción, las medianas de cada variable y los índices medios
+  (`indices`: logística, hídrica y conectividad, de 0 a 100).
 - `GET /municipios/{cod_ine}/similares`: municipios con el mismo perfil, **del más cercano al más lejano**
   (`distancia_km` en línea recta). Parámetros: `provincia`, `ccaa`, `limite` (1–200, por defecto 10),
   `desplazamiento`. Devuelve `total`, el `perfil` del municipio consultado y la lista `similares`.
-  Si el municipio no tiene perfil: 404 `perfil_no_disponible`.
+  Si el municipio no tiene perfil: 404 `perfil_no_disponible`. En la v02, 157 municipios no tienen perfil
+  (les falta el dato de terminal ferroviaria) y su `perfil` es `null`.
 - Limitación (la dice Helen en su ficha del modelo): los perfiles se solapan; un municipio en la frontera
   entre dos podría estar en cualquiera. El grupo 0 es muy amplio (de pueblos grandes a grandes ciudades).
 
@@ -266,7 +268,7 @@ Ante cualquier error el agente **no rellena el hueco con datos propios**: lo dic
 
 ## 8. Pendiente
 
-- **Perfiles:** la API sirve la versión `v01` de Helen. Si ella saca una versión nueva, basta con dejar sus CSV
+- **Perfiles:** la API sirve la versión más alta de Helen (hoy `v02`). Si ella saca una versión nueva, basta con dejar sus CSV
   en `data/reference/` y volver a cargar la base: la API usa la versión más alta que encuentre.
 - **Reglas sin firmar:** mientras `reglas_provisionales` sea `true`, todo resultado es orientativo.
 - **Dataset:** la API lee ahora el dataset v0.3; si el dataset oficial congelado cambia, las notas se

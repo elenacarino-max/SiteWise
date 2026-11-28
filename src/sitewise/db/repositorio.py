@@ -287,7 +287,7 @@ class RepositorioCSV:
         }
 
     def definiciones_perfiles(self) -> list[dict[str, Any]]:
-        """Los perfiles existentes con su descripción y las medianas de cada variable."""
+        """Los perfiles existentes con su descripción, las medianas de cada variable y los índices medios."""
         if self.definiciones is None:
             return []
         salida = []
@@ -299,6 +299,9 @@ class RepositorioCSV:
                 "n_municipios": _entero(f["n_municipios"]),
                 "medianas": {
                     c.removeprefix("mediana_"): _limpiar(f[c]) for c in f.index if c.startswith("mediana_")
+                },
+                "indices": {
+                    c.removeprefix("media_idx_"): _limpiar(f[c]) for c in f.index if c.startswith("media_idx_")
                 },
                 "version_modelo": _limpiar(f["version_modelo"]),
             })
