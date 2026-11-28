@@ -20,7 +20,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from sitewise.db.perfiles import ErrorPerfiles, leer_perfiles
+from sitewise.db.perfiles import ErrorPerfiles, leer_cercanos, leer_perfiles
 from sitewise.scoring.modelos import Observacion
 
 FICHEROS = ("municipios.csv", "indicadores.csv")  # los de valores se eligen con `fichero_valores`
@@ -104,6 +104,10 @@ class RepositorioCSV:
         except ErrorPerfiles as exc:
             raise DatosNoDisponibles(str(exc)) from exc
         self._preparar_perfiles(*(perfiles or (None, None)))
+        try:
+            self._preparar_cercanos(leer_cercanos(directorio_perfiles))
+        except ErrorPerfiles as exc:
+            raise DatosNoDisponibles(str(exc)) from exc
 
     def _preparar(self, municipios: pd.DataFrame, indicadores: pd.DataFrame, valores: pd.DataFrame) -> None:
         """Deja las tres tablas listas para consultar. Lo comparte el repositorio de PostgreSQL.
@@ -157,6 +161,20 @@ class RepositorioCSV:
         definicion["cluster"] = definicion["cluster"].astype(int)
         self.definiciones = definicion.set_index("cluster", drop=False).sort_index()
 
+    def _preparar_cercanos(self, cercanos: pd.DataFrame | None) -> None:
+        """Dejo listos los municipios cercanos: {cod_ine: filas ordenadas por posición}. Lo comparte PostgreSQL."""
+        self._cercanos = None
+        if cercanos is None or cercanos.empty:
+            return
+        desconocidos = sorted((set(cercanos["cod_ine"]) | set(cercanos["cod_ine_cercano"])) - set(self.municipios.index))
+        if desconocidos:
+            raise DatosNoDisponibles(
+                f"Los municipios cercanos incluyen {len(desconocidos)} códigos que no están en el dataset "
+                f"(por ejemplo {', '.join(desconocidos[:3])}). Revisa que sean de la misma versión."
+            )
+        cercanos = cercanos.sort_values(["cod_ine", "posicion"], kind="stable")
+        self._cercanos = {cod: g for cod, g in cercanos.groupby("cod_ine")}
+
     # ---------------------------------------------------------------- información
 
     def info(self) -> dict[str, Any]:
@@ -167,6 +185,7 @@ class RepositorioCSV:
             "indicadores": len(self.indicadores),
             "observaciones": len(self.valores),
             "perfiles_version": self._version_perfiles(),
+            "cercanos_cargados": self._cercanos is not None,
         }
 
     def _version_perfiles(self) -> str | None:
@@ -286,8 +305,23 @@ class RepositorioCSV:
             "version_modelo": _limpiar(fila["version_modelo"]),
         }
 
+    def cercanos(self, cod_ine: str) -> list[dict[str, Any]] | None:
+        """Los municipios más próximos (por distancia en línea recta), del más cerca al más lejos.
+
+        None si no hay datos de cercanos cargados o el municipio no aparece en ellos.
+        """
+        if self._cercanos is None or cod_ine not in self._cercanos:
+            return None
+        salida = []
+        for _, f in self._cercanos[cod_ine].iterrows():
+            municipio = self._fila_municipio(self.municipios.loc[f["cod_ine_cercano"]])
+            municipio["posicion"] = int(f["posicion"])
+            municipio["distancia_km"] = _limpiar(f["distancia_km"])
+            salida.append(municipio)
+        return salida
+
     def definiciones_perfiles(self) -> list[dict[str, Any]]:
-        """Los perfiles existentes con su descripción y las medianas de cada variable."""
+        """Los perfiles existentes con su descripción, las medianas de cada variable y los índices medios."""
         if self.definiciones is None:
             return []
         salida = []
@@ -299,6 +333,9 @@ class RepositorioCSV:
                 "n_municipios": _entero(f["n_municipios"]),
                 "medianas": {
                     c.removeprefix("mediana_"): _limpiar(f[c]) for c in f.index if c.startswith("mediana_")
+                },
+                "indices": {
+                    c.removeprefix("media_idx_"): _limpiar(f[c]) for c in f.index if c.startswith("media_idx_")
                 },
                 "version_modelo": _limpiar(f["version_modelo"]),
             })

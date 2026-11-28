@@ -51,7 +51,7 @@ def test_cargar_dos_veces_no_duplica(directorio_datos, esquema):
 def test_info_dice_el_origen(repo_pg):
     assert repo_pg.info() == {
         "origen": "postgresql", "valores_fichero": None, "municipios": 3, "indicadores": 3, "observaciones": 9,
-        "perfiles_version": None,
+        "perfiles_version": None, "cercanos_cargados": False,
     }
 
 
@@ -240,3 +240,20 @@ def test_perfiles_de_otro_dataset_dan_un_error_claro(directorio_datos, directori
     )
     with pytest.raises(ErrorCarga, match="no existe"):
         cargar_csv(directorio_datos, URL, esquema, directorio_perfiles)
+
+
+# ------------------------------------------------------------------ municipios cercanos (Helen)
+
+
+def test_cercanos_desde_postgres_igual_que_desde_csv(directorio_datos, directorio_perfiles, esquema):
+    assert cargar_csv(directorio_datos, URL, esquema, directorio_perfiles)["cercanos"] == 3
+    repo_pg = RepositorioPostgres(URL, esquema)
+    repo_csv = RepositorioCSV(directorio_datos, directorio_perfiles)
+    for cod in ("28001", "41001", "01001"):
+        assert repo_pg.cercanos(cod) == repo_csv.cercanos(cod)
+    assert repo_pg.info()["cercanos_cargados"] is True
+
+
+def test_sin_csv_de_cercanos_la_carga_sigue(directorio_datos, tmp_path, esquema):
+    assert cargar_csv(directorio_datos, URL, esquema, tmp_path)["cercanos"] is None
+    assert RepositorioPostgres(URL, esquema).cercanos("28001") is None

@@ -27,6 +27,7 @@ que no están en Git). Para usar otra carpeta, define `SITEWISE_DATA_DIR`. Sin d
 | `GET /municipios/{cod_ine}` | Datos del municipio |
 | `GET /municipios/{cod_ine}/ficha` | Indicadores con valor, estado, fecha, fuente y limitaciones |
 | `GET /perfiles` | Los perfiles de municipios (clustering de Helen): descripción y medianas |
+| `GET /municipios/{cod_ine}/cercanos` | Los 5 municipios geográficamente más próximos (posición y distancia en km). No depende del perfil |
 | `GET /municipios/{cod_ine}/similares` | Municipios con el mismo perfil, del más cercano al más lejano (`provincia`, `ccaa`, `limite`, `desplazamiento`) |
 | `GET /actividades` | Actividades con reglas cargadas y si están aprobadas o son provisionales |
 | `GET /municipios/{cod_ine}/evaluacion/{actividad}` | Riesgo y atractivo (separados), requisitos mínimos y cómo se ha calculado cada nota |

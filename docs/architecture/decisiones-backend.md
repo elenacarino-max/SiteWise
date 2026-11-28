@@ -86,12 +86,16 @@ Suelo y autovía cuentan como mínimo y también en la nota: es intencionado y s
 
 ## D11. Perfiles de municipios
 
-Helen agrupa los municipios en 5 perfiles (K-Means). La API los sirve para que el agente y la interfaz
+Helen agrupa los municipios en perfiles (hoy 4, v02). La API los sirve para que el agente y la interfaz
 puedan decir "se parece a...", pero **un perfil no es una nota**: no entra en el riesgo ni en el atractivo
 y no dice si un municipio es adecuado. Se guardan en PostgreSQL (`perfiles_municipios`, `perfiles_definicion`)
 y se leen del CSV de Helen si no hay base. Los "similares" son los del mismo perfil, ordenados por distancia
-en línea recta. La ficha del modelo (`docs/methodology/model_card_clustering.md`) recuerda sus límites:
-silhouette baja (0,23), los grupos se solapan y el grupo 0 es muy amplio.
+en línea recta. La ficha del modelo (`docs/methodology/model_card_clustering.md`) recuerda sus límites
+(los grupos se solapan). Hay municipios sin perfil (en la v02, 157 sin dato de terminal ferroviaria).
+
+Aparte, `GET /municipios/{cod_ine}/cercanos` sirve los 5 municipios geográficamente más próximos
+(`municipios_cercanos_vNN.csv`). No usa el perfil: es solo geografía, para riesgos de agua y naturales.
+La distancia viene siempre en la respuesta porque algunos vecinos están lejos (5 casos de más de 100 km).
 
 ## Qué comprueba Gema antes de la demo
 

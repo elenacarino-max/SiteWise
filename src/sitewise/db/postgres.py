@@ -50,6 +50,7 @@ class RepositorioPostgres(RepositorioCSV):
                 perfiles = None
                 if _existe(cur, esquema, "perfiles_municipios") and _existe(cur, esquema, "perfiles_definicion"):
                     perfiles = (_tabla(cur, esquema, "perfiles_municipios"), _tabla(cur, esquema, "perfiles_definicion"))
+                cercanos = _tabla(cur, esquema, "municipios_cercanos") if _existe(cur, esquema, "municipios_cercanos") else None
         except psycopg.errors.UndefinedTable as exc:
             raise DatosNoDisponibles(
                 f"La base de datos no tiene las tablas del dataset en el esquema '{esquema}'. "
@@ -70,3 +71,4 @@ class RepositorioPostgres(RepositorioCSV):
         self.esquema = esquema
         self._preparar(municipios, indicadores, valores)
         self._preparar_perfiles(*(perfiles or (None, None)))
+        self._preparar_cercanos(cercanos)

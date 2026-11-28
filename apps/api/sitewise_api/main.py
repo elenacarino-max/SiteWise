@@ -25,6 +25,7 @@ from .schemas import (
     ListaMunicipios,
     ListaPerfiles,
     Municipio,
+    RespuestaCercanos,
     RespuestaComparacion,
     RespuestaEvaluacion,
     RespuestaMapa,
@@ -154,6 +155,19 @@ def crear_app(ajustes: Ajustes | None = None) -> FastAPI:
             raise ErrorApi(
                 404, "perfil_no_disponible",
                 f"No hay perfil para el municipio '{cod_ine}' (los perfiles no están cargados o no lo incluyen).",
+            )
+        return respuesta
+
+    @app.get("/municipios/{cod_ine}/cercanos", response_model=RespuestaCercanos, tags=["perfiles"])
+    def municipios_cercanos(cod_ine: CodIne, servicio: ServicioDep) -> RespuestaCercanos:
+        """Los 5 municipios más próximos en línea recta (útil para riesgos hídricos y naturales). No depende del perfil."""
+        if servicio.municipio(cod_ine) is None:
+            raise ErrorApi(404, "municipio_no_encontrado", f"No existe el municipio '{cod_ine}'.")
+        respuesta = servicio.cercanos(cod_ine)
+        if respuesta is None:
+            raise ErrorApi(
+                404, "cercanos_no_disponibles",
+                f"No hay municipios cercanos para '{cod_ine}' (los datos de cercanos no están cargados o no lo incluyen).",
             )
         return respuesta
 

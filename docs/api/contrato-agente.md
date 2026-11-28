@@ -42,6 +42,7 @@ el agente).
 | Buscar candidatos para una actividad | `GET /actividades/{actividad}/ranking` |
 | Todos los municipios con sus notas (mapa) | `GET /actividades/{actividad}/mapa` |
 | Saber a qué perfil pertenece un municipio | `perfil` dentro de `/ficha` y de `/evaluacion` |
+| Municipios geográficamente próximos (para riesgos hídricos o naturales) | `GET /municipios/{cod_ine}/cercanos` |
 | Municipios con un perfil parecido ("se parece a...") | `GET /municipios/{cod_ine}/similares` |
 | Qué perfiles existen y cómo son | `GET /perfiles` |
 
@@ -70,19 +71,30 @@ Todos los indicadores del municipio. Para cada uno: `valor`, `estado`, `unidad`,
 - `utilizable`: si es `false`, el dato no sirve para calcular y `motivo_no_utilizable` explica por qué.
 
 ### Perfiles: `perfil`, `/perfiles` y `/municipios/{cod_ine}/similares`
-Helen agrupa los 8.132 municipios en 5 perfiles (K-Means, v01) para describirlos en lenguaje sencillo.
+Helen agrupa los municipios en 4 perfiles (v02) para describirlos en lenguaje sencillo.
 **Un perfil NO es una nota ni un riesgo**: dice a qué otros municipios se parece, no si es bueno o malo
 para una actividad. El agente nunca lo mezcla con riesgo o atractivo.
 
 - `/ficha` y `/evaluacion` incluyen `perfil`: `cluster` (0–4), `nombre`, `descripcion`, `es_atipico`
   (solo una pista), `version_modelo` y un `aviso`. Es `null` si la API no tiene perfiles cargados.
-- `GET /perfiles`: los 5 perfiles con su descripción y las medianas de cada variable.
+- `GET /perfiles`: los perfiles (4 en la v02) con su descripción, las medianas de cada variable y los índices medios
+  (`indices`: logística, hídrica y conectividad, de 0 a 100).
 - `GET /municipios/{cod_ine}/similares`: municipios con el mismo perfil, **del más cercano al más lejano**
   (`distancia_km` en línea recta). Parámetros: `provincia`, `ccaa`, `limite` (1–200, por defecto 10),
   `desplazamiento`. Devuelve `total`, el `perfil` del municipio consultado y la lista `similares`.
-  Si el municipio no tiene perfil: 404 `perfil_no_disponible`.
+  Si el municipio no tiene perfil: 404 `perfil_no_disponible`. En la v02, 157 municipios no tienen perfil
+  (les falta el dato de terminal ferroviaria) y su `perfil` es `null`.
 - Limitación (la dice Helen en su ficha del modelo): los perfiles se solapan; un municipio en la frontera
   entre dos podría estar en cualquiera. El grupo 0 es muy amplio (de pueblos grandes a grandes ciudades).
+
+### `GET /municipios/{cod_ine}/cercanos`
+
+Los **5 municipios geográficamente más próximos** (distancia en línea recta entre centroides), de Helen
+(`municipios_cercanos_v01.csv`). Cada uno trae sus datos de municipio, `posicion` (1 = el más cerca) y
+`distancia_km`. No mira el perfil ni la nota: sirve para razonar sobre riesgos que dependen del entorno
+(agua, riesgos naturales). Ojo: unos pocos vecinos están lejos (hay 85 casos de más de 25 km y 5 de más de
+100 km), así que el agente debe leer `distancia_km` antes de decir "cerca". Si no hay datos de cercanos
+devuelve 404 `cercanos_no_disponibles`; no se inventan vecinos.
 
 ### `GET /actividades`
 Actividades con reglas y su `estado_reglas`: `aprobadas` solo si **todas** las reglas están firmadas; si
@@ -251,6 +263,7 @@ comparar en código); el `mensaje` es para personas:
 | HTTP | `error` | Cuándo | Qué hace el agente |
 | --- | --- | --- | --- |
 | 404 | `municipio_no_encontrado` | El código INE no existe | Pide aclarar el municipio o lo busca con `/municipios?q=` |
+| 404 | `cercanos_no_disponibles` | Piden `/cercanos` y no hay datos de cercanos cargados o el municipio no aparece | Dice que ese dato no está disponible |
 | 404 | `perfil_no_disponible` | Piden `/similares` y no hay perfiles cargados o el municipio no tiene | Dice que ese dato no está disponible; no inventa parecidos |
 | 404 | `actividad_no_encontrada` | No hay reglas para esa actividad | Consulta `/actividades` y ofrece las disponibles |
 | 400 | `comparacion_invalida` | Menos de 2 o más de 3 municipios, códigos mal formados o repetidos | Corrige la petición |
@@ -266,7 +279,7 @@ Ante cualquier error el agente **no rellena el hueco con datos propios**: lo dic
 
 ## 8. Pendiente
 
-- **Perfiles:** la API sirve la versión `v01` de Helen. Si ella saca una versión nueva, basta con dejar sus CSV
+- **Perfiles:** la API sirve la versión más alta de Helen (hoy `v02`). Si ella saca una versión nueva, basta con dejar sus CSV
   en `data/reference/` y volver a cargar la base: la API usa la versión más alta que encuentre.
 - **Reglas sin firmar:** mientras `reglas_provisionales` sea `true`, todo resultado es orientativo.
 - **Dataset:** la API lee ahora el dataset v0.3; si el dataset oficial congelado cambia, las notas se
