@@ -32,11 +32,14 @@ COLUMNAS = {
     # Perfiles de municipios (clustering de Helen). Son opcionales: la carga los añade si encuentra los CSV.
     "perfiles_municipios": ("cod_ine", "cluster", "cluster_perfil", "es_atipico", "version_modelo"),
     "perfiles_definicion": (
-        "cluster", "cluster_perfil", "descripcion", "n_municipios", "mediana_poblacion_2025",
-        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km",
-        "mediana_dist_recta_ttm_km", "mediana_paro_por_100_hab", "mediana_viento_100m_media_m_s",
-        "mediana_agua_vecinos_pct", "version_modelo",
+        "cluster", "cluster_perfil", "descripcion", "n_municipios",
+        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km",
+        "mediana_estres_hidrico_pct", "mediana_cobertura_ftth_pct", "mediana_cobertura_5g_pct",
+        "media_idx_logistica", "media_idx_hidrica", "media_idx_conectividad",
+        "version_modelo",
     ),
+    # Los 5 municipios geográficamente más próximos de cada uno (Helen). También opcional.
+    "municipios_cercanos": ("cod_ine", "cod_ine_cercano", "posicion", "distancia_km"),
 }
 TABLAS_PERFILES = ("perfiles_municipios", "perfiles_definicion")
 # Columnas sin las que una fila no tiene sentido: si faltan en el CSV, el cargador se detiene.
@@ -46,6 +49,7 @@ OBLIGATORIAS = {
     "valores": ("cod_ine", "id_indicador"),
     "perfiles_municipios": ("cod_ine", "cluster", "cluster_perfil"),
     "perfiles_definicion": ("cluster", "cluster_perfil"),
+    "municipios_cercanos": ("cod_ine", "cod_ine_cercano", "posicion"),
 }
 # Las que deben guardarse como número (el resto son texto).
 NUMERICAS = {
@@ -54,10 +58,12 @@ NUMERICAS = {
     "valores": ("valor", "valor_original", "k_vecinos", "distancia_media_km", "distancia_maxima_km"),
     "perfiles_municipios": ("cluster", "es_atipico"),
     "perfiles_definicion": (
-        "cluster", "n_municipios", "mediana_poblacion_2025", "mediana_suelo_industrial_cartografiado_pct",
-        "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km", "mediana_paro_por_100_hab",
-        "mediana_viento_100m_media_m_s", "mediana_agua_vecinos_pct",
+        "cluster", "n_municipios",
+        "mediana_suelo_industrial_cartografiado_pct", "mediana_dist_recta_eje_autovia_km", "mediana_dist_recta_ttm_km",
+        "mediana_estres_hidrico_pct", "mediana_cobertura_ftth_pct", "mediana_cobertura_5g_pct",
+        "media_idx_logistica", "media_idx_hidrica", "media_idx_conectividad",
     ),
+    "municipios_cercanos": ("posicion", "distancia_km"),
 }
 # Numéricas que se guardan como enteros (un "5.0" del CSV no entra en una columna integer).
 ENTERAS = {
@@ -66,6 +72,7 @@ ENTERAS = {
     "valores": ("k_vecinos",),
     "perfiles_municipios": ("cluster", "es_atipico"),
     "perfiles_definicion": ("cluster", "n_municipios"),
+    "municipios_cercanos": ("posicion",),
 }
 
 _NOMBRE_VALIDO = re.compile(r"^[a-z_][a-z0-9_]{0,62}$")
@@ -155,13 +162,15 @@ CREATE TABLE {esquema}.perfiles_definicion (
     cluster_perfil                               text NOT NULL,
     descripcion                                  text,
     n_municipios                                 integer,
-    mediana_poblacion_2025                       double precision,
     mediana_suelo_industrial_cartografiado_pct   double precision,
     mediana_dist_recta_eje_autovia_km            double precision,
     mediana_dist_recta_ttm_km                    double precision,
-    mediana_paro_por_100_hab                     double precision,
-    mediana_viento_100m_media_m_s                double precision,
-    mediana_agua_vecinos_pct                     double precision,
+    mediana_estres_hidrico_pct                   double precision,
+    mediana_cobertura_ftth_pct                   double precision,
+    mediana_cobertura_5g_pct                     double precision,
+    media_idx_logistica                          double precision,
+    media_idx_hidrica                            double precision,
+    media_idx_conectividad                       double precision,
     version_modelo                               text,
     orden                                        integer NOT NULL
 );
@@ -177,6 +186,21 @@ CREATE TABLE {esquema}.perfiles_municipios (
 );
 
 CREATE INDEX perfiles_municipios_cluster_idx ON {esquema}.perfiles_municipios (cluster);
+"""
+
+
+def ddl_cercanos(esquema: str) -> str:
+    """Tabla de municipios cercanos (opcional): para cada municipio, sus 5 vecinos más próximos."""
+    esquema = validar_esquema(esquema)
+    return f"""
+CREATE TABLE {esquema}.municipios_cercanos (
+    cod_ine           text NOT NULL REFERENCES {esquema}.municipios (cod_ine),
+    cod_ine_cercano   text NOT NULL REFERENCES {esquema}.municipios (cod_ine),
+    posicion          integer NOT NULL,
+    distancia_km      double precision,
+    orden             integer NOT NULL,
+    PRIMARY KEY (cod_ine, posicion)
+);
 """
 
 

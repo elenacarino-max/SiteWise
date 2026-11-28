@@ -23,11 +23,17 @@ from sitewise.db.esquema import (
     OBLIGATORIAS,
     con_tiempo_limite,
     ddl,
+    ddl_cercanos,
     ddl_perfiles,
     url_desde_entorno,
     validar_esquema,
 )
-from sitewise.db.perfiles import DIRECTORIO_POR_DEFECTO, ErrorPerfiles, buscar_ficheros
+from sitewise.db.perfiles import (
+    DIRECTORIO_POR_DEFECTO,
+    ErrorPerfiles,
+    buscar_cercanos,
+    buscar_ficheros,
+)
 from sitewise.db.repositorio import FICHEROS, DatosNoDisponibles, fichero_valores
 
 CANDIDATAS = ("data/processed/sitewise_v03", "data/processed/sidewise_v03")
@@ -122,6 +128,10 @@ def cargar_csv(
     for tabla in ("municipios", "indicadores", "valores"):
         tablas[tabla], ignoradas[tabla] = _leer(directorio, tabla)
 
+    f_cercanos = buscar_cercanos(directorio_perfiles)
+    if f_cercanos is not None:
+        tablas["municipios_cercanos"], ignoradas["municipios_cercanos"] = _leer(directorio, "municipios_cercanos", f_cercanos)
+
     try:
         f_perfiles, f_definicion = buscar_ficheros(directorio_perfiles)
     except ErrorPerfiles as exc:
@@ -142,7 +152,7 @@ def cargar_csv(
                 )
             with conexion.cursor() as cur:
                 cur.execute(
-                    f"DROP TABLE IF EXISTS {esquema}.perfiles_municipios, {esquema}.perfiles_definicion, "
+                    f"DROP TABLE IF EXISTS {esquema}.municipios_cercanos, {esquema}.perfiles_municipios, {esquema}.perfiles_definicion, "
                     f"{esquema}.valores, {esquema}.indicadores, {esquema}.municipios"
                 )
                 cur.execute(ddl(esquema))
@@ -150,6 +160,9 @@ def cargar_csv(
                 if con_perfiles:
                     cur.execute(ddl_perfiles(esquema))
                     orden += ["perfiles_definicion", "perfiles_municipios"]  # la definición va antes: la referencian
+                if f_cercanos is not None:
+                    cur.execute(ddl_cercanos(esquema))
+                    orden.append("municipios_cercanos")
                 try:
                     for tabla in orden:  # este orden respeta las claves foráneas
                         _copiar(cur, esquema, tabla, tablas[tabla])
@@ -170,6 +183,7 @@ def cargar_csv(
         "columnas_ignoradas": {t: c for t, c in ignoradas.items() if c},
         "postgis": postgis,
         "perfiles": len(tablas["perfiles_municipios"]) if con_perfiles else None,
+        "cercanos": len(tablas["municipios_cercanos"]) if f_cercanos is not None else None,
     }
 
 
@@ -201,6 +215,10 @@ def main() -> None:
         print("  perfiles    no cargados (no encuentro los CSV de perfiles en la carpeta indicada)")
     else:
         print(f"  perfiles    {resumen['perfiles']:>8}")
+    if resumen["cercanos"] is None:
+        print("  cercanos    no cargados (no encuentro municipios_cercanos_vNN.csv)")
+    else:
+        print(f"  cercanos    {resumen['cercanos']:>8}")
     print(f"  PostGIS: {'activado (columna geom)' if resumen['postgis'] else 'no disponible (se usan lat y lon)'}")
     for tabla, columnas in resumen["columnas_ignoradas"].items():
         print(f"  Aviso: {tabla}.csv tiene columnas que no guardo: {', '.join(columnas)}")

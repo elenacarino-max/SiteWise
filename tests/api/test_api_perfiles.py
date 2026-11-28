@@ -28,7 +28,8 @@ def test_health_dice_la_version_de_los_perfiles(cliente_con_perfiles):
 def test_listar_perfiles(cliente_con_perfiles):
     cuerpo = cliente_con_perfiles.get("/perfiles").json()
     assert [p["nombre"] for p in cuerpo["perfiles"]] == ["Perfil de prueba A", "Perfil de prueba B"]
-    assert cuerpo["perfiles"][1]["medianas"]["poblacion_2025"] == 200.0
+    assert cuerpo["perfiles"][1]["medianas"]["estres_hidrico_pct"] == 290.0
+    assert cuerpo["perfiles"][1]["indices"] == {"logistica": 57.0, "hidrica": 80.0, "conectividad": 58.0}
     assert "No es una nota" in cuerpo["aviso"]
 
 

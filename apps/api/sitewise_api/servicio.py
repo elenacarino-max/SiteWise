@@ -25,8 +25,10 @@ from .schemas import (
     ListaMunicipios,
     ListaPerfiles,
     Municipio,
+    MunicipioCercano,
     MunicipioSimilar,
     PerfilMunicipio,
+    RespuestaCercanos,
     RespuestaComparacion,
     RespuestaEvaluacion,
     RespuestaMapa,
@@ -105,6 +107,16 @@ class Servicio:
             limite=limite,
             desplazamiento=desplazamiento,
             similares=[MunicipioSimilar(**m) for m in pagina],
+        )
+
+    def cercanos(self, cod_ine) -> RespuestaCercanos | None:
+        """Los municipios más próximos. None si no hay datos de cercanos para ese municipio."""
+        datos = self.repo.cercanos(cod_ine)
+        if datos is None:
+            return None
+        return RespuestaCercanos(
+            municipio=self.municipio(cod_ine),
+            cercanos=[MunicipioCercano(**m) for m in datos],
         )
 
     @staticmethod

@@ -69,3 +69,22 @@ def leer_perfiles(directorio: str | Path | None) -> tuple[pd.DataFrame, pd.DataF
     # cod_ine siempre como texto de 5 dígitos (si no, "01001" pierde el cero inicial).
     municipios["cod_ine"] = municipios["cod_ine"].str.strip().str.zfill(5)
     return municipios, definicion
+
+
+def buscar_cercanos(directorio: str | Path | None) -> Path | None:
+    """El `municipios_cercanos_vNN.csv` de versión más alta, o None si no hay ninguno."""
+    if directorio is None or not Path(directorio).is_dir():
+        return None
+    versiones = _versiones(Path(directorio), "municipios_cercanos")
+    return versiones[max(versiones)] if versiones else None
+
+
+def leer_cercanos(directorio: str | Path | None) -> pd.DataFrame | None:
+    """Los 5 municipios más próximos de cada municipio (calculados por Helen). None si no está el CSV."""
+    fichero = buscar_cercanos(directorio)
+    if fichero is None:
+        return None
+    df = pd.read_csv(fichero, dtype={"cod_ine": str, "cod_ine_cercano": str})
+    for columna in ("cod_ine", "cod_ine_cercano"):
+        df[columna] = df[columna].str.strip().str.zfill(5)
+    return df

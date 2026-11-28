@@ -45,6 +45,10 @@ Los perfiles son opcionales: si no están los CSV, la carga sigue y la API devue
 saca una versión nueva (v02), se vuelve a ejecutar el cargador (se usa la versión más alta). Si los perfiles
 incluyen un municipio que no está en el dataset, la carga se detiene con un error claro.
 
+Del mismo modo, si está `municipios_cercanos_vNN.csv` (los 5 municipios más próximos de cada uno, de Helen) se crea la
+tabla opcional `municipios_cercanos` (`cod_ine`, `cod_ine_cercano`, `posicion`, `distancia_km`; las dos claves van a `municipios`).
+Es independiente de los perfiles: se carga o no por separado.
+
 Si la base se cargó con una versión anterior del cargador, faltan columnas (las de las estimaciones del
 notebook 09): la API lo avisa con un error claro y basta con volver a ejecutar el cargador.
 
