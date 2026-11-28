@@ -96,7 +96,8 @@ class DefinicionPerfil(BaseModel):
     nombre: str
     descripcion: str | None = None
     n_municipios: int | None = None
-    medianas: dict[str, float | None]  # mediana de cada variable en el perfil, p. ej. poblacion_2025
+    medianas: dict[str, float | None]  # mediana de cada variable en el perfil, p. ej. estres_hidrico_pct
+    indices: dict[str, float | None] = {}  # índice medio del perfil (0-100): logistica, hidrica, conectividad
     version_modelo: str | None = None
 
 

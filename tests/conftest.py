@@ -81,11 +81,12 @@ PERFILES_MUNICIPIOS = (
     "41001,1,Perfil de prueba B,1,v01\n"
 )
 PERFILES_DEFINICION = (
-    "cluster,cluster_perfil,descripcion,n_municipios,mediana_poblacion_2025,"
-    "mediana_suelo_industrial_cartografiado_pct,mediana_dist_recta_eje_autovia_km,mediana_dist_recta_ttm_km,"
-    "mediana_paro_por_100_hab,mediana_viento_100m_media_m_s,mediana_agua_vecinos_pct,version_modelo\n"
-    '0,Perfil de prueba A,"Descripción, con coma y ""comillas"" de prueba.",1,100.0,1.0,2.0,3.0,4.0,5.0,0.0,v01\n'
-    "1,Perfil de prueba B,Otra descripción de prueba.,2,200.0,1.5,2.5,3.5,4.5,5.5,10.0,v01\n"
+    "cluster,cluster_perfil,descripcion,n_municipios,mediana_suelo_industrial_cartografiado_pct,"
+    "mediana_dist_recta_eje_autovia_km,mediana_dist_recta_ttm_km,mediana_estres_hidrico_pct,"
+    "mediana_cobertura_ftth_pct,mediana_cobertura_5g_pct,media_idx_logistica,media_idx_hidrica,"
+    "media_idx_conectividad,version_modelo\n"
+    '0,Perfil de prueba A,"Descripción, con coma y ""comillas"" de prueba.",1,1.0,2.0,3.0,40.0,95.0,100.0,75.0,40.0,66.0,v01\n'
+    "1,Perfil de prueba B,Otra descripción de prueba.,2,1.5,2.5,3.5,290.0,94.0,99.0,57.0,80.0,58.0,v01\n"
 )
 
 

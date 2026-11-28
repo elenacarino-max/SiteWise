@@ -34,8 +34,9 @@ def test_definiciones_con_medianas_y_descripcion_con_comas(directorio_datos, dir
     definiciones = RepositorioCSV(directorio_datos, directorio_perfiles).definiciones_perfiles()
     assert [d["cluster"] for d in definiciones] == [0, 1]
     assert definiciones[0]["descripcion"] == 'Descripción, con coma y "comillas" de prueba.'
-    assert definiciones[1]["medianas"]["poblacion_2025"] == 200.0
-    assert definiciones[1]["medianas"]["agua_vecinos_pct"] == 10.0
+    assert definiciones[1]["medianas"]["estres_hidrico_pct"] == 290.0
+    assert definiciones[1]["medianas"]["cobertura_5g_pct"] == 99.0
+    assert definiciones[1]["indices"]["hidrica"] == 80.0
     assert definiciones[1]["n_municipios"] == 2
 
 
