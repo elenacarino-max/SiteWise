@@ -23,8 +23,8 @@ El perfil describe cómo es un municipio; no es una nota de riesgo ni de atracti
 | Índice | Variable | Sentido | Huecos |
 | --- | --- | --- | --- |
 | Logística | `suelo_industrial_cartografiado_pct` | mayor, mejor | Ninguno |
-| Logística | `dist_recta_eje_autovia_km` | menor, mejor | 56 (no se imputa) |
-| Logística | `dist_recta_ttm_km` | menor, mejor | 161 (no se imputa) |
+| Logística | `dist_recta_eje_autovia_km` | menor, mejor | 52 (no se imputa) |
+| Logística | `dist_recta_ttm_km` | menor, mejor | 157 (no se imputa) |
 | Hídrica | `estres_hidrico_pct` | mayor, más presión | 24 (estimados con vecinos) |
 | Hídrica | `agua_subterranea_mal_estado_cuantitativo_pct` | mayor, más presión | 722 (estimados con vecinos) |
 | Conectividad | `cobertura_ftth_pct` | mayor, mejor | Ninguno |
@@ -61,12 +61,12 @@ Regla general: los valores estimados **solo se usan para el índice hídrico**, 
 
 | Variable | Municipios sin dato | Quiénes son | Tratamiento |
 | --- | --- | --- | --- |
-| `dist_recta_ttm_km` | 161 | Baleares (67), Canarias (88), Ceuta y Melilla, y 4 peninsulares (2 de Burgos, 1 de Girona, 1 de Pontevedra) | No se imputa: esos municipios no tienen perfil |
-| `dist_recta_eje_autovia_km` | 56 | Canarias (36), Baleares (14), Ceuta, Melilla y los mismos 4 peninsulares | No se imputa (el municipio ya queda sin perfil por la terminal) |
+| `dist_recta_ttm_km` | 157 | Baleares (67), Canarias (88), Ceuta y Melilla | No se imputa: esos municipios no tienen perfil |
+| `dist_recta_eje_autovia_km` | 52 | Canarias (36), Baleares (14), Ceuta y Melilla | No se imputa (el municipio ya queda sin perfil por la terminal) |
 | `estres_hidrico_pct` | 24 | Repartidos por varias provincias | Media de los 5 municipios cercanos con dato |
 | `agua_subterranea_mal_estado_cuantitativo_pct` | 722 | Municipios sin masa de agua catalogada | Media de los 5 municipios cercanos con dato. Error medio de 12,8 puntos validado con vecinos de otras provincias (notebook 08) |
 
-Los 4 casos peninsulares sin terminal ni autovía hay que revisarlos uno a uno con Elena.
+Hacinas, Monasterio de la Sierra, Llívia y A Illa de Arousa tenían las dos distancias vacías por cómo se calculaban; se corrigieron el 27 de noviembre de 2026 (PR #61, notebook 02) y ahora entran en el perfil.
 
 ## Pendiente
 

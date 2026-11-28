@@ -15,7 +15,7 @@ v01 agrupaba 7 variables mezcladas (población, suelo industrial, distancias, pa
 ## Datos
 
 - Dataset `sitewise_v04_candidata` (notebooks 01A y 03A) y percentiles de los componentes (notebook 03B).
-- Tienen perfil **7.971 de los 8.132 municipios (98,0 %)**.
+- Tienen perfil **7.975 de los 8.132 municipios (98,1 %)**.
 - Se ajusta con todos los municipios a la vez (no hay conjunto de validación separado).
 
 ## Índices (0 a 100)
@@ -34,7 +34,7 @@ No entran en el perfil, y quedan como datos sueltos (filtros, scoring por activi
 
 K-Means con **K=4**, `n_init=20`, semilla 42, sobre los tres índices. No hay PCA ni escalado (los índices ya están en la misma escala). Los números de grupo se ordenan por el índice de logística (0 = la mejor), así no cambian entre ejecuciones.
 
-**K=4 es una decisión de interpretación, no de métrica.** En el barrido de K de 2 a 8 el silhouette es más alto con K=2 (0,308) y baja hasta 0,255 con K=8; con K=4 vale 0,285. Se eligió 4 porque es el menor número de grupos que separa a los municipios de poca logística **mal conectados** de los que tienen **buena conectividad**, y deja cada perfil descrito en una frase. K=3 sería igualmente defendible (cambiar un parámetro en el notebook 07). Detalle en `notebooks/05_clustering_kmeans.ipynb`; los experimentos se registran en MLflow (notebook 06).
+**K=4 es una decisión de interpretación, no de métrica.** En el barrido de K de 2 a 8 el silhouette es más alto con K=2 (0,307) y baja hasta 0,253 con K=8; con K=4 vale 0,290. Se eligió 4 porque es el menor número de grupos que separa a los municipios de poca logística **mal conectados** de los que tienen **buena conectividad**, y deja cada perfil descrito en una frase. K=3 sería igualmente defendible (cambiar un parámetro en el notebook 07). Detalle en `notebooks/05_clustering_kmeans.ipynb`; los experimentos se registran en MLflow (notebook 06).
 
 ## Perfiles
 
@@ -42,22 +42,22 @@ Los nombres están en `src/sitewise/ml/perfiles.py` y son **provisionales** (los
 
 | Grupo | Perfil | Municipios | Suelo ind. (%, mediana) | Autovía (km) | Terminal (km) | Estrés hídrico (%) | Fibra (%) | 5G (%) |
 |---|---|---|---|---|---|---|---|---|
-| 0 | Buena logística y buena conectividad | 1.871 | 0,55 | 3,0 | 28,8 | 41 | 96 | 100 |
-| 1 | Logística media-buena con mucha presión hídrica | 1.587 | 0,10 | 6,7 | 53,2 | 295 | 95 | 100 |
-| 2 | Logística baja y mal conectados | 2.470 | 0,00 | 15,1 | 62,3 | 58 | 75 | 89 |
-| 3 | Logística baja pero bien conectados | 2.043 | 0,00 | 19,5 | 77,3 | 59 | 94 | 100 |
+| 0 | Buena logística y buena conectividad | 1.876 | 0,54 | 3,0 | 29,0 | 41 | 96 | 100 |
+| 1 | Logística media-buena con mucha presión hídrica | 1.584 | 0,10 | 6,7 | 53,2 | 295 | 95 | 100 |
+| 2 | Logística baja y mal conectados | 2.470 | 0,00 | 15,0 | 62,2 | 58 | 75 | 89 |
+| 3 | Logística baja pero bien conectados | 2.045 | 0,00 | 19,5 | 77,5 | 59 | 94 | 100 |
 
 Medias de los índices por grupo (logística / hídrica / conectividad): 75/40/66, 58/80/59, 40/42/24 y 33/43/59. Todas las cifras por grupo están en `data/reference/perfiles_definicion_v02.csv`.
 
 ## Calidad
 
-- **Silhouette: 0,285** (sobre una muestra fija de 5.000 municipios). Es bajo y **no es comparable con el 0,230 de v01**, porque son espacios de variables distintos.
-- **Estabilidad: ARI mínimo 0,99** entre semillas.
+- **Silhouette: 0,290** (sobre una muestra fija de 5.000 municipios). Es bajo y **no es comparable con el 0,230 de v01**, porque son espacios de variables distintos.
+- **Estabilidad: ARI mínimo 0,995** entre semillas.
 - Los índices de percentil son casi uniformes, así que K-Means *corta un continuo*: los grupos se justifican por su interpretación, no por un silhouette alto.
 
 ## Ficheros de salida (`data/reference/`)
 
-- `perfiles_municipios_v02.csv` (7.971 filas, ordenado por `cod_ine`): `cod_ine` (texto de 5 dígitos), `cluster` (0–3), `cluster_perfil`, `es_atipico` y `version_modelo`. Lo usan la API (Adriana) y el RAG (Josema).
+- `perfiles_municipios_v02.csv` (7.975 filas, ordenado por `cod_ine`): `cod_ine` (texto de 5 dígitos), `cluster` (0–3), `cluster_perfil`, `es_atipico` y `version_modelo`. Lo usan la API (Adriana) y el RAG (Josema).
 - `perfiles_definicion_v02.csv`: una fila por perfil, con nombre, descripción, nº de municipios, medianas de las variables y medias de los índices.
 - `perfiles_estado_v02.csv` (8.132 filas): si cada municipio tiene perfil, por qué no, qué datos se estimaron con vecinos y los tres índices.
 
@@ -77,7 +77,7 @@ Para cada municipio, los 5 más **cercanos en el mapa**, en `data/reference/muni
 
 1. **Es un continuo, no cuatro bloques separados.** Un municipio cerca de la frontera entre dos perfiles podría estar en cualquiera de los dos.
 2. **K=4 no lo eligen las métricas** (ver arriba). Es una decisión de interpretación defendible, no la única.
-3. **161 municipios sin perfil** (1,98 %): 157 son de Baleares (67), Canarias (88), Ceuta y Melilla, sin distancia a terminal de mercancías; los otros 4 son peninsulares (dos de Burgos, uno de Girona y uno de Pontevedra) y están pendientes de revisar. La distancia a terminal no se imputa porque estimarla desde un vecino no tendría sentido por tierra.
+3. **157 municipios sin perfil** (1,93 %): Baleares (67), Canarias (88), Ceuta y Melilla, sin distancia a terminal de mercancías por tierra. Hacinas, Monasterio de la Sierra, Llívia y A Illa de Arousa tenían el dato vacío por cómo se calculaba; se corrigió el 27 de noviembre de 2026 (PR #61, notebook 02) y ahora tienen perfil. La distancia a terminal no se imputa porque estimarla desde un vecino no tendría sentido por tierra.
 4. **La dimensión hídrica usa datos estimados**: 722 municipios sin masa de agua catalogada (acuíferos) y 24 sin estrés hídrico, completados con los 5 municipios cercanos. Comprobado ocultando municipios y estimándolos con vecinos de otras provincias, el error medio es de 12,8 puntos (16,5 si se rellena con 0 y 26,1 con la media) y la correlación con el valor real es de 0,67. Es una aproximación: se marca en `perfiles_estado_v02.csv` y en la app como aproximado. El agua química no está incluida (solo la cuantitativa).
 5. **El grupo 1 se define por la presión hídrica.** El estrés hídrico toma valores superiores a 100 en los datos (mediana 295 en ese grupo).
 6. **No incluye población, paro, viento ni riesgos naturales.** Un municipio de un perfil puede tener un riesgo natural alto o bajo; eso se consulta aparte.
