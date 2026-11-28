@@ -87,9 +87,9 @@ La cobertura se expresa como municipios con valor utilizable sobre 8.132.
 | `estres_hidrico_pct` | Estrés hídrico medio del territorio municipal | % | riesgo | baseline 2019 | 8.108 |
 | `agotamiento_hidrico_pct` | Agotamiento hídrico medio del territorio municipal | % | riesgo | baseline 2019 | 8.108 |
 | `superficie_estres_ge40_pct` | Superficie válida con estrés hídrico igual o superior al 40 % | % | riesgo | baseline 2019 | 8.108 |
-| `dist_recta_ttm_km` | Distancia recta a terminal de transporte de mercancías catalogada | km | atractivo | consulta 2026-11-13 | 7.971 |
-| `dist_recta_ttm_intermodal_km` | Distancia recta a terminal intermodal catalogada | km | atractivo | consulta 2026-11-13 | 7.971 |
-| `dist_recta_eje_autovia_km` | Distancia recta al eje de autopista o autovía | km | atractivo | consulta 2026-11-13 | 8.076 |
+| `dist_recta_ttm_km` | Distancia recta a terminal de transporte de mercancías catalogada | km | atractivo | consulta 2026-11-13 | 7.975 |
+| `dist_recta_ttm_intermodal_km` | Distancia recta a terminal intermodal catalogada | km | atractivo | consulta 2026-11-13 | 7.975 |
+| `dist_recta_eje_autovia_km` | Distancia recta al eje de autopista o autovía | km | atractivo | consulta 2026-11-13 | 8.080 |
 | `suelo_industrial_cartografiado_ha` | Superficie industrial presente en el catálogo cartográfico | ha | atractivo | 2020 | 8.132 |
 | `suelo_industrial_cartografiado_pct` | Superficie industrial cartografiada respecto al municipio | % | contexto | 2020 | 8.132 |
 | `paro_total` | Paro registrado total | personas | contexto | 2026-10 | 6.280 |
@@ -208,7 +208,7 @@ El perfil usa tres índices de 0 a 100 (código en `src/sitewise/ml/indices.py`)
 
 | Índice | Componentes | Sentido | Huecos |
 |---|---|---|---|
-| `idx_logistica` | `suelo_industrial_cartografiado_pct`, `dist_recta_eje_autovia_km` (invertida), `dist_recta_ttm_km` (invertida) | Más alto, mejor | No se imputan: sin distancia a terminal, el municipio no tiene perfil (161) |
+| `idx_logistica` | `suelo_industrial_cartografiado_pct`, `dist_recta_eje_autovia_km` (invertida), `dist_recta_ttm_km` (invertida) | Más alto, mejor | No se imputan: sin distancia a terminal, el municipio no tiene perfil (157) |
 | `idx_hidrica` | `estres_hidrico_pct`, `agua_subterranea_mal_estado_cuantitativo_pct` | Más alto, **más presión** | Estimados con la media de los 5 municipios cercanos con dato (722 de agua subterránea y 24 de estrés hídrico) |
 | `idx_conectividad` | `cobertura_ftth_pct`, `cobertura_5g_pct` | Más alto, mejor | Sin huecos relevantes |
 
@@ -249,9 +249,9 @@ Se guardan en `data/reference/`. Los crea el notebook 07 (perfiles) y el noteboo
 
 | Fichero | Columnas | Definición |
 |---|---|---|
-| `perfiles_municipios_v02.csv` | `cod_ine`, `cluster`, `cluster_perfil`, `es_atipico`, `version_modelo` | Perfil de cada uno de los 7.971 municipios con perfil. `cluster` va de 0 (mejor logística) a 3. `es_atipico` vale 0 en todos: **no se evalúa en v02**. |
+| `perfiles_municipios_v02.csv` | `cod_ine`, `cluster`, `cluster_perfil`, `es_atipico`, `version_modelo` | Perfil de cada uno de los 7.975 municipios con perfil. `cluster` va de 0 (mejor logística) a 3. `es_atipico` vale 0 en todos: **no se evalúa en v02**. |
 | `perfiles_definicion_v02.csv` | `cluster`, `cluster_perfil`, `descripcion`, `n_municipios`, medianas de las 6 variables, `media_idx_*`, `version_modelo` | Definición y cifras de cada grupo. Los nombres son provisionales. |
-| `perfiles_estado_v02.csv` | `cod_ine`, `tiene_perfil`, `motivo_sin_perfil`, `acuifero_estimado_vecinos`, `estres_hidrico_estimado_vecinos`, `idx_logistica`, `idx_hidrica`, `idx_conectividad` | Una fila por municipio (8.132). Indica si tiene perfil, por qué no (161 sin distancia a terminal) y qué valores del índice hídrico son estimados. |
+| `perfiles_estado_v02.csv` | `cod_ine`, `tiene_perfil`, `motivo_sin_perfil`, `acuifero_estimado_vecinos`, `estres_hidrico_estimado_vecinos`, `idx_logistica`, `idx_hidrica`, `idx_conectividad` | Una fila por municipio (8.132). Indica si tiene perfil, por qué no (157 sin distancia a terminal) y qué valores del índice hídrico son estimados. |
 | `municipios_cercanos_v01.csv` | `cod_ine`, `cod_ine_cercano`, `posicion`, `distancia_km` | Municipios cercanos para el RAG y la API. |
 
 Los grupos son **exploratorios** y describen el territorio: no puntúan. Los ficheros `*_v01.csv` de perfiles (K=5, PCA) se conservan solo como historia; la API carga la versión más alta común a los dos CSV de perfiles.

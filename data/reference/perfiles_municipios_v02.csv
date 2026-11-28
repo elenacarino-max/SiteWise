@@ -661,7 +661,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 06030,3,Logística baja pero bien conectados,0,v02
 06031,0,Buena logística y buena conectividad,0,v02
 06032,0,Buena logística y buena conectividad,0,v02
-06033,1,Logística media-buena con mucha presión hídrica,0,v02
+06033,3,Logística baja pero bien conectados,0,v02
 06034,3,Logística baja pero bien conectados,0,v02
 06035,3,Logística baja pero bien conectados,0,v02
 06036,3,Logística baja pero bien conectados,0,v02
@@ -1090,7 +1090,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 08296,0,Buena logística y buena conectividad,0,v02
 08297,2,Logística baja y mal conectados,0,v02
 08298,0,Buena logística y buena conectividad,0,v02
-08299,3,Logística baja pero bien conectados,0,v02
+08299,0,Buena logística y buena conectividad,0,v02
 08300,0,Buena logística y buena conectividad,0,v02
 08301,1,Logística media-buena con mucha presión hídrica,0,v02
 08302,0,Buena logística y buena conectividad,0,v02
@@ -1225,6 +1225,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 09149,2,Logística baja y mal conectados,0,v02
 09151,0,Buena logística y buena conectividad,0,v02
 09152,2,Logística baja y mal conectados,0,v02
+09154,2,Logística baja y mal conectados,0,v02
 09155,3,Logística baja pero bien conectados,0,v02
 09159,2,Logística baja y mal conectados,0,v02
 09160,3,Logística baja pero bien conectados,0,v02
@@ -1275,6 +1276,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 09219,0,Buena logística y buena conectividad,0,v02
 09220,3,Logística baja pero bien conectados,0,v02
 09221,0,Buena logística y buena conectividad,0,v02
+09223,2,Logística baja y mal conectados,0,v02
 09224,2,Logística baja y mal conectados,0,v02
 09225,2,Logística baja y mal conectados,0,v02
 09226,2,Logística baja y mal conectados,0,v02
@@ -2475,6 +2477,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 17091,3,Logística baja pero bien conectados,0,v02
 17092,1,Logística media-buena con mucha presión hídrica,0,v02
 17093,0,Buena logística y buena conectividad,0,v02
+17094,3,Logística baja pero bien conectados,0,v02
 17095,1,Logística media-buena con mucha presión hídrica,0,v02
 17096,2,Logística baja y mal conectados,0,v02
 17097,3,Logística baja pero bien conectados,0,v02
@@ -2525,7 +2528,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 17148,0,Buena logística y buena conectividad,0,v02
 17149,3,Logística baja pero bien conectados,0,v02
 17150,0,Buena logística y buena conectividad,0,v02
-17151,3,Logística baja pero bien conectados,0,v02
+17151,2,Logística baja y mal conectados,0,v02
 17152,0,Buena logística y buena conectividad,0,v02
 17153,0,Buena logística y buena conectividad,0,v02
 17154,2,Logística baja y mal conectados,0,v02
@@ -2860,7 +2863,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 19097,3,Logística baja pero bien conectados,0,v02
 19098,2,Logística baja y mal conectados,0,v02
 19099,2,Logística baja y mal conectados,0,v02
-19102,1,Logística media-buena con mucha presión hídrica,0,v02
+19102,3,Logística baja pero bien conectados,0,v02
 19103,2,Logística baja y mal conectados,0,v02
 19104,2,Logística baja y mal conectados,0,v02
 19105,0,Buena logística y buena conectividad,0,v02
@@ -3978,7 +3981,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 25911,2,Logística baja y mal conectados,0,v02
 25912,2,Logística baja y mal conectados,0,v02
 25913,3,Logística baja pero bien conectados,0,v02
-26001,3,Logística baja pero bien conectados,0,v02
+26001,0,Buena logística y buena conectividad,0,v02
 26002,0,Buena logística y buena conectividad,0,v02
 26003,3,Logística baja pero bien conectados,0,v02
 26004,2,Logística baja y mal conectados,0,v02
@@ -4341,7 +4344,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 28125,3,Logística baja pero bien conectados,0,v02
 28126,2,Logística baja y mal conectados,0,v02
 28127,0,Buena logística y buena conectividad,0,v02
-28128,2,Logística baja y mal conectados,0,v02
+28128,3,Logística baja pero bien conectados,0,v02
 28129,0,Buena logística y buena conectividad,0,v02
 28130,0,Buena logística y buena conectividad,0,v02
 28131,0,Buena logística y buena conectividad,0,v02
@@ -5076,7 +5079,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 34108,0,Buena logística y buena conectividad,0,v02
 34109,3,Logística baja pero bien conectados,0,v02
 34110,3,Logística baja pero bien conectados,0,v02
-34112,2,Logística baja y mal conectados,0,v02
+34112,3,Logística baja pero bien conectados,0,v02
 34113,3,Logística baja pero bien conectados,0,v02
 34114,3,Logística baja pero bien conectados,0,v02
 34116,3,Logística baja pero bien conectados,0,v02
@@ -5238,6 +5241,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 36059,3,Logística baja pero bien conectados,0,v02
 36060,0,Buena logística y buena conectividad,0,v02
 36061,0,Buena logística y buena conectividad,0,v02
+36901,0,Buena logística y buena conectividad,0,v02
 36902,2,Logística baja y mal conectados,0,v02
 37001,3,Logística baja pero bien conectados,0,v02
 37002,3,Logística baja pero bien conectados,0,v02
@@ -5732,7 +5736,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 40030,1,Logística media-buena con mucha presión hídrica,0,v02
 40031,0,Buena logística y buena conectividad,0,v02
 40032,0,Buena logística y buena conectividad,0,v02
-40033,1,Logística media-buena con mucha presión hídrica,0,v02
+40033,0,Buena logística y buena conectividad,0,v02
 40034,2,Logística baja y mal conectados,0,v02
 40035,3,Logística baja pero bien conectados,0,v02
 40036,3,Logística baja pero bien conectados,0,v02
@@ -5850,7 +5854,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 40166,1,Logística media-buena con mucha presión hídrica,0,v02
 40168,2,Logística baja y mal conectados,0,v02
 40170,3,Logística baja pero bien conectados,0,v02
-40171,2,Logística baja y mal conectados,0,v02
+40171,3,Logística baja pero bien conectados,0,v02
 40172,3,Logística baja pero bien conectados,0,v02
 40173,3,Logística baja pero bien conectados,0,v02
 40174,3,Logística baja pero bien conectados,0,v02
@@ -5976,7 +5980,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 41062,1,Logística media-buena con mucha presión hídrica,0,v02
 41063,1,Logística media-buena con mucha presión hídrica,0,v02
 41064,3,Logística baja pero bien conectados,0,v02
-41065,1,Logística media-buena con mucha presión hídrica,0,v02
+41065,0,Buena logística y buena conectividad,0,v02
 41066,3,Logística baja pero bien conectados,0,v02
 41067,1,Logística media-buena con mucha presión hídrica,0,v02
 41068,1,Logística media-buena con mucha presión hídrica,0,v02
@@ -5997,7 +6001,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 41083,1,Logística media-buena con mucha presión hídrica,0,v02
 41084,1,Logística media-buena con mucha presión hídrica,0,v02
 41085,1,Logística media-buena con mucha presión hídrica,0,v02
-41086,0,Buena logística y buena conectividad,0,v02
+41086,1,Logística media-buena con mucha presión hídrica,0,v02
 41087,1,Logística media-buena con mucha presión hídrica,0,v02
 41088,3,Logística baja pero bien conectados,0,v02
 41089,1,Logística media-buena con mucha presión hídrica,0,v02
@@ -7538,7 +7542,7 @@ cod_ine,cluster,cluster_perfil,es_atipico,version_modelo
 49118,2,Logística baja y mal conectados,0,v02
 49119,1,Logística media-buena con mucha presión hídrica,0,v02
 49120,2,Logística baja y mal conectados,0,v02
-49121,3,Logística baja pero bien conectados,0,v02
+49121,0,Buena logística y buena conectividad,0,v02
 49122,1,Logística media-buena con mucha presión hídrica,0,v02
 49123,3,Logística baja pero bien conectados,0,v02
 49124,2,Logística baja y mal conectados,0,v02

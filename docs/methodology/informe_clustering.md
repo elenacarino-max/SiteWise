@@ -7,9 +7,9 @@ Este informe cuenta **cómo se llegó** a los 4 perfiles de municipios actuales 
 ## 1. Resumen
 
 - Se agrupan los municipios de España en **4 perfiles** con K-Means (K=4), usando **tres índices de 0 a 100**: logística, hídrica y conectividad. Sin PCA ni escalado, porque los tres ya están en la misma escala.
-- Tienen perfil **7.971 de 8.132 municipios (98,0 %)**. Los 161 restantes no tienen distancia a terminal de mercancías y no se imputan.
-- **K=4 se eligió por interpretación, no por una métrica.** El silhouette es más alto con K=2 (0,308) y baja hasta 0,255 con K=8 (0,285 con K=4). K=3 también sería defendible.
-- Los grupos son **estables**: con distintas semillas el resultado es casi igual (ARI mínimo 0,99 con K=4).
+- Tienen perfil **7.975 de 8.132 municipios (98,1 %)**. Los 157 restantes no tienen distancia a terminal de mercancías y no se imputan.
+- **K=4 se eligió por interpretación, no por una métrica.** El silhouette es más alto con K=2 (0,307) y baja hasta 0,253 con K=8 (0,290 con K=4). K=3 también sería defendible.
+- Los grupos son **estables**: con distintas semillas el resultado es casi igual (ARI mínimo 0,995 con K=4).
 - **Un perfil no es un riesgo.** Describe el territorio; no dice si es bueno o malo para una actividad. El riesgo se calcula aparte.
 - Es un análisis **exploratorio**. Los nombres de los perfiles son provisionales (los cierra Gema).
 
@@ -23,7 +23,7 @@ El primer modelo (v01) usaba 7 variables (población, suelo industrial, autovía
 | Preparación | log, recorte, estandarizado y PCA | Percentiles de 0 a 100; sin PCA |
 | K | 5 (por interpretación) | 4 (por interpretación) |
 | Atípicos | DBSCAN (360 marcados) | No se evalúan (`es_atipico` = 0) |
-| Cobertura | 8.132 (huecos rellenados con máximo o mediana) | 7.971 (sin imputar la logística) |
+| Cobertura | 8.132 (huecos rellenados con máximo o mediana) | 7.975 (sin imputar la logística) |
 | Variables de población, paro y viento | Dentro del perfil | Fuera: datos sueltos para filtros, scoring y RAG |
 
 Motivos principales: con PCA los perfiles dependían de una transformación difícil de explicar a una empresa; el paro de los grupos rurales dependía en parte de valores rellenados; y el grupo de agua era el único que se explicaba con una variable. Los notebooks y ficheros de v01 siguen en el historial de Git (commit `bc30250`).
@@ -44,7 +44,7 @@ Cada componente se convierte en percentil (rango medio) sobre los municipios con
 
 | Hueco | Municipios | Tratamiento |
 |---|---|---|
-| Distancia a terminal de mercancías | 161 | No se imputa: sin perfil (`sin_dato_logistica(terminal)`) |
+| Distancia a terminal de mercancías | 157 | No se imputa: sin perfil (`sin_dato_logistica(terminal)`) |
 | Agua subterránea sin masa catalogada | 722 | Media de los 5 municipios cercanos con dato; se marca |
 | Estrés hídrico | 24 | Igual |
 
@@ -56,13 +56,13 @@ El notebook 05 prueba K de 2 a 8 y varias alternativas de entradas; el 06 regist
 
 | K | Silhouette | Davies-Bouldin | Grupo más pequeño | ARI mínimo |
 |---|---|---|---|---|
-| 2 | 0,308 | 1,29 | 44,9 % | 0,99 |
-| 3 | 0,299 | 1,18 | 24,3 % | 1,00 |
-| **4** | **0,285** | **1,13** | **19,9 %** | **0,99** |
-| 5 | 0,275 | 1,06 | 17,1 % | 0,98 |
-| 6 | 0,269 | 1,06 | 12,6 % | 0,97 |
-| 7 | 0,260 | 1,09 | 11,2 % | 0,94 |
-| 8 | 0,255 | 1,11 | 8,9 % | 0,95 |
+| 2 | 0,307 | 1,29 | 45,0 % | 0,994 |
+| 3 | 0,299 | 1,18 | 24,3 % | 0,993 |
+| **4** | **0,290** | **1,13** | **19,9 %** | **0,995** |
+| 5 | 0,278 | 1,05 | 17,0 % | 0,977 |
+| 6 | 0,271 | 1,06 | 12,7 % | 0,964 |
+| 7 | 0,260 | 1,10 | 11,2 % | 0,880 |
+| 8 | 0,253 | 1,12 | 9,0 % | 0,908 |
 
 - Ninguna métrica señala un K claro. Es lo esperable: los índices son percentiles casi uniformes, así que K-Means **corta un continuo**.
 - **K=3** da tres perfiles claros, pero junta a los municipios aislados y mal conectados con los de poca logística pero buena fibra y 5G.
@@ -77,14 +77,14 @@ Los grupos se ordenan por la media del índice de logística (0 = mejor).
 
 | Grupo | Perfil | Municipios | Logística | Hídrica | Conectividad |
 |---|---|---|---|---|---|
-| 0 | Buena logística y buena conectividad | 1.871 | 75 | 40 | 66 |
-| 1 | Logística media-buena con mucha presión hídrica | 1.587 | 58 | 80 | 59 |
+| 0 | Buena logística y buena conectividad | 1.876 | 75 | 40 | 66 |
+| 1 | Logística media-buena con mucha presión hídrica | 1.584 | 58 | 80 | 59 |
 | 2 | Logística baja y mal conectados | 2.470 | 40 | 42 | 24 |
-| 3 | Logística baja pero bien conectados | 2.043 | 33 | 43 | 59 |
+| 3 | Logística baja pero bien conectados | 2.045 | 33 | 43 | 59 |
 
 Medias de cada índice. Las medianas de las variables originales están en `data/reference/perfiles_definicion_v02.csv`.
 
-- **Grupo 0:** suelo industrial (mediana 0,6 %), autovía a 3 km, terminal a 29 km y fibra y 5G casi completas.
+- **Grupo 0:** suelo industrial (mediana 0,5 %), autovía a 3 km, terminal a 29 km y fibra y 5G casi completas.
 - **Grupo 1:** se define por la presión hídrica (estrés hídrico con mediana de 295 %; en los datos toma valores superiores a 100).
 - **Grupo 2:** zonas aisladas: autovía a 15 km, terminal a 62 km y fibra al 75 % (5G al 89 %).
 - **Grupo 3:** igual de lejos de autovía y terminal, pero con fibra al 94 % y 5G al 100 %.
@@ -104,7 +104,7 @@ Para cada municipio, los 5 más **cercanos en el mapa**, en `data/reference/muni
 
 1. **Es un continuo, no cuatro bloques separados.** Un municipio cerca de la frontera entre dos perfiles podría estar en cualquiera.
 2. **K=4 se decide por interpretación**; K=3 sería igualmente defendible.
-3. **161 municipios sin perfil:** 157 son de Baleares, Canarias, Ceuta y Melilla; los otros 4 son peninsulares (dos de Burgos, uno de Girona y uno de Pontevedra) y están pendientes de revisar.
+3. **157 municipios sin perfil:** Baleares, Canarias, Ceuta y Melilla, sin distancia a terminal de mercancías por tierra. Hacinas, Monasterio de la Sierra, Llívia y A Illa de Arousa tenían el dato vacío por cómo se calculaba y se corrigió el 27 de noviembre de 2026 (PR #61, notebook 02): ahora tienen perfil.
 4. **El índice hídrica usa datos estimados** (722 de agua subterránea y 24 de estrés hídrico), con error medio de 12,8 puntos. El agua química no está incluida.
 5. **El grupo 1 se define por la presión hídrica.**
 6. **`es_atipico` vale 0 en todos:** en v02 no se evalúan atípicos.
@@ -115,7 +115,7 @@ Para cada municipio, los 5 más **cercanos en el mapa**, en `data/reference/muni
 
 ## 8. Cómo se usa
 
-- **Perfiles:** `data/reference/perfiles_municipios_v02.csv` (7.971 filas, ordenado por `cod_ine`) con `cod_ine` (texto de 5 dígitos), `cluster` (0–3), `cluster_perfil`, `es_atipico` y `version_modelo`.
+- **Perfiles:** `data/reference/perfiles_municipios_v02.csv` (7.975 filas, ordenado por `cod_ine`) con `cod_ine` (texto de 5 dígitos), `cluster` (0–3), `cluster_perfil`, `es_atipico` y `version_modelo`.
 - **Definición:** `data/reference/perfiles_definicion_v02.csv`.
 - **Estado por municipio:** `data/reference/perfiles_estado_v02.csv` (8.132 filas): si tiene perfil, motivo si no, datos estimados e índices.
 - **API (Adriana):** carga la versión más alta común a los dos CSV de perfiles. Los municipios sin perfil devuelven `perfil_no_disponible` (404). Faltan en `esquema.py` seis columnas de la definición nueva (medianas de estrés hídrico, fibra y 5G y las tres medias de índices), que hoy se ignoran.
@@ -126,7 +126,6 @@ Para cada municipio, los 5 más **cercanos en el mapa**, en `data/reference/muni
 
 - Confirmar con Gema los nombres de los perfiles.
 - Enseñar a Juan Miguel la justificación de K=4 (y la alternativa K=3).
-- Revisar los 4 municipios peninsulares sin terminal.
 - Decidir qué hace la API con los cercanos muy lejanos (umbral de `distancia_km`).
 
 ## 9. Archivos y reproducibilidad

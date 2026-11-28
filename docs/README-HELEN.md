@@ -42,7 +42,7 @@ Detalle de cada variable y de los ficheros derivados: `docs/data/DICCIONARIO_DAT
 
 | Dato | Municipios | Tratamiento |
 |---|---|---|
-| Distancia a terminal de mercancías | 161 (Baleares, Canarias, Ceuta, Melilla y 4 peninsulares) | No se imputa: sin perfil |
+| Distancia a terminal de mercancías | 157 (Baleares, Canarias, Ceuta y Melilla) | No se imputa: sin perfil |
 | Agua subterránea (acuíferos) | 722 | Media de los 5 municipios cercanos con dato; se marca como aproximado |
 | Estrés hídrico | 24 | Igual que el anterior |
 
@@ -52,10 +52,10 @@ Detalle de cada variable y de los ficheros derivados: `docs/data/DICCIONARIO_DAT
 
 ## 5. Resultados
 
-- **K-Means con K=4.** No lo elige una métrica: el silhouette es más alto con K=2 (0,308) y baja hasta 0,255 con K=8 (0,285 con K=4). Se eligió 4 porque es el menor número de grupos que separa a los municipios de poca logística mal conectados de los que tienen buena conectividad y deja cada perfil explicable en una frase. K=3 también sería defendible.
-- **Cobertura:** 7.971 de 8.132 municipios con perfil (98,0 %).
+- **K-Means con K=4.** No lo elige una métrica: el silhouette es más alto con K=2 (0,307) y baja hasta 0,253 con K=8 (0,290 con K=4). Se eligió 4 porque es el menor número de grupos que separa a los municipios de poca logística mal conectados de los que tienen buena conectividad y deja cada perfil explicable en una frase. K=3 también sería defendible.
+- **Cobertura:** 7.975 de 8.132 municipios con perfil (98,1 %).
 - **Alternativas de entrada** (notebook 05): añadir el índice natural (JRC) dejaría solo el 49,5 % de los municipios con perfil, por eso se descarta.
-- Los grupos son estables entre semillas (ARI mínimo 0,99).
+- Los grupos son estables entre semillas (ARI mínimo 0,995).
 - **Atípicos:** `es_atipico` vale 0 en todos: no se evalúa en v02 (los índices son percentiles y no tienen valores extremos).
 
 ## 6. MLflow
@@ -89,7 +89,7 @@ indices = construir_indices(datos, componentes)  # idx_logistica, idx_hidrica, i
 
 - K=4 se decide por interpretación, no por una métrica; los grupos son exploratorios y los nombres son provisionales.
 - Los índices son percentiles casi uniformes: K-Means corta un continuo y un municipio cerca de la frontera entre dos perfiles podría estar en cualquiera.
-- 161 municipios no tienen perfil por falta de distancia a terminal; los 4 peninsulares hay que revisarlos.
+- 157 municipios no tienen perfil por falta de distancia a terminal (islas, Ceuta y Melilla). Hacinas, Monasterio de la Sierra, Llívia y A Illa de Arousa tenían el dato vacío y se corrigió el 27 de noviembre de 2026 (notebook 02).
 - El agua estimada es una aproximación (error medio de 12,8 puntos).
 - El modelo se ajusta con los 8.132 municipios a la vez: no se ha medido con municipios nuevos.
 - El perfil no incluye población, paro, viento ni riesgos naturales: se consultan aparte.
